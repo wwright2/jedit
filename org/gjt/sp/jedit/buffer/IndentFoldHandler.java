@@ -30,7 +30,7 @@ import javax.swing.text.Segment;
 /**
  * A fold handler that folds lines based on their indent level.
  * @author Slava Pestov
- * @version $Id: IndentFoldHandler.java 21831 2012-06-18 22:54:17Z ezust $
+ * @version $Id: IndentFoldHandler.java 25509 2021-04-24 21:55:35Z kpouer $
  * @since jEdit 4.0pre1
  */
 public class IndentFoldHandler extends FoldHandler
@@ -42,7 +42,7 @@ public class IndentFoldHandler extends FoldHandler
 
 	// Returns the width of leading whitespace in the given segment
 	// if it contains non-whitespace characters, or (-1) otherwise.
-	private int getLeadingWhitespaceWidth(Segment seg, int tabSize)
+	private static int getLeadingWhitespaceWidth(Segment seg, int tabSize)
 	{
 		int offset = seg.offset;
 		int count = seg.count;
@@ -78,6 +78,7 @@ public class IndentFoldHandler extends FoldHandler
 	 * @return The fold level of the specified line
 	 * @since jEdit 4.0pre1
 	 */
+	@Override
 	public int getFoldLevel(JEditBuffer buffer, int lineIndex, Segment seg)
 	{
 		int tabSize = buffer.getTabSize();
@@ -88,7 +89,7 @@ public class IndentFoldHandler extends FoldHandler
 			buffer.getLineText(index,seg);
 			int whitespace = getLeadingWhitespaceWidth(seg,tabSize);
 			if(whitespace >= 0)	// Non-whitespace found on line
-				return (whitespace > prevLevel) ? whitespace : prevLevel;
+				return Math.max(whitespace, prevLevel);
 			if(index == 0)
 				return 0;
 			if(index == lineIndex)
@@ -111,10 +112,11 @@ public class IndentFoldHandler extends FoldHandler
 	 * number order (i.e. bottomost line first).
 	 * @since jEdit 4.3pre18
 	 */
+	@Override
 	public List<Integer> getPrecedingFoldLevels(JEditBuffer buffer,
 		int lineIndex, Segment seg, int lineFoldLevel)
 	{
-		List<Integer> precedingFoldLevels = new ArrayList<Integer>();
+		List<Integer> precedingFoldLevels = new ArrayList<>();
 		int tabSize = buffer.getTabSize();
 		int whitespace = 0;
 		int index;
@@ -126,11 +128,10 @@ public class IndentFoldHandler extends FoldHandler
 			if (whitespace >= 0)
 				break;
 		}
-		int max = (lineFoldLevel > whitespace) ? lineFoldLevel : whitespace;
+		int max = Math.max(lineFoldLevel, whitespace);
 		for (index++; index < lineIndex; index++)
-			precedingFoldLevels.add(Integer.valueOf(max));
+			precedingFoldLevels.add(max);
 		return precedingFoldLevels;
 	}
 	//}}}
-
 }

@@ -33,41 +33,48 @@ import java.util.*;
 import java.util.List;
 
 import org.gjt.sp.jedit.*;
+import org.gjt.sp.util.GenericGUIUtilities;
 import org.gjt.sp.util.Log;
+
+import static javax.swing.JOptionPane.INFORMATION_MESSAGE;
 //}}}
-/** "About jEdit" dialog
-*/
-public class AboutDialog extends JDialog implements ActionListener
+
+/**
+ * "About jEdit" dialog
+ */
+public class AboutDialog extends JDialog
 {
 	//{{{ AboutDialog constructor
 	public AboutDialog(View view)
 	{
 		super(view,jEdit.getProperty("about.title"), true);
 		setResizable(false);
-		JButton closeBtn = new JButton(jEdit.getProperty("common.close"));
-		closeBtn.addActionListener(this);
-		getRootPane().setDefaultButton(closeBtn);
 
 		JPanel p = new JPanel(new BorderLayout());
+		p.setBorder(BorderFactory.createEmptyBorder(12, 12, 11, 11));
+			
 		final AboutPanel aboutPanel = new AboutPanel();
-		JPanel flowP = new JPanel(new FlowLayout());
-		flowP.add(closeBtn);
-		flowP.add(Box.createRigidArea(new Dimension(40, 40)));
-		Dimension dim = new Dimension(10, 0);
-		p.add(BorderLayout.WEST, Box.createRigidArea(dim));
-		p.add(BorderLayout.EAST, Box.createRigidArea(dim));
-		p.add(BorderLayout.NORTH, Box.createRigidArea(new Dimension(10, 10)));
-		p.add(BorderLayout.SOUTH, flowP);
-		p.add(BorderLayout.CENTER, aboutPanel);
-
+		p.add(aboutPanel);
+		
+		JButton closeBtn = new JButton(jEdit.getProperty("common.close"));
+		closeBtn.addActionListener(e -> closeDialog());
+		getRootPane().setDefaultButton(closeBtn);
 		closeBtn.setToolTipText(jEdit.getProperty("about.navigate"));
 		closeBtn.addKeyListener(new KeyAdapter()
 		{
+			@Override
 			public void keyPressed(KeyEvent e)
 			{
 				aboutPanel.handleKeyEvent(e);
 			}
 		});
+
+		JPanel buttonPanel = new JPanel();
+		buttonPanel.setLayout(new BoxLayout(buttonPanel, BoxLayout.X_AXIS));
+		buttonPanel.setBorder(BorderFactory.createEmptyBorder(17, 0, 0, 0));
+		buttonPanel.add(Box.createGlue());
+		buttonPanel.add(closeBtn);
+		p.add(buttonPanel, BorderLayout.SOUTH);
 
 		setContentPane(p);
 		pack();
@@ -81,12 +88,6 @@ public class AboutDialog extends JDialog implements ActionListener
 			}
 		});
 		setVisible(true);
-	} //}}}
-
-	//{{{ actionPerformed() method
-	public void actionPerformed(ActionEvent e)
-	{
-		closeDialog();
 	} //}}}
 
 	//{{{ closeDialog() method
@@ -110,16 +111,22 @@ public class AboutDialog extends JDialog implements ActionListener
 		private static boolean doWork;
 		private Thread th;
 		private final FontMetrics fm;
-		private int iLineHeight = 0, iListHeight, iLineCount = 0,
-			iBottomLineXOffset = 0, iBottomLineYOffset = 0,
-			iPipeLineCount = 0, w = 0, h = 0, y = 0;
+		private final int iLineHeight;
+		private final int iListHeight;
+		private final int iLineCount;
+		private int iBottomLineXOffset;
+		private final int iBottomLineYOffset;
+		private int iPipeLineCount;
+		private final int w;
+		private final int h;
+		private int y;
 		private static final int
 			SLEEP_TIME = 30,
 			iBottomPadding = 36,
 			iTopPadding = 120;
 		private static Rectangle2D.Float rectangle;
 		private static GradientPaint gradientPaint;
-		private boolean skipDrain = false;
+		private boolean skipDrain;
 
 		AboutPanel()
 		{
@@ -157,6 +164,7 @@ public class AboutDialog extends JDialog implements ActionListener
 			setPreferredSize(d);
 			w = d.width;
 			h = d.height;
+			iBottomLineXOffset = 0;
 			iBottomLineXOffset = (w / 2) - (fmBottom.stringWidth(sBottomLine) / 2);
 			iBottomLineYOffset = h - fmBottom.getHeight() / 2;
 
@@ -194,7 +202,7 @@ public class AboutDialog extends JDialog implements ActionListener
 			else if ((e.getKeyCode()) == KeyEvent.VK_ESCAPE)
 			{
 				e.consume();
-				JDialog d = GUIUtilities.getParentDialog(this);
+				JDialog d = GenericGUIUtilities.getParentDialog(this);
 				stopThread();
 				d.dispose();
 			}
@@ -289,6 +297,7 @@ public class AboutDialog extends JDialog implements ActionListener
 			}
 		}
 
+		@Override
 		public void run()
 		{
 			try
@@ -326,7 +335,7 @@ public class AboutDialog extends JDialog implements ActionListener
 		public static void tell(Object obj)
 		{
 			String str = obj == null ? "NULL" : obj.toString();
-			JOptionPane.showMessageDialog(jEdit.getActiveView(), str, "Title", 1);
+			JOptionPane.showMessageDialog(jEdit.getActiveView(), str, "Title", INFORMATION_MESSAGE);
 		}
 	} //}}}
 }

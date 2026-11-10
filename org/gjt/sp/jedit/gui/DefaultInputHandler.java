@@ -24,15 +24,18 @@ package org.gjt.sp.jedit.gui;
 
 //{{{ Imports
 import java.awt.event.InputEvent;
-import java.awt.Toolkit;
 import java.util.Hashtable;
+import java.util.Objects;
+
 import org.gjt.sp.jedit.*;
+
+import javax.annotation.Nonnull;
 //}}}
 
 /** The default input handler maps sequences of keystrokes into actions and inserts key typed events into the text area.
  *
  * @author Slava Pestov
- * @version $Id: DefaultInputHandler.java 24092 2015-09-24 02:36:15Z ezust $
+ * @version $Id: DefaultInputHandler.java 25698 2023-11-17 01:31:50Z vampire0 $
  */
 public class DefaultInputHandler extends InputHandler
 {
@@ -44,12 +47,10 @@ public class DefaultInputHandler extends InputHandler
 	 * must not be null.
 	 * @since jEdit 4.3pre1
 	 */
-	public DefaultInputHandler(View view, Hashtable bindings)
+	public DefaultInputHandler(View view, @Nonnull Hashtable bindings)
 	{
 		super(view);
-
-		if(bindings == null)
-			throw new NullPointerException();
+		Objects.requireNonNull(bindings);
 		this.bindings = this.currentBindings = bindings;
 	} //}}}
 
@@ -103,7 +104,8 @@ public class DefaultInputHandler extends InputHandler
 	 * @param dryRun only calculate the return value, do not have any other effect
 	 * @since jEdit 4.2pre5
 	 */
-	public boolean handleKey(KeyEventTranslator.Key keyStroke,boolean dryRun)
+	@Override
+	public boolean handleKey(KeyEventTranslator.Key keyStroke, boolean dryRun)
 	{
 		char input = '\0';
 		if(keyStroke.modifiers == null
@@ -154,7 +156,7 @@ public class DefaultInputHandler extends InputHandler
 				// beep when caps lock is pressed, etc.
 				if(currentBindings != bindings)
 				{
-					Toolkit.getDefaultToolkit().beep();
+					javax.swing.UIManager.getLookAndFeel().provideErrorFeedback(null); 
 					// F10 should be passed on, but C+e F10
 					// shouldn't
 					repeatCount = 1;

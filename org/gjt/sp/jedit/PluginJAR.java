@@ -38,6 +38,7 @@ import java.io.InputStream;
 import java.io.Reader;
 import java.lang.reflect.Modifier;
 import java.net.URL;
+import java.nio.charset.StandardCharsets;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Collections;
@@ -56,6 +57,7 @@ import java.util.regex.Pattern;
 import java.util.zip.ZipEntry;
 import java.util.zip.ZipFile;
 
+import javax.annotation.Nonnull;
 import javax.swing.SwingUtilities;
 
 import org.gjt.sp.jedit.browser.VFSBrowser;
@@ -64,6 +66,7 @@ import org.gjt.sp.jedit.buffer.FoldHandler;
 import org.gjt.sp.jedit.gui.DockableWindowFactory;
 import org.gjt.sp.jedit.gui.DockableWindowManager;
 import org.gjt.sp.jedit.io.CharsetEncoding;
+import org.gjt.sp.jedit.manager.BufferManager;
 import org.gjt.sp.jedit.msg.PluginUpdate;
 import org.gjt.sp.jedit.msg.PropertiesChanged;
 import org.gjt.sp.util.Log;
@@ -144,11 +147,12 @@ import static org.gjt.sp.jedit.EditBus.EBHandler;
  * @see ServiceManager
  *
  * @author Slava Pestov
- * @version $Id: PluginJAR.java 24110 2015-10-19 16:23:13Z vampire0 $
+ * @version $Id: PluginJAR.java 25698 2023-11-17 01:31:50Z vampire0 $
  * @since jEdit 4.2pre1
  */
 public class PluginJAR
 {
+	public static final PluginDepends[] EMPTY_PLUGIN_DEPENDS_ARRAY = new PluginDepends[0];
 	//{{{ Instance variables
 	private final String path;
 	private String cachePath;
@@ -175,16 +179,16 @@ public class PluginJAR
 
 	// Lists of jarPaths
 	/** These plugins require this plugin */
-	private final Set<String> theseRequireMe = new LinkedHashSet<String>();
+	private final Set<String> theseRequireMe = new LinkedHashSet<>();
 	
 	/** The plugins that uses me as optional dependency. */
-	private final Set<String> theseUseMe = new LinkedHashSet<String>();
+	private final Set<String> theseUseMe = new LinkedHashSet<>();
 	
 	/** This plugin requires these plugins. */
-	private final Set<String> weRequireThese = new LinkedHashSet<String>();
+	private final Set<String> weRequireThese = new LinkedHashSet<>();
 	
 	/** These plugins are an optional dependency for me, I'll use them if they are available, no worries if they aren't. */
-	private final Set<String> weUseThese = new LinkedHashSet<String>();
+	private final Set<String> weUseThese = new LinkedHashSet<>();
 	//}}}
 
 	//{{{ load(String jarPath, boolean activateDependentIfNecessary)
@@ -280,7 +284,7 @@ public class PluginJAR
 	{
 		String dir = MiscUtilities.getParentOfPath(path);
 		StringTokenizer st = new StringTokenizer(jarsString);
-		Collection<String> jarPaths = new LinkedList<String>();
+		Collection<String> jarPaths = new LinkedList<>();
 		while(st.hasMoreTokens())
 		{
 			String _jarPath = MiscUtilities.constructPath(dir,st.nextToken());
@@ -298,7 +302,7 @@ public class PluginJAR
 	public static Collection<String> parseJarsFilesStringNames(String jarsString)
 	{
 		StringTokenizer st = new StringTokenizer(jarsString);
-		Collection<String> jarPaths = new LinkedList<String>();
+		Collection<String> jarPaths = new LinkedList<>();
 		while(st.hasMoreTokens())
 		{
 			jarPaths.add(st.nextToken());
@@ -438,7 +442,7 @@ public class PluginJAR
 	 */
 	public static Set<String> getDependencySet(String className)
 	{
-		Set<String> retval = new LinkedHashSet<String>();
+		Set<String> retval = new LinkedHashSet<>();
 		PluginDepends[] deps = getPluginDepends(className);
 		for (PluginDepends pluginDepends : deps)
 		{
@@ -710,7 +714,7 @@ public class PluginJAR
 	//{{{ getPluginDepends() method
 	private static PluginDepends[] getPluginDepends(String classname) throws IllegalArgumentException
 	{
-		List<PluginDepends> ret = new ArrayList<PluginDepends>();
+		var ret = new ArrayList<PluginDepends>();
 		int i = 0;
 		String dep;
 		while((dep = jEdit.getProperty("plugin." + classname + ".depend." + i++)) != null)
@@ -741,7 +745,7 @@ public class PluginJAR
 				depends.name = arg.indexOf(' ') > 0 ? arg.substring(0, arg.indexOf(' ')) : arg;
 			ret.add(depends);
 		}
-		return ret.toArray(new PluginDepends[ret.size()]);
+		return ret.toArray(EMPTY_PLUGIN_DEPENDS_ARRAY);
 	} //}}}
 
 	//{{{ getDependencies() method
@@ -750,9 +754,10 @@ public class PluginJAR
 	 * @param classname The classname of a plugin
 	 * @return A list of classnames of plugins the plugin depends on.
 	 */
+	@Nonnull
 	public static Set<String> getDependencies(String classname) throws IllegalArgumentException
 	{
-		Set<String> ret = new HashSet<String>();
+		var ret = new HashSet<String>();
 		int i = 0;
 		String dep;
 		while((dep = jEdit.getProperty("plugin." + classname + ".depend." + i++)) != null)
@@ -776,7 +781,7 @@ public class PluginJAR
 	 */
 	public static Set<String> getOptionalDependencies(String classname) throws IllegalArgumentException
 	{
-		Set<String> ret = new HashSet<String>();
+		var ret = new HashSet<String>();
 		int i = 0;
 		String dep;
 		while((dep = jEdit.getProperty("plugin." + classname + ".depend." + i++)) != null)
@@ -846,7 +851,7 @@ public class PluginJAR
 	*/
 	public String[] getDependentPlugins()
 	{
-		return theseRequireMe.toArray(new String[theseRequireMe.size()]);
+		return theseRequireMe.toArray(StandardUtilities.EMPTY_STRING_ARRAY);
 	} //}}}
 
 	//{{{ getOptionallyDependentPlugins() method
@@ -855,7 +860,7 @@ public class PluginJAR
 	*/
 	public String[] getOptionallyDependentPlugins()
 	{
-		return theseUseMe.toArray(new String[theseUseMe.size()]);
+		return theseUseMe.toArray(StandardUtilities.EMPTY_STRING_ARRAY);
 	} //}}}
 	
 	//{{{ getAllDependentPlugins() method
@@ -896,6 +901,7 @@ public class PluginJAR
 	 *
 	 * @since jEdit 4.2pre1
 	 */
+	@SuppressWarnings("unchecked")
 	public void activatePlugin()
 	{
 		synchronized (this)
@@ -930,7 +936,7 @@ public class PluginJAR
 				return;
 			}
 
-			plugin = (EditPlugin)clazz.newInstance();
+			plugin = (EditPlugin)clazz.getDeclaredConstructor().newInstance();
 			plugin.jar = this;
 		}
 		catch (Throwable t)
@@ -968,7 +974,7 @@ public class PluginJAR
 	{
 		String filename = MiscUtilities.getFileName(getPath());
 		jEdit.unsetProperty("plugin-blacklist." + filename);
-		if(!(plugin instanceof EditPlugin.Deferred && plugin != null))
+		if(!(plugin instanceof EditPlugin.Deferred))
 		{
 			return;
 		}
@@ -1042,17 +1048,12 @@ public class PluginJAR
 			// buffers retain a reference to the fold handler in
 			// question... and the easiest way to handle fold
 			// handler unloading is this...
-			Buffer buffer = jEdit.getFirstBuffer();
-			while(buffer != null)
-			{
-				if(buffer.getFoldHandler().getClass()
-					.getClassLoader() == classLoader)
-				{
-					buffer.setFoldHandler(
-						new DummyFoldHandler());
-				}
-				buffer = buffer.getNext();
-			}
+			BufferManager bufferManager = jEdit.getBufferManager();
+			bufferManager
+				.getBuffers()
+				.stream()
+				.filter(buffer -> buffer.getFoldHandler().getClass().getClassLoader() == classLoader)
+				.forEach(buffer -> buffer.setFoldHandler(new DummyFoldHandler()));
 		}
 
 		if(plugin != null && !(plugin instanceof EditPlugin.Broken))
@@ -1497,14 +1498,14 @@ public class PluginJAR
 	public PluginCacheEntry generateCache() throws IOException
 	{
 		properties = new Properties();
-		localizationProperties = new HashMap<String, Properties>();
+		localizationProperties = new HashMap<>();
 
-		List<String> classes = new LinkedList<String>();
-		List<String> resources = new LinkedList<String>();
+		var classes = new LinkedList<String>();
+		var resources = new LinkedList<String>();
 
 		ZipFile zipFile = getZipFile();
 
-		List<String> plugins = new LinkedList<String>();
+		var plugins = new LinkedList<String>();
 
 		PluginCacheEntry cache = new PluginCacheEntry();
 		cache.modTime = file.lastModified();
@@ -1569,7 +1570,7 @@ public class PluginJAR
 					try
 					{
 						in = classLoader.getResourceAsStream(name);
-						CharsetEncoding utf8 = new CharsetEncoding("UTF-8");
+						CharsetEncoding utf8 = new CharsetEncoding(StandardCharsets.UTF_8);
 						Reader utf8in = utf8.getTextReader(in);
 						props.load(utf8in);
 						localizationProperties.put(languageName, props);
@@ -1601,12 +1602,8 @@ public class PluginJAR
 
 		jEdit.addPluginProps(properties);
 
-		this.classes = cache.classes =
-			classes.toArray(
-			new String[classes.size()]);
-		this.resources = cache.resources =
-			resources.toArray(
-			new String[resources.size()]);
+		this.classes = cache.classes = classes.toArray(StandardUtilities.EMPTY_STRING_ARRAY);
+		this.resources = cache.resources = resources.toArray(StandardUtilities.EMPTY_STRING_ARRAY);
 
 		String label = null;
 
@@ -1743,9 +1740,8 @@ public class PluginJAR
 		{
 			breakPlugin();
 
-			Log.log(Log.ERROR,PluginJAR.this,
-				"Error while starting plugin " + plugin.getClassName());
-			Log.log(Log.ERROR,PluginJAR.this,t);
+			Log.log(Log.ERROR,this, "Error while starting plugin " + plugin.getClassName());
+			Log.log(Log.ERROR,this,t);
 			String[] args = { t.toString() };
 			jEdit.pluginError(path, "plugin-error.start-error",args);
 		}
@@ -1768,34 +1764,26 @@ public class PluginJAR
 		// buffers retain a reference to the fold handler in
 		// question... and the easiest way to handle fold
 		// handler loading is this...
-		Buffer buffer = jEdit.getFirstBuffer();
-		while(buffer != null)
-		{
-			FoldHandler handler =
-				FoldHandler.getFoldHandler(
-				buffer.getStringProperty("folding"));
-			// == null before loaded
-			if(handler != null && handler != buffer.getFoldHandler())
+		BufferManager bufferManager = jEdit.getBufferManager();
+		bufferManager.getBuffers()
+			.forEach(buffer ->
 			{
-				buffer.setFoldHandler(handler);
-			}
-			buffer = buffer.getNext();
-		}
+				FoldHandler handler = FoldHandler.getFoldHandler(buffer.getStringProperty("folding"));
+				// == null before loaded
+				if(handler != null && handler != buffer.getFoldHandler())
+					buffer.setFoldHandler(handler);
+			});
 	} //}}}
 
 	//{{{ startPluginLater() method
 	private void startPluginLater()
 	{
-		EventQueue.invokeLater(new Runnable()
+		EventQueue.invokeLater(() ->
 		{
-			@Override
-			public void run()
-			{
-				if (!activated)
-					return;
+			if (!activated)
+				return;
 
-				startPlugin();
-			}
+			startPlugin();
 		});
 	} //}}}
 
@@ -1867,7 +1855,7 @@ public class PluginJAR
 				return false;
 
 			String cacheBuild = readString(din);
-			if(!cacheBuild.equals(jEdit.getBuild()))
+			if(!jEdit.getBuild().equals(cacheBuild))
 				return false;
 
 			long cacheModTime = din.readLong();
@@ -2042,7 +2030,7 @@ public class PluginJAR
 				return Collections.emptyMap();
 
 
-			Map<String, Properties> languages = new HashMap<String, Properties>(languagesCount);
+			Map<String, Properties> languages = new HashMap<>(languagesCount);
 			for (int i = 0;i<languagesCount;i++)
 			{
 				String lang = readString(din);

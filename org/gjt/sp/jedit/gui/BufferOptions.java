@@ -19,73 +19,58 @@
  * along with this program; if not, write to the Free Software
  * Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
  */
-
 package org.gjt.sp.jedit.gui;
 
-
 //{{{ Imports
-
 import javax.swing.border.EmptyBorder;
 import javax.swing.*;
 import java.awt.*;
-import java.awt.event.*;
 
-import java.util.Arrays;
-
-import org.gjt.sp.jedit.buffer.FoldHandler;
-import org.gjt.sp.jedit.buffer.JEditBuffer;
 import org.gjt.sp.jedit.options.BufferOptionPane;
 
 import org.gjt.sp.jedit.*;
-
 //}}}
 
-/** Buffer-specific options dialog.
+/**
+ * Buffer-specific options dialog.
  * @author Slava Pestov
- * @version $Id: BufferOptions.java 21831 2012-06-18 22:54:17Z ezust $
- *
+ * @version $Id: BufferOptions.java 25313 2020-05-04 22:18:59Z kpouer $
  */
-
 public class BufferOptions extends EnhancedDialog
 {
 	//{{{ BufferOptions constructor
-
 	public BufferOptions(View view, Buffer buffer)
 	{
 		super(view,jEdit.getProperty("buffer-options.title"),true);
-		this.view = view;
-		this.buffer = buffer;
 
 		JPanel content = new JPanel(new BorderLayout());
 		content.setBorder(new EmptyBorder(12,12,12,12));
 		setContentPane(content);
 
-		ActionHandler actionListener = new ActionHandler();
 		panel = new BufferOptionPane();
 
 		content.add(BorderLayout.NORTH,panel);
 
 		//{{{ Buttons
-
 		JPanel buttons = new JPanel();
 		buttons.setLayout(new BoxLayout(buttons,BoxLayout.X_AXIS));
 		buttons.setBorder(new EmptyBorder(12,0,0,0));
 		buttons.add(Box.createGlue());
 
-		ok = new JButton(jEdit.getProperty("common.ok"));
-		ok.addActionListener(actionListener);
+		JButton ok = new JButton(jEdit.getProperty("common.ok"));
+		ok.addActionListener(e -> ok());
 		getRootPane().setDefaultButton(ok);
+
+		JButton cancel = new JButton(jEdit.getProperty("common.cancel"));
+		cancel.addActionListener(e -> cancel());
+		ok.setPreferredSize(cancel.getPreferredSize());
+		
 		buttons.add(ok);
-
 		buttons.add(Box.createHorizontalStrut(6));
-
-		cancel = new JButton(jEdit.getProperty("common.cancel"));
-		cancel.addActionListener(actionListener);
 		buttons.add(cancel);
-
-		buttons.add(Box.createGlue());
+		
+		//buttons.add(Box.createGlue());
 		content.add(BorderLayout.SOUTH,buttons);
-
 		//}}}
 
 		pack();
@@ -93,10 +78,8 @@ public class BufferOptions extends EnhancedDialog
 		setVisible(true);
 	} //}}}
 
-
-
 	//{{{ ok() method
-
+	@Override
 	public void ok()
 	{
 		panel.save();
@@ -104,36 +87,14 @@ public class BufferOptions extends EnhancedDialog
 	} //}}}
 
 	//{{{ cancel() method
-
+	@Override
 	public void cancel()
 	{
 		dispose();
 	} //}}}
 
 	//{{{ Private members
-
-	private View view;
-	private Buffer buffer;
-	private BufferOptionPane panel;
-	private JButton ok;
-	private JButton cancel;
-
-	//{{{ ActionHandler class
-
-	class ActionHandler implements ActionListener
-	{
-		//{{{ actionPerformed() method
-		public void actionPerformed(ActionEvent evt)
-		{
-			Object source = evt.getSource();
-			if(source == ok)
-				ok();
-			else if(source == cancel)
-				cancel();
-		} //}}}
-
-	} //}}}
-
+	private final BufferOptionPane panel;
 	//}}}
 }
 

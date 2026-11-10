@@ -24,9 +24,11 @@ package org.gjt.sp.jedit.gui;
 //{{{ Imports
 import org.gjt.sp.util.Log;
 
+import javax.annotation.Nonnull;
 import javax.swing.*;
 import javax.swing.event.ListDataEvent;
 import javax.swing.event.ListDataListener;
+import javax.swing.event.ListSelectionListener;
 import java.awt.*;
 import java.awt.datatransfer.DataFlavor;
 import java.awt.datatransfer.Transferable;
@@ -34,6 +36,7 @@ import java.awt.datatransfer.UnsupportedFlavorException;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.io.IOException;
+import java.util.Arrays;
 import java.util.Collection;
 import java.util.Iterator;
 import java.util.List;
@@ -51,16 +54,17 @@ import static org.gjt.sp.jedit.jEdit.getProperty;
  */
 public class PingPongList<E> extends JPanel
 {
-	private final MyListModel<E> leftModel;
-	private final MyListModel<E> rightModel;
-	private JList left;
-	private JList right;
+	private MyListModel<E> leftModel;
+	private MyListModel<E> rightModel;
+	private final JList<E> left;
+	private final JList<E> right;
 	private JLabel leftLabel;
 	private JLabel rightLabel;
-	private JPanel leftPanel;
-	private JPanel rightPanel;
-	private JButton selectAllButton;
-	private JButton selectNoneButton;
+	private final JPanel leftPanel;
+	private final JPanel rightPanel;
+	private final JButton selectAllButton;
+	private final JButton selectNoneButton;
+	private final Box buttonsBox;
 
 	//{{{ PingPongList constructors
 	public PingPongList(List<E> leftData, List<E> rightData)
@@ -72,10 +76,10 @@ public class PingPongList<E> extends JPanel
 	{
 		super(new BorderLayout());
 		JSplitPane splitPane = new JSplitPane(newOrientation);
-		leftModel = new MyListModel<E>(leftData);
-		left = new JList(leftModel);
-		rightModel = new MyListModel<E>(rightData);
-		right = new JList(rightModel);
+		leftModel = new MyListModel<>(leftData);
+		left = new JList<>(leftModel);
+		rightModel = new MyListModel<>(rightData);
+		right = new JList<>(rightModel);
 		leftPanel = new JPanel(new BorderLayout());
 		rightPanel = new JPanel(new BorderLayout());
 		JScrollPane leftScroll = new JScrollPane(left);
@@ -93,7 +97,7 @@ public class PingPongList<E> extends JPanel
 		splitPane.setDividerLocation(0.5);
 
 		// Select All/None Buttons
-		Box buttonsBox = createHorizontalBox();
+		buttonsBox = createHorizontalBox();
 		buttonsBox.add(createHorizontalStrut(12));
 
 		ActionListener actionHandler = new ActionHandler();
@@ -116,6 +120,54 @@ public class PingPongList<E> extends JPanel
 		leftModel.addListDataListener(listDataListener);
 		rightModel.addListDataListener(listDataListener);
 	} //}}}
+	
+	// {{{ addButton method
+	public void addButton(JButton button) 
+	{
+		if (button != null) 
+		{
+			buttonsBox.add(createHorizontalStrut(12));
+			buttonsBox.add(button);
+		}
+	} // }}}
+	
+	// {{ setData methods
+	public void setLeftData(List<E> data) 
+	{
+		leftModel = new MyListModel<>(data);
+		left.setModel(leftModel);
+	}
+	
+	public void setRightData(List<E> data) 
+	{
+		rightModel = new MyListModel<>(data);
+		right.setModel(rightModel);
+	}
+	// }}}
+	
+	// {{{ selection methods
+	public void setLeftSelected(E selected) 
+	{
+		if (selected != null)
+			left.setSelectedValue(selected, true);	
+	}
+	
+	public List<E> getLeftSelectedValues() 
+	{
+		return left.getSelectedValuesList();
+	}
+	
+	public void setRightSelected(E selected) 
+	{
+		if (selected != null) 
+			right.setSelectedValue(selected, true);
+	}
+	
+	public List<E> getRightSelectedValues()
+	{
+		return right.getSelectedValuesList();	
+	}
+	// }}}
 
 	//{{{ setLeftTooltip() method
 	public void setLeftTooltip(String leftTooltip)
@@ -208,27 +260,60 @@ public class PingPongList<E> extends JPanel
 	//{{{ moveAllToLeft() method
 	public void moveAllToLeft()
 	{
-		leftModel.addAll(rightModel.data);
+		leftModel.addAll(rightModel.getData());
 		rightModel.clear();
 	} //}}}
 
 	//{{{ moveAllToRight() method
 	public void moveAllToRight()
 	{
-		rightModel.addAll(leftModel.data);
+		rightModel.addAll(leftModel.getData());
 		leftModel.clear();
 	} //}}}
+
+	// {{{ setLeftCellRenderer() method
+	public void setLeftCellRenderer(ListCellRenderer<E> renderer)
+	{
+		if (renderer != null)
+			left.setCellRenderer(renderer);	
+	} //}}}
+
+	// {{{ setRightCellRenderer() method
+	public void setRightCellRenderer(ListCellRenderer<E> renderer)
+	{
+		if (renderer != null)
+			right.setCellRenderer(renderer);	
+	} //}}}
+	
+	// {{{ addLeftListSelectionListener() method
+	public void addLeftListSelectionListener(ListSelectionListener listener) 
+	{
+		if (listener != null)
+			left.addListSelectionListener(listener);
+	} // }}}
+
+	// {{{ addRightListSelectionListener() method
+	public void addRightListSelectionListener(ListSelectionListener listener) 
+	{
+		if (listener != null)
+			right.addListSelectionListener(listener);
+	} // }}}
 
 	//{{{ Inner classes
 
 	//{{{ MyListModel class
-	private static class MyListModel<E> extends AbstractListModel implements Iterable<E>
+	private static class MyListModel<E> extends AbstractListModel<E> implements Iterable<E>
 	{
-		private List<E> data;
+		private final List<E> data;
 
 		private MyListModel(List<E> data)
 		{
 			this.data = data;
+		}
+
+		public List<E> getData()
+		{
+			return data;
 		}
 
 		@Override
@@ -238,12 +323,13 @@ public class PingPongList<E> extends JPanel
 		}
 
 		@Override
-		public Object getElementAt(int index)
+		public E getElementAt(int index)
 		{
 			return data.get(index);
 		}
 
 		@Override
+		@Nonnull
 		public Iterator<E> iterator()
 		{
 			return data.iterator();
@@ -284,7 +370,7 @@ public class PingPongList<E> extends JPanel
 	//{{{ MyTransferHandler class
 	private class MyTransferHandler extends TransferHandler
 	{
-		private JList sourceList;
+		private JList<E> sourceList;
 		private int[]indices;
 
 		@Override
@@ -343,11 +429,7 @@ public class PingPongList<E> extends JPanel
 				targetList.setSelectedIndices(indices);
 				return true;
 			}
-			catch (UnsupportedFlavorException e)
-			{
-				Log.log(Log.ERROR, this, e);
-			}
-			catch (IOException e)
+			catch (UnsupportedFlavorException | IOException e)
 			{
 				Log.log(Log.ERROR, this, e);
 			}
@@ -355,14 +437,12 @@ public class PingPongList<E> extends JPanel
 		}
 
 		@Override
+		@SuppressWarnings({"unchecked"})	// for the cast
 		protected Transferable createTransferable(JComponent c)
 		{
-			sourceList = (JList) c;
+			sourceList = (JList<E>) c;
 			indices = sourceList.getSelectedIndices();
-
-			@SuppressWarnings("unchecked")
-			E[] objects = (E[]) sourceList.getSelectedValues();
-			return new MyTransferable<E>(objects);
+			return new MyTransferable<E>(sourceList.getSelectedValuesList());
 		}
 
 		@Override
@@ -381,7 +461,12 @@ public class PingPongList<E> extends JPanel
 
 		private MyTransferable(E[] data)
 		{
-			this.data = data;
+			this.data = Arrays.copyOf(data, data.length);
+		}
+		
+		@SuppressWarnings({"unchecked"})	// for the cast
+		private MyTransferable(List<E> data) {
+			this.data = (E[])data.toArray();	
 		}
 
 		@Override
@@ -397,7 +482,8 @@ public class PingPongList<E> extends JPanel
 		}
 
 		@Override
-		public Object getTransferData(DataFlavor flavor) throws UnsupportedFlavorException, IOException
+		@Nonnull
+		public Object getTransferData(DataFlavor flavor)
 		{
 			return data;
 		}
@@ -430,22 +516,22 @@ public class PingPongList<E> extends JPanel
 		@Override
 		public void intervalAdded(ListDataEvent e)
 		{
-			dataUpdated(e);
+			dataUpdated();
 		}
 
 		@Override
 		public void intervalRemoved(ListDataEvent e)
 		{
-			dataUpdated(e);
+			dataUpdated();
 		}
 
 		@Override
 		public void contentsChanged(ListDataEvent e)
 		{
-			dataUpdated(e);
+			dataUpdated();
 		}
 		
-		private void dataUpdated(ListDataEvent e)
+		private void dataUpdated()
 		{
 			selectAllButton.setEnabled(getLeftSize() != 0);
 			selectNoneButton.setEnabled(getRightSize() != 0);

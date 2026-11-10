@@ -23,12 +23,12 @@
 package org.gjt.sp.jedit.menu;
 
 //{{{ Imports
+import javax.annotation.Nullable;
 import javax.swing.*;
-import java.awt.event.*;
 import java.awt.*;
 import org.gjt.sp.jedit.*;
 import org.gjt.sp.jedit.gui.KeyEventTranslator;
-import org.gjt.sp.jedit.gui.StatusBar;
+import org.gjt.sp.jedit.gui.statusbar.HoverSetStatusMouseHandler;
 import org.jedit.keymap.Keymap;
 //}}}
 
@@ -48,8 +48,7 @@ public class EnhancedMenuItem extends JMenuItem
 	 */
 	public EnhancedMenuItem(String label, String action, ActionContext context)
 	{
-		this.action = action;
-		this.shortcut = GUIUtilities.getShortcutLabel(action, true);
+		shortcut = GUIUtilities.getShortcutLabel(action, true);
 		String toolTip = jEdit.getProperty(action+ ".tooltip");
 		if (toolTip != null) {
 			setToolTipText(toolTip);
@@ -81,13 +80,14 @@ public class EnhancedMenuItem extends JMenuItem
 		{
 			setEnabled(true);
 			addActionListener(new EditAction.Wrapper(context,action));
-			addMouseListener(new MouseHandler());
+			addMouseListener(new HoverSetStatusMouseHandler(action));
 		}
 		else
 			setEnabled(false);
 	} //}}}
 
 	//{{{ getPreferredSize() method
+	@Override
 	public Dimension getPreferredSize()
 	{
 		Dimension d = super.getPreferredSize();
@@ -101,6 +101,7 @@ public class EnhancedMenuItem extends JMenuItem
 	} //}}}
 
 	//{{{ paint() method
+	@Override
 	public void paint(Graphics g)
 	{
 		super.paint(g);
@@ -130,8 +131,8 @@ public class EnhancedMenuItem extends JMenuItem
 	//{{{ Private members
 
 	//{{{ Instance variables
+	@Nullable
 	private String shortcut;
-	private String action;
 	//}}}
 
 	//{{{ Class initializer
@@ -155,47 +156,4 @@ public class EnhancedMenuItem extends JMenuItem
 	} //}}}
 
 	//}}}
-
-	//{{{ MouseHandler class
-	class MouseHandler extends MouseAdapter
-	{
-		boolean msgSet = false;
-		private String msg;
-
-		public void mouseReleased(MouseEvent evt)
-		{
-			cleanupStatusBar(evt);
-		}
-
-		public void mouseEntered(MouseEvent evt)
-		{
-			msg = jEdit.getProperty(action + ".mouse-over");
-			if(msg != null)
-			{
-				GUIUtilities.getView((Component)evt.getSource())
-					.getStatus().setMessage(msg);
-				msgSet = true;
-			}
-		}
-
-		public void mouseExited(MouseEvent evt)
-		{
-			cleanupStatusBar(evt);
-		}
-
-		private void cleanupStatusBar(MouseEvent evt)
-		{
-			if(msgSet)
-			{
-				StatusBar statusBar = GUIUtilities.getView((Component) evt.getSource())
-					.getStatus();
-				if (msg == statusBar.getMessage())
-				{
-					statusBar.setMessage(null);
-				}
-				msgSet = false;
-				msg = null;
-			}
-		}
-	} //}}}
 }

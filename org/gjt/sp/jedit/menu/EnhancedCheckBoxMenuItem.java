@@ -24,11 +24,11 @@ package org.gjt.sp.jedit.menu;
 
 //{{{ Imports
 import javax.swing.*;
-import java.awt.event.*;
 import java.awt.*;
 import org.gjt.sp.jedit.*;
 import org.gjt.sp.util.Log;
 import org.gjt.sp.jedit.gui.KeyEventTranslator;
+import org.gjt.sp.jedit.gui.statusbar.HoverSetStatusMouseHandler;
 import org.jedit.keymap.Keymap;
 //}}}
 
@@ -46,12 +46,11 @@ public class EnhancedCheckBoxMenuItem extends JCheckBoxMenuItem
 	 * @param context An action context
 	 * @since jEdit 4.2pre1
 	 */
-	public EnhancedCheckBoxMenuItem(String label, String action,
-		ActionContext context)
+	public EnhancedCheckBoxMenuItem(String label, String action, ActionContext context)
 	{
 		this.context = context;
 		this.action = action;
-		this.shortcut = GUIUtilities.getShortcutLabel(action, true);
+		shortcut = GUIUtilities.getShortcutLabel(action, true);
 		String toolTip = jEdit.getProperty(action+ ".tooltip");
 		if (toolTip != null) {
 			setToolTipText(toolTip);
@@ -84,7 +83,7 @@ public class EnhancedCheckBoxMenuItem extends JCheckBoxMenuItem
 			setEnabled(true);
 			addActionListener(new EditAction.Wrapper(context,action));
 
-			addMouseListener(new MouseHandler());
+			addMouseListener(new HoverSetStatusMouseHandler(action));
 		}
 		else
 			setEnabled(false);
@@ -139,7 +138,7 @@ public class EnhancedCheckBoxMenuItem extends JCheckBoxMenuItem
 	//}}}
 
 	//{{{ Model class
-	class Model extends DefaultButtonModel
+	private class Model extends DefaultButtonModel
 	{
 		@Override
 		public boolean isSelected()
@@ -150,8 +149,7 @@ public class EnhancedCheckBoxMenuItem extends JCheckBoxMenuItem
 			EditAction a = context.getAction(action);
 			if(a == null)
 			{
-				Log.log(Log.WARNING,this,"Unknown action: "
-					+ action);
+				Log.log(Log.WARNING,this,"Unknown action: " + action);
 				return false;
 			}
 
@@ -170,43 +168,4 @@ public class EnhancedCheckBoxMenuItem extends JCheckBoxMenuItem
 		public void setSelected(boolean b) {}
 	} //}}}
 
-	//{{{ MouseHandler class
-	class MouseHandler extends MouseAdapter
-	{
-		boolean msgSet = false;
-
-		@Override
-		public void mouseReleased(MouseEvent evt)
-		{
-			if(msgSet)
-			{
-				GUIUtilities.getView((Component)evt.getSource())
-					.getStatus().setMessage(null);
-				msgSet = false;
-			}
-		}
-
-		@Override
-		public void mouseEntered(MouseEvent evt)
-		{
-			String msg = jEdit.getProperty(action + ".mouse-over");
-			if(msg != null)
-			{
-				GUIUtilities.getView((Component)evt.getSource())
-					.getStatus().setMessage(msg);
-				msgSet = true;
-			}
-		}
-
-		@Override
-		public void mouseExited(MouseEvent evt)
-		{
-			if(msgSet)
-			{
-				GUIUtilities.getView((Component)evt.getSource())
-					.getStatus().setMessage(null);
-				msgSet = false;
-			}
-		}
-	} //}}}
 }

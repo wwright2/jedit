@@ -23,9 +23,11 @@
 package org.gjt.sp.jedit.buffer;
 
 //{{{ Imports
+import javax.annotation.Nonnull;
 import javax.swing.text.Position;
 import java.util.*;
 import org.gjt.sp.util.Log;
+import org.jedit.util.CleanerService;
 //}}}
 
 /**
@@ -37,30 +39,39 @@ import org.gjt.sp.util.Log;
  * of the position are implemented separately.
  *
  * @author Slava Pestov
- * @version $Id: PositionManager.java 21831 2012-06-18 22:54:17Z ezust $
+ * @version $Id: PositionManager.java 25698 2023-11-17 01:31:50Z vampire0 $
  * @since jEdit 4.2pre3
  */
 class PositionManager
 {
 	//{{{ PositionManager constructor
-	public PositionManager(JEditBuffer buffer)
+	PositionManager(JEditBuffer buffer)
 	{
 		this.buffer = buffer;
 	} //}}}
 	
 	//{{{ createPosition() method
 	/** No explicit removal is required. Unreferencing is enough. */
-	public synchronized Position createPosition(int offset)
+	public Position createPosition(int offset)
 	{
-		PosBottomHalf bh = new PosBottomHalf(offset);
-		PosBottomHalf existing = positions.get(bh);
-		if(existing == null)
+		PosBottomHalf existing;
+		Position posTopHalf;
+		synchronized (this)
 		{
-			positions.put(bh,bh);
-			existing = bh;
-		}
+			PosBottomHalf bh = new PosBottomHalf(offset);
+			existing = positions.get(bh);
+			if(existing == null)
+			{
+				positions.put(bh,bh);
+				existing = bh;
+			}
 
-		return new PosTopHalf(existing);
+			posTopHalf = new PosTopHalf(existing);
+			existing.ref();
+		}
+		PosBottomHalf finalExisting = existing;
+		CleanerService.instance.register(posTopHalf, () -> unref(finalExisting));
+		return posTopHalf;
 	} //}}}
 
 	//{{{ contentInserted() method
@@ -100,11 +111,19 @@ class PositionManager
 
 	} //}}}
 
+	private void unref(PosBottomHalf posBottomHalf)
+	{
+		synchronized (this)
+		{
+			posBottomHalf.unref();
+		}
+	}
+
 	boolean iteration;
 
 	//{{{ Private members
-	private JEditBuffer buffer;
-	private SortedMap<PosBottomHalf, PosBottomHalf> positions = new TreeMap<PosBottomHalf, PosBottomHalf>();
+	private final JEditBuffer buffer;
+	private final SortedMap<PosBottomHalf, PosBottomHalf> positions = new TreeMap<>();
 	//}}}
 
 	//{{{ Inner classes
@@ -116,31 +135,21 @@ class PositionManager
 	  * to <code>PosTopHalf</code> and garbage
 	  * collector eats it, the position is removed together with its
 	  * bottom half. */
-	class PosTopHalf implements Position
+	private static class PosTopHalf implements Position
 	{
-		final PosBottomHalf bh;
+		private final PosBottomHalf bh;
 
 		//{{{ PosTopHalf constructor
 		PosTopHalf(PosBottomHalf bh)
 		{
 			this.bh = bh;
-			bh.ref();
 		} //}}}
 
 		//{{{ getOffset() method
+		@Override
 		public int getOffset()
 		{
-			return bh.offset;
-		} //}}}
-
-		//{{{ finalize() method
-		@Override
-		protected void finalize()
-		{
-			synchronized(PositionManager.this)
-			{
-				bh.unref();
-			}
+			return bh.getOffset();
 		} //}}}
 	} //}}}
 
@@ -150,13 +159,19 @@ class PositionManager
 	  * <code>positions</code> map.*/
 	class PosBottomHalf implements Comparable<PosBottomHalf>
 	{
-		int offset;
-		int ref;
+		private int offset;
+		private int ref;
 
 		//{{{ PosBottomHalf constructor
 		PosBottomHalf(int offset)
 		{
 			this.offset = offset;
+		} //}}}
+
+		//{{{ getOffset() method
+		public int getOffset()
+		{
+			return offset;
 		} //}}}
 
 		//{{{ ref() method
@@ -176,7 +191,7 @@ class PositionManager
 		void contentInserted(int offset, int length)
 		{
 			if(offset > this.offset)
-				throw new ArrayIndexOutOfBoundsException();
+				throw new ArrayIndexOutOfBoundsException(offset);
 			this.offset += length;
 			checkInvariants();
 		} //}}}
@@ -185,7 +200,7 @@ class PositionManager
 		void contentRemoved(int offset, int length)
 		{
 			if(offset > this.offset)
-				throw new ArrayIndexOutOfBoundsException();
+				throw new ArrayIndexOutOfBoundsException(offset);
 			if(this.offset <= offset + length)
 				this.offset = offset;
 			else
@@ -204,7 +219,8 @@ class PositionManager
 		} //}}}
 
 		//{{{ compareTo() method
-		public int compareTo(PosBottomHalf posBottomHalf)
+		@Override
+		public int compareTo(@Nonnull PosBottomHalf posBottomHalf)
 		{
 			if(iteration)
 				Log.log(Log.ERROR,this,"Consistency failure");
@@ -215,7 +231,7 @@ class PositionManager
 		private void checkInvariants()
 		{
 			if(offset < 0 || offset > buffer.getLength())
-				throw new ArrayIndexOutOfBoundsException();
+				throw new ArrayIndexOutOfBoundsException(offset);
 		} //}}}
 	} //}}}
 

@@ -18,8 +18,8 @@
  * Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
  */
 
-
 package org.jedit.migration;
+
 import org.gjt.sp.jedit.ServiceManager;
 import org.gjt.sp.jedit.jEdit;
 import org.gjt.sp.util.Log;
@@ -27,15 +27,18 @@ import org.jedit.core.MigrationService;
 
 //{{{ OneTimeMigrationService class
 /** Base class from which one can more easily implement a migration step
-    that should be executed only once per installation. 
+    that should be executed only once per installation.
     <p>
     Concrete implementations of this class should register themselves in services.xml.
     jEdit will call doMigration() on each object, which will skip the ones that
     have been done before.
-    <p> 
+    <p>
     The time that these services are automatically executed by jEdit is during the
     "initializing properties" step. This means that implementations that need to
-    update or remove certain properties during upgrades can take advantage of this class. 
+    update or remove certain properties during upgrades can take advantage of this class.
+    <p> NOTE: This happens after plugins are started, which might be too late for some
+    plugins, such as the XMLPlugin, so using the services API to start them is not always
+    desireable.
     <p>
     Example:
     <pre>
@@ -45,36 +48,41 @@ import org.jedit.core.MigrationService;
 	</pre>
     @author Alan Ezust
     @since jEdit 5.1
-*/ 
-abstract public class OneTimeMigrationService implements MigrationService 
+*/
+public abstract class OneTimeMigrationService implements MigrationService
 {
-	/** Performs doMigrate() on each installed 
-		OneTimeMigrationService */
+	/**
+	 * Performs doMigrate() on each installed OneTimeMigrationService
+	 */
 	public static void execute()
 	{
 		String[] migrations = ServiceManager.getServiceNames(OneTimeMigrationService.class);
-		if (migrations.length == 0) return;
+		if (migrations.length == 0)
+			return;
 		for (String migration: migrations)
 		{
-			Object obj = ServiceManager.getService(OneTimeMigrationService.class, migration);
-			OneTimeMigrationService svc = (OneTimeMigrationService) obj;
+			OneTimeMigrationService svc = ServiceManager.getService(OneTimeMigrationService.class, migration);
 			svc.doMigration();
 		}
 	}
 
 	protected String name;
 
-	/** @param name of this service. Used to identify and determine if it's been
-        done eariler. */	
-	public OneTimeMigrationService(String name)
+	/**
+	 * @param name of this service. Used to identify and determine if it's been done eariler.
+	 */
+	protected OneTimeMigrationService(String name)
 	{
 		this.name = name;
 	}
-	
-	/** Calls migrate() but only once per installation. */
-	public void doMigration() 
+
+	/**
+	 * Calls migrate() but only once per installation.
+	 */
+	public void doMigration()
 	{
-		if (!jEdit.getBooleanProperty("migration.step." + name)) {
+		if (!jEdit.getBooleanProperty("migration.step." + name))
+		{
 			Log.log(Log.MESSAGE, this, "Performing migration step: " + name);
 			migrate();
 			jEdit.setBooleanProperty("migration.step." + name, true);

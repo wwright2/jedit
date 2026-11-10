@@ -91,7 +91,7 @@ backupEverySave=false
 # Number of backups to make, 0=no backups
 backups=1
 
-# Backup directory
+# Backup directory suggestion: $JEDIT_SETTINGS/backups
 backup.directory=
 
 # Backup filename prefix and suffix
@@ -259,6 +259,10 @@ view.eolMarkerChar=↩
 view.wrapGuide=true
 view.wrapGuideColor=#8080ff
 
+# page breaks
+view.pageBreaks=false
+view.pageBreaksColor=#8080ff
+
 # Caret color
 view.caretColor=#ff0000
 
@@ -413,11 +417,11 @@ view.docking.alternateLayout=false
 view.toolbar.alternateLayout=true
 
 #{{{ Status bar
+view.status.highlight=#eeeeee
 view.status.foreground=black
 view.status.background=white
 view.status.visible=true
 view.status.plainview.visible=false
-view.status.show-caret-status=true
 view.status.memory.foreground=#cccccc
 view.status.memory.background=#666699a
 #}}}
@@ -528,3 +532,6 @@ keymap.default=jEdit
 
 # if lang.usedefaultlocale is true, the lang.current is not used
 lang.usedefaultlocale=true
+
+# Enable subpixel antialiasing by default in textarea.
+view.antiAlias=subpixel HRGB

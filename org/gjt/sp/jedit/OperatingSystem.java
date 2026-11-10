@@ -37,7 +37,7 @@ import org.gjt.sp.util.Log;
 /**
  * Operating system detection routines.
  * @author Slava Pestov
- * @version $Id: OperatingSystem.java 23221 2013-09-29 20:03:32Z shlomy $
+ * @version $Id: OperatingSystem.java 25439 2021-03-25 21:56:16Z kpouer $
  * @since jEdit 4.0pre4
  */
 public class OperatingSystem
@@ -51,7 +51,7 @@ public class OperatingSystem
 		int screenX = (int)Toolkit.getDefaultToolkit().getScreenSize().getWidth();
 		int screenY = (int)Toolkit.getDefaultToolkit().getScreenSize().getHeight();
 		int x, y, w, h;
-		
+
 		if (isMacOS())
 		{
 			x = 0;
@@ -73,7 +73,7 @@ public class OperatingSystem
 			w = screenX;
 			h = screenY;
 		}
-		
+
 		return new Rectangle(x,y,w,h);
 	} //}}}
 
@@ -100,7 +100,7 @@ public class OperatingSystem
 					intersects.add(gc);
 			}
 		}
-		
+
 		GraphicsConfiguration choice = null;
 		if (!intersects.isEmpty())
 		{
@@ -122,14 +122,14 @@ public class OperatingSystem
 		}
 		else
 			choice = GraphicsEnvironment.getLocalGraphicsEnvironment().getDefaultScreenDevice().getDefaultConfiguration();
-		
+
 		// Make adjustments for some OS's
 		int screenX = choice.getBounds().x;
 		int screenY = choice.getBounds().y;
 		int screenW = choice.getBounds().width;
 		int screenH = choice.getBounds().height;
 		int x, y, w, h;
-		
+
 		if (isMacOS())
 		{
 			x = screenX;
@@ -144,20 +144,9 @@ public class OperatingSystem
 			w = screenW;
 			h = screenH;
 		}
-		
+
 		// Yay, we're finally there
 		return new Rectangle(x,y,w,h);
-	} //}}}
-
-	//{{{ isDOSDerived() method
-	/**
-	 * Returns if we're running Windows 95/98/ME/NT/2000/XP/Vista/Win7, or OS/2.
-	 * @deprecated use {@link #isWindows()}
-	 */
-	@Deprecated
-	public static boolean isDOSDerived()
-	{
-		return isWindows() || isOS2();
 	} //}}}
 
 	//{{{ isWindows() method
@@ -263,20 +252,6 @@ public class OperatingSystem
 		return hasScreenMenuBar == 1;
 	} //}}}
 
-	//{{{ hasJava17() method
-	/**
-	 * @deprecated - there is no point in checking for this
-	 *				 since we require Java 1.7.
-	 * Returns if Java 2 version 1.7 is in use.
-	 * @since jEdit 5.0pre1
-	 */
-	@Deprecated
-	public static boolean hasJava17()
-	{
-		return true;
-	} //}}}
-
-	
 	//{{{ isCaseInsensitiveFS() method
 	/**
 	 * @since jEdit 4.3pre2
@@ -285,7 +260,7 @@ public class OperatingSystem
 	{
 		return isWindows() || isMacOS();
 	} //}}}
-	
+
 	//{{{ Private members
 	private static final int UNIX = 0x31337;
 	private static final int WINDOWS_9x = 0x640;

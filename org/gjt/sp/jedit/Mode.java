@@ -44,7 +44,7 @@ import org.gjt.sp.util.StandardUtilities;
  * One instance of this class is created for each supported edit mode.
  *
  * @author Slava Pestov
- * @version $Id: Mode.java 23980 2015-08-10 13:44:17Z daleanson $
+ * @version $Id: Mode.java 25487 2021-04-05 21:09:02Z kpouer $
  */
 public class Mode
 {
@@ -59,7 +59,7 @@ public class Mode
 	public Mode(String name)
 	{
 		this.name = name;
-		this.ignoreWhitespace = true;
+		ignoreWhitespace = true;
 		props = new Hashtable<>();
 	} //}}}
 
@@ -218,6 +218,7 @@ public class Mode
 	 * Should only be called by <code>XModeHandler</code>.
 	 * @since jEdit 4.0pre3
 	 */
+	@SuppressWarnings({"unchecked"}) 
 	public void setProperties(Map props)
 	{
 		if(props == null)
@@ -260,20 +261,6 @@ public class Mode
 		return acceptFile(filePath, fileName)
 				|| acceptIdentical(filePath, fileName)
 				|| acceptFirstLine(firstLine);
-	} //}}}
-
-	//{{{ acceptFilename() method
-	/**
-	 * Returns true if the buffer name matches the file name glob.
-	 * @param fileName The buffer's name, can be {@code null}
-	 * @return true if the file name matches the file name glob.
-	 * @since jEdit 4.3pre18
-	 * @deprecated use {@link #acceptFile(String, String)} instead
-	 */
-	@Deprecated
-	public boolean acceptFilename(String fileName)
-	{
-		return acceptFile(null, fileName);
 	} //}}}
 
 	//{{{ acceptFile() method
@@ -323,7 +310,7 @@ public class Mode
 		if(filenameGlob == null)
 			return false;
 
-		if(fileName != null && fileName.equalsIgnoreCase(filenameGlob))	
+		if(filenameGlob.equalsIgnoreCase(fileName))
 			return true;
 
 		if (filePath != null) 
@@ -420,7 +407,7 @@ public class Mode
 	//{{{ initIndentRules() method
 	private void initIndentRules()
 	{
-		List<IndentRule> rules = new LinkedList<IndentRule>();
+		List<IndentRule> rules = new LinkedList<>();
 
 		String[] regexpProps = {
 			"indentNextLine",

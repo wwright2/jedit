@@ -62,6 +62,7 @@ import java.lang.reflect.Field;
     Thanks to Slava Pestov (of jEdit fame) for import caching enhancements.
     Note: This class has gotten too big.  It should be broken down a bit.
 */
+@SuppressWarnings("unchecked")
 public class NameSpace
     implements java.io.Serializable, BshClassManager.Listener,
     NameSource
@@ -637,6 +638,7 @@ System.out.println("experiment: creating class manager");
     /**
         @deprecated See #setTypedVariable( String, Class, Object, Modifiers )
     */
+    @Deprecated
     public void	setTypedVariable(
         String	name, Class type, Object value,	boolean	isFinal )
         throws UtilEvalError

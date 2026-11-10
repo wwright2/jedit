@@ -31,6 +31,7 @@ import java.util.*;
 import java.util.zip.ZipEntry;
 import java.util.zip.ZipFile;
 import org.gjt.sp.util.Log;
+import org.jedit.util.CleanerService;
 
 import java.util.jar.Manifest;
 import java.util.jar.JarFile;
@@ -43,7 +44,7 @@ import java.util.jar.Attributes.Name;
  * A class loader implementation that loads classes from JAR files. All
  * instances share the same set of classes.
  * @author Slava Pestov
- * @version $Id: JARClassLoader.java 23224 2013-09-30 20:51:42Z shlomy $
+ * @version $Id: JARClassLoader.java 25512 2021-04-25 20:18:15Z kpouer $
  */
 public class JARClassLoader extends ClassLoader
 {
@@ -70,12 +71,14 @@ public class JARClassLoader extends ClassLoader
 		// for debugging
 		id = INDEX++;
 		live++;
+		CleanerService.instance.register(this, () -> live--);
 	} //}}}
 
 	//{{{ loadClass() method
 	/**
 	 * @exception ClassNotFoundException if the class could not be found
 	 */
+	@Override
 	public Class loadClass(String clazz, boolean resolveIt)
 		throws ClassNotFoundException
 	{
@@ -125,6 +128,7 @@ public class JARClassLoader extends ClassLoader
 	} //}}}
 
 	//{{{ getResourceAsStream() method
+	@Override
 	public InputStream getResourceAsStream(String name)
 	{
 		try
@@ -162,6 +166,7 @@ public class JARClassLoader extends ClassLoader
 	 * overriding getResource() because we want to search FIRST in this
 	 * ClassLoader, then the parent, the path, etc.
 	 */
+	@Override
 	public URL getResource(String name)
 	{
 		try
@@ -261,27 +266,30 @@ public class JARClassLoader extends ClassLoader
 	/**
 	 * @return zero or one resource, as returned by getResource()
 	 */
-	public Enumeration getResources(String name) throws IOException
+	@Override
+	public Enumeration<URL> getResources(String name) throws IOException
 	{
-		class SingleElementEnumeration implements Enumeration
+		class SingleElementEnumeration implements Enumeration<URL>
 		{
-			private Object element;
+			private URL element;
 
-			SingleElementEnumeration(Object element)
+			SingleElementEnumeration(URL element)
 			{
 				this.element = element;
 			}
 
+			@Override
 			public boolean hasMoreElements()
 			{
 				return element != null;
 			}
 
-			public Object nextElement()
+			@Override
+			public URL nextElement()
 			{
 				if(element != null)
 				{
-					Object retval = element;
+					URL retval = element;
 					element = null;
 					return retval;
 				}
@@ -292,12 +300,6 @@ public class JARClassLoader extends ClassLoader
 
 		URL resource = getResource(name);
 		return new SingleElementEnumeration(resource);
-	} //}}}
-
-	//{{{ finalize() method
-	protected void finalize()
-	{
-		live--;
 	} //}}}
 
 	//{{{ Package-private members
@@ -348,8 +350,7 @@ public class JARClassLoader extends ClassLoader
 				Object loader = classHash.get(aClass);
 				if (loader == this)
 					classHash.remove(aClass);
-				else
-					/* two plugins provide same class! */;
+				/* else two plugins provide same class! */
 			}
 		}
 
@@ -362,8 +363,7 @@ public class JARClassLoader extends ClassLoader
 			Object loader = resourcesHash.get(resource);
 			if (loader == this)
 				resourcesHash.remove(resource);
-			else
-				/* two plugins provide same resource! */;
+			/* else two plugins provide same resource! */
 		}
 	} //}}}
 
@@ -376,10 +376,10 @@ public class JARClassLoader extends ClassLoader
 
 	private static int INDEX;
 	private static int live;
-	private static Map<String, Object> classHash = new Hashtable<String, Object>();
-	private static Map<String, Object> resourcesHash = new HashMap<String, Object>();
+	private static final Map<String, Object> classHash = new Hashtable<>();
+	private static final Map<String, Object> resourcesHash = new HashMap<>();
 
-	private int id;
+	private final int id;
 	private boolean delegateFirst;
 	private PluginJAR jar;
 
@@ -455,7 +455,7 @@ public class JARClassLoader extends ClassLoader
 		if (idx != -1)
 		{
 			String name = clazz.substring(0, idx);
-			if (getPackage(name) == null) definePackage(name, new JarFile(jar.getFile()).getManifest());
+			if (getDefinedPackage(name) == null) definePackage(name, new JarFile(jar.getFile()).getManifest());
 		}
 	} //}}}
 
@@ -487,13 +487,13 @@ public class JARClassLoader extends ClassLoader
 		Attributes ma = mf.getMainAttributes();
 
 		URL sealBase = null;
-		if (Boolean.valueOf(getMfValue(sa, ma, Name.SEALED)).booleanValue())
+		if (Boolean.parseBoolean(getMfValue(sa, ma, Name.SEALED)))
 		{
 			try
 			{
-				sealBase = jar.getFile().toURL();
+				sealBase = jar.getFile().toURI().toURL();
 			}
-			catch (MalformedURLException e) {}
+			catch (MalformedURLException e) {}	// NOPMD
 		}
 
 		definePackage(

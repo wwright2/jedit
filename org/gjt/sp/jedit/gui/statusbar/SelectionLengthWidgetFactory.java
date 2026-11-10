@@ -43,10 +43,10 @@ import javax.swing.event.CaretEvent;
 public class SelectionLengthWidgetFactory implements StatusWidgetFactory
 {
 	//{{{ getWidget() method
+	@Override
 	public Widget getWidget(View view)
 	{
-		Widget selectionLengthWidget = new SelectionLengthWidget(view);
-		return selectionLengthWidget;
+		return new SelectionLengthWidget(view);
 	} //}}}
 
 	//{{{ SelectionLengthWidget class
@@ -66,11 +66,13 @@ public class SelectionLengthWidgetFactory implements StatusWidgetFactory
 			EditBus.addToBus(this);
 		}
 
+		@Override
 		public JComponent getComponent()
 		{
 			return selectionLength;
 		}
 
+		@Override
 		public void update()
 		{
 			Selection selection = textArea.getSelectionAtOffset(textArea.getCaretPosition());
@@ -101,10 +103,6 @@ public class SelectionLengthWidgetFactory implements StatusWidgetFactory
 			}
 		}
 
-		public void propertiesChanged()
-		{
-		}
-
 		@EBHandler
 		public void handleViewUpdate(ViewUpdate viewUpdate)
 		{
@@ -120,9 +118,10 @@ public class SelectionLengthWidgetFactory implements StatusWidgetFactory
 			}
 		}
 
-		private class SelectionLength extends JLabel implements CaretListener
+		private class SelectionLength extends ToolTipLabel implements CaretListener
 		{
 			boolean visible;
+
 			//{{{ addNotify() method
 			@Override
 			public void addNotify()
@@ -142,6 +141,7 @@ public class SelectionLengthWidgetFactory implements StatusWidgetFactory
 				super.removeNotify();
 			} //}}}
 
+			@Override
 			public void caretUpdate(CaretEvent e)
 			{
 				SelectionLengthWidget.this.update();

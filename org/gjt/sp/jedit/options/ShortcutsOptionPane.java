@@ -29,13 +29,13 @@ import org.gjt.sp.jedit.*;
 import org.gjt.sp.jedit.gui.FilteredTableModel;
 import org.gjt.sp.jedit.gui.GrabKeyDialog;
 import org.gjt.sp.jedit.gui.GrabKeyDialog.KeyBinding;
+import org.gjt.sp.util.swing.event.UniqueActionDocumentListener;
 import org.jedit.keymap.Keymap;
 import org.jedit.keymap.KeymapManager;
+import org.gjt.sp.util.GenericGUIUtilities;
 import org.gjt.sp.util.Log;
 import org.gjt.sp.util.StandardUtilities;
 import javax.swing.*;
-import javax.swing.event.DocumentEvent;
-import javax.swing.event.DocumentListener;
 import javax.swing.table.AbstractTableModel;
 import java.awt.*;
 import java.awt.event.ActionEvent;
@@ -49,7 +49,7 @@ import java.util.List;
 /**
  * Key binding editor.
  * @author Slava Pestov
- * @version $Id: ShortcutsOptionPane.java 23920 2015-05-22 08:03:45Z ezust $
+ * @version $Id: ShortcutsOptionPane.java 25210 2020-04-12 14:49:37Z kpouer $
  */
 @SuppressWarnings("serial")
 public class ShortcutsOptionPane extends AbstractOptionPane
@@ -101,6 +101,8 @@ public class ShortcutsOptionPane extends AbstractOptionPane
 		keymapBox.add(duplicateKeymap);
 		keymapBox.add(resetKeymap);
 		keymapBox.add(deleteKeymap);
+		keymaps.setToolTipText(jEdit.getProperty("options.shortcuts.keymap.tooltip"));
+		keymapBox.setToolTipText(jEdit.getProperty("options.shortcuts.keymap.tooltip"));
 
 		// combobox to choose action set
 		selectModel = new JComboBox<>(models);
@@ -114,36 +116,13 @@ public class ShortcutsOptionPane extends AbstractOptionPane
 
 		filterTF = new JTextField(40);
 		filterTF.setToolTipText(jEdit.getProperty("options.shortcuts.filter.tooltip"));
-		filterTF.getDocument().addDocumentListener(new DocumentListener()
-		{
-			@Override
-			public void changedUpdate(DocumentEvent e)
-			{
-				setFilter();
-			}
-
-			@Override
-			public void insertUpdate(DocumentEvent e)
-			{
-				setFilter();
-			}
-
-			@Override
-			public void removeUpdate(DocumentEvent e)
-			{
-				setFilter();
-			}
-		});
+		filterTF.getDocument().addDocumentListener(new UniqueActionDocumentListener(e -> setFilter()));
 		JButton clearButton = new JButton(jEdit.getProperty(
 				"options.shortcuts.clear.label"));
-		clearButton.addActionListener(new ActionListener()
+		clearButton.addActionListener(e ->
 		{
-			@Override
-			public void actionPerformed(ActionEvent arg0)
-			{
-				filterTF.setText("");
-				filterTF.requestFocus();
-			}
+			filterTF.setText("");
+			filterTF.requestFocus();
 		});
 
 		JPanel filterPanel = new JPanel(new FlowLayout(FlowLayout.LEFT));
@@ -151,9 +130,23 @@ public class ShortcutsOptionPane extends AbstractOptionPane
 		filterPanel.add(filterTF);
 		filterPanel.add(clearButton);
 
-		keyTable = new JTable(filteredModel);
+		keyTable = new JTable(filteredModel)
+		{
+			@Override
+			public String getToolTipText(MouseEvent e)
+			{
+				java.awt.Point p = e.getPoint();
+				int rowIndex = rowAtPoint(p);
+				int colIndex = columnAtPoint(p);
+				int modelColIndex = convertColumnIndexToModel(colIndex);
+
+				ShortcutsModel model = (ShortcutsModel) ((FilteredTableModel)getModel()).getDelegated();
+
+				return modelColIndex == 0 ? model.getToolTip(rowIndex) : null;
+			}
+		};
 		filteredModel.setTable(keyTable);
-		keyTable.setRowHeight(GUIUtilities.defaultRowHeight());
+		keyTable.setRowHeight(GenericGUIUtilities.defaultRowHeight());
 		keyTable.getTableHeader().setReorderingAllowed(false);
 		keyTable.getTableHeader().addMouseListener(new HeaderMouseHandler());
 		keyTable.addMouseListener(new TableMouseHandler());
@@ -217,7 +210,7 @@ public class ShortcutsOptionPane extends AbstractOptionPane
 	//{{{ initModels() method
 	private void initModels()
 	{
-		filteredModel = new FilteredTableModel<ShortcutsModel>()
+		filteredModel = new FilteredTableModel<>()
 		{
 			@Override
 			public String prepareFilter(String filter)
@@ -271,7 +264,7 @@ public class ShortcutsOptionPane extends AbstractOptionPane
 		if (models.size() > 1)
 			models.add(new ShortcutsModel(ShortcutsModel.ALL, allBindings));
 		ShortcutsModel delegated = filteredModel.getDelegated();
-		Collections.sort(models,new StandardUtilities.StringCompare<ShortcutsModel>(true));
+		models.sort(new StandardUtilities.StringCompare<>(true));
 		if (delegated == null)
 		{
 			delegated = models.get(0);
@@ -305,33 +298,34 @@ public class ShortcutsOptionPane extends AbstractOptionPane
 			if (label == null)
 				continue;
 
-			label = GUIUtilities.prettifyMenuLabel(label);
-			addBindings(actionSet, name, label, bindings);
+			label = GenericGUIUtilities.prettifyMenuLabel(label);
+			String tooltip = ea.getToolTip();
+			addBindings(actionSet, name, label, tooltip, bindings);
 		}
 
 		return new ShortcutsModel(modelLabel,bindings);
 	} //}}}
 
 	//{{{ addBindings() method
-	private void addBindings(String actionSet, String name, String label, Collection<KeyBinding[]> bindings)
+	private void addBindings(String actionSet, String name, String label, String tooltip, Collection<KeyBinding[]> bindings)
 	{
 		KeyBinding[] b = new KeyBinding[2];
 
-		b[0] = createBinding(actionSet, name,label,
+		b[0] = createBinding(actionSet, name,label, tooltip,
 			selectedKeymap.getShortcut(name + ".shortcut"));
-		b[1] = createBinding(actionSet, name,label,
+		b[1] = createBinding(actionSet, name,label, tooltip,
 			selectedKeymap.getShortcut(name + ".shortcut2"));
 
 		bindings.add(b);
 	} //}}}
 
 	//{{{ createBinding() method
-	private KeyBinding createBinding(String actionSet, String name, String label, String shortcut)
+	private KeyBinding createBinding(String actionSet, String name, String label, String tooltip, String shortcut)
 	{
 		if(shortcut != null && shortcut.isEmpty())
 			shortcut = null;
 
-		KeyBinding binding = new KeyBinding(name,label,shortcut,false);
+		KeyBinding binding = new KeyBinding(name,label,tooltip,shortcut,false);
 
 		binding.actionSet = actionSet;
 		allBindings.add(binding);
@@ -384,7 +378,7 @@ public class ShortcutsOptionPane extends AbstractOptionPane
 			if(col != 0 && row != -1)
 			{
 				 GrabKeyDialog gkd = new GrabKeyDialog(
-					GUIUtilities.getParentDialog(
+					GenericGUIUtilities.getParentDialog(
 					ShortcutsOptionPane.this),
 					filteredModel.getDelegated().getBindingAt(filteredModel.getTrueRow(row), col - 1),
 					allBindings,null);
@@ -514,7 +508,7 @@ public class ShortcutsOptionPane extends AbstractOptionPane
 
 		public void sort(int col)
 		{
-			Collections.sort(bindings,new KeyCompare(col));
+			bindings.sort(new KeyCompare(col));
 		}
 
 		@Override
@@ -537,7 +531,6 @@ public class ShortcutsOptionPane extends AbstractOptionPane
 			// The only place this gets used is in JTable's own display code, so
 			// we translate the shortcut to platform-specific form for display here.
 			KeyBinding bindingAt = getBindingAt(row, 0);
-			setToolTipText(bindingAt.label);
 			switch(col)
 			{
 			case 0:
@@ -551,6 +544,13 @@ public class ShortcutsOptionPane extends AbstractOptionPane
 			default:
 				return null;
 			}
+		}
+
+		public String getToolTip(int row)
+		{
+			KeyBinding bindingAt = getBindingAt(row, 0);
+
+			return bindingAt.tooltip;
 		}
 
 		@Override
@@ -672,7 +672,7 @@ public class ShortcutsOptionPane extends AbstractOptionPane
 		{
 			KeymapManager keymapManager = jEdit.getKeymapManager();
 			Collection<String> keymapNames = keymapManager.getKeymapNames();
-			keymaps = keymapNames.toArray(new String[keymapNames.size()]);
+			keymaps = keymapNames.toArray(StandardUtilities.EMPTY_STRING_ARRAY);
 			if (!isValidName(selectedItem))
 				selectedItem = keymaps[0];
 			fireContentsChanged(this, 0, keymaps.length-1);

@@ -24,20 +24,16 @@ package org.gjt.sp.jedit.gui;
 
 //{{{ Imports
 import javax.swing.*;
-import javax.swing.border.Border;
-import javax.swing.border.AbstractBorder;
-import javax.swing.border.CompoundBorder;
-import javax.swing.event.MouseInputAdapter;
 import java.awt.*;
 import java.awt.event.*;
 import java.util.Collections;
-import org.gjt.sp.jedit.*;
+import org.gjt.sp.util.GenericGUIUtilities;
 //}}}
 
 /**
  * Text area with a history.
  * @author Slava Pestov
- * @version $Id: HistoryTextArea.java 22466 2012-11-13 07:11:13Z ezust $
+ * @version $Id: HistoryTextArea.java 25462 2021-03-29 21:17:46Z kpouer $
  */
 public class HistoryTextArea extends JTextArea
 {
@@ -54,7 +50,7 @@ public class HistoryTextArea extends JTextArea
 			KeyboardFocusManager.BACKWARD_TRAVERSAL_KEYS,
 			Collections.singleton(
 				KeyStroke.getKeyStroke(KeyEvent.VK_TAB,
-					InputEvent.SHIFT_MASK)));
+					InputEvent.SHIFT_DOWN_MASK)));
 	} //}}}
 
 	//{{{ getModel() method
@@ -111,6 +107,7 @@ public class HistoryTextArea extends JTextArea
 	/**
 	 * Sets the displayed text.
 	 */
+	@Override
 	public void setText(String text)
 	{
 		super.setText(text);
@@ -120,6 +117,7 @@ public class HistoryTextArea extends JTextArea
 	//{{{ Protected members
 
 	//{{{ processKeyEvent() method
+	@Override
 	protected void processKeyEvent(KeyEvent evt)
 	{
 		if(!isEnabled())
@@ -177,6 +175,7 @@ public class HistoryTextArea extends JTextArea
 	} //}}}
 
 	//{{{ processMouseEvent() method
+	@Override
 	protected void processMouseEvent(MouseEvent evt)
 	{
 		if(!isEnabled())
@@ -185,7 +184,7 @@ public class HistoryTextArea extends JTextArea
 		switch(evt.getID())
 		{
 		case MouseEvent.MOUSE_PRESSED:
-			if(GUIUtilities.isPopupTrigger(evt))
+			if(GenericGUIUtilities.isPopupTrigger(evt))
 				controller.showPopupMenu(evt.isShiftDown());
 			else
 				super.processMouseEvent(evt);
@@ -200,6 +199,6 @@ public class HistoryTextArea extends JTextArea
 	//}}}
 
 	//{{{ Private variables
-	private HistoryText controller;
+	private final HistoryText controller;
 	//}}}
 }

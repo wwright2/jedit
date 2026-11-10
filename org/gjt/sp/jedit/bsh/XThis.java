@@ -57,6 +57,7 @@ import java.util.Hashtable;
     See also JThis with explicit JFC support for compatability.
     @see org.gjt.sp.jedit.bsh.This This
 */
+@SuppressWarnings("unchecked")
 public class XThis extends This
     {
     /**
@@ -95,7 +96,7 @@ public class XThis extends This
         int hash = 21;
         for(int i=0; i<ca.length; i++)
             hash *= ca[i].hashCode() + 3;
-        Object hashKey = new Integer(hash);
+        Object hashKey = Integer.valueOf(hash);
 
         Object interf = interfaces.get( hashKey );
 
@@ -165,7 +166,7 @@ public class XThis extends This
             } catch ( UtilEvalError e ) {/*leave null*/ }
             if ( methodName.equals("equals" ) && equalsMethod == null ) {
                 Object obj = args[0];
-                return new Boolean( proxy == obj );
+                return Boolean.valueOf( proxy == obj );
             }
 
             /*

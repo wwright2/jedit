@@ -35,22 +35,20 @@ import org.gjt.sp.jedit.menu.EnhancedMenu;
 import org.gjt.sp.jedit.menu.EnhancedMenuItem;
 import org.gjt.sp.jedit.syntax.SyntaxStyle;
 import org.gjt.sp.jedit.textarea.JEditTextArea;
-import org.gjt.sp.jedit.textarea.TextAreaMouseHandler;
+import org.gjt.sp.util.GenericGUIUtilities;
 import org.gjt.sp.util.Log;
 import org.gjt.sp.util.SyntaxUtilities;
-
 
 import java.net.URL;
 import java.util.*;
 import java.util.List;
 import java.lang.ref.SoftReference;
 
-import javax.swing.AbstractButton;
+import javax.annotation.Nonnull;
 import javax.swing.Icon;
 import javax.swing.ImageIcon;
 import javax.swing.JButton;
 import javax.swing.JComponent;
-import javax.swing.JDialog;
 import javax.swing.JLabel;
 import javax.swing.JList;
 import javax.swing.JMenu;
@@ -64,18 +62,14 @@ import javax.swing.JTextPane;
 import javax.swing.JToolBar;
 import javax.swing.ListSelectionModel;
 import javax.swing.SwingUtilities;
-import javax.swing.UIDefaults;
 import javax.swing.UIManager;
-
 
 import java.awt.*;
 import java.awt.event.*;
 import java.awt.font.FontRenderContext;
-import java.awt.font.LineMetrics;
 import java.util.concurrent.Executors;
 import java.util.concurrent.Future;
 import java.util.concurrent.ScheduledExecutorService;
-import java.util.concurrent.ThreadFactory;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicLong;
 //}}}
@@ -93,11 +87,10 @@ import java.util.concurrent.atomic.AtomicLong;
  * <li>{@link #showVFSFileDialog(View,String,int,boolean)}</li>
  * <li>{@link #loadGeometry(Window,String)}</li>
  * <li>{@link #saveGeometry(Window,String)}</li>
- * <li>{@link #showPopupMenu(JPopupMenu,Component,int,int)}</li>
  * </ul>
  *
  * @author Slava Pestov
- * @version $Id: GUIUtilities.java 24110 2015-10-19 16:23:13Z vampire0 $
+ * @version $Id: GUIUtilities.java 25714 2024-03-29 16:09:39Z ezust $
  */
 public class GUIUtilities
 {
@@ -128,7 +121,7 @@ public class GUIUtilities
 			return null;
 
 		// * Enable old icon naming scheme support
-		if(deprecatedIcons != null && deprecatedIcons.containsKey(iconName))
+		if(deprecatedIcons.containsKey(iconName))
 			iconName = deprecatedIcons.get(iconName);
 
 		// check if there is a cached version first
@@ -139,8 +132,8 @@ public class GUIUtilities
 		}
 		if(cache == null)
 		{
-			cache = new Hashtable<String, Icon>();
-			iconCache = new SoftReference<Map<String, Icon>>(cache);
+			cache = new HashMap<>();
+			iconCache = new SoftReference<>(cache);
 		}
 		Icon icon = cache.get(iconName);
 		if(icon != null)
@@ -372,12 +365,12 @@ public class GUIUtilities
 	 */
 	public static List<JMenuItem> getServiceContextMenuItems(JEditTextArea textArea, MouseEvent evt)
 	{
-		List<JMenuItem> list = new ArrayList<JMenuItem>();
+		List<JMenuItem> list = new ArrayList<>();
 		String serviceClassName =  DynamicContextMenuService.class.getName();
 		String[] menuServiceList = ServiceManager.getServiceNames(serviceClassName);
 		for (String menuServiceName : menuServiceList)
 		{
-			if (menuServiceName != null && menuServiceName.trim().length() > 0)
+			if (menuServiceName != null && !menuServiceName.trim().isEmpty())
 			{
 				DynamicContextMenuService dcms = (DynamicContextMenuService)
 						ServiceManager.getService(serviceClassName, menuServiceName);
@@ -479,7 +472,6 @@ public class GUIUtilities
 		JToolBar toolB = new JToolBar();
 		toolB.setName(name);
 		toolB.setLayout(new FlowLayout(FlowLayout.LEFT, 0, 0));
-		toolB.setFloatable(jEdit.getBooleanProperty("view.toolbar.floatable"));
 
 		String buttons = jEdit.getProperty(name);
 		if(buttons != null)
@@ -495,8 +487,7 @@ public class GUIUtilities
 				else
 				{
 					JButton b = loadToolButton(context,button);
-					if(b != null)
-						toolB.add(b);
+					toolB.add(b);
 				}
 			}
 		}
@@ -514,6 +505,7 @@ public class GUIUtilities
 	 * @param name The name of the button
 	 * @return a button
 	 */
+	@Nonnull
 	public static EnhancedButton loadToolButton(String name)
 	{
 		return loadToolButton(jEdit.getActionContext(),name);
@@ -533,6 +525,7 @@ public class GUIUtilities
 	 * @return the button
 	 * @since jEdit 4.2pre1
 	 */
+	@Nonnull
 	public static EnhancedButton loadToolButton(ActionContext context,
 		String name)
 	{
@@ -552,7 +545,7 @@ public class GUIUtilities
 				icon = loadIcon(jEdit.getProperty("broken-image.icon"));
 		}
 
-		String toolTip = prettifyMenuLabel(label);
+		String toolTip = GenericGUIUtilities.prettifyMenuLabel(label);
 		String shortcutLabel = getShortcutLabel(name, true);
 		if(shortcutLabel != null)
 		{
@@ -564,25 +557,6 @@ public class GUIUtilities
 		return b;
 	} //}}}
 
-	//{{{ prettifyMenuLabel() method
-	/**
-	 * `Prettifies' a menu item label by removing the `$' sign. This
-	 * can be used to process the contents of an <i>action</i>.label
-	 * property.
-	 * @param label the label
-	 * @return a pretty label
-	 */
-	public static String prettifyMenuLabel(String label)
-	{
-		int index = label.indexOf('$');
-		if(index != -1)
-		{
-			label = label.substring(0,index)
-				.concat(label.substring(index + 1));
-		}
-		return label;
-	} //}}}
-
 	//{{{ getPlatformShortcutLabel() method
 	/**
 	* Translates a shortcut description string (e.g. "CS+SEMICOLON") to
@@ -591,7 +565,7 @@ public class GUIUtilities
 	*/
 	public static String getPlatformShortcutLabel(String label)
 	{
-		if( !OperatingSystem.isMacOSLF() || label == null || label.length() == 0)
+		if( !OperatingSystem.isMacOSLF() || label == null || label.isEmpty())
 			return label;
 
 		String[] strokes = label.split(" +");
@@ -625,48 +599,20 @@ public class GUIUtilities
 			shortcut1 = platform ? getPlatformShortcutLabel(shortcut1) : shortcut1;
 			shortcut2 = platform ? getPlatformShortcutLabel(shortcut2) : shortcut2;
 
-			if(shortcut1 == null || shortcut1.length() == 0)
+			if(shortcut1 == null || shortcut1.isEmpty())
 			{
-				if(shortcut2 == null || shortcut2.length() == 0)
+				if(shortcut2 == null || shortcut2.isEmpty())
 					return null;
 				else
 					return shortcut2;
 			}
 			else
 			{
-				if(shortcut2 == null || shortcut2.length() == 0)
+				if(shortcut2 == null || shortcut2.isEmpty())
 					return shortcut1;
 				else
 					return shortcut1 + " or " + shortcut2;
 			}
-		}
-	} //}}}
-
-	//{{{ setAutoMnemonic() method
-	/**
-	 * Sets the mnemonic for the given button using jEdit convention,
-	 * taking the letter after the dollar.
-	 * @param button The button to set the mnemonic for.
-	 * @since jEdit 5.1
-	 */
-	public static void setAutoMnemonic(AbstractButton button)
-	{
-		String label = button.getText();
-		char mnemonic;
-		int index = label.indexOf('$');
-		if (index != -1 && label.length() - index > 1)
-		{
-			mnemonic = Character.toLowerCase(label.charAt(index + 1));
-			label = label.substring(0, index).concat(label.substring(++index));
-		}
-		else
-		{
-			mnemonic = '\0';
-		}
-		if (mnemonic != '\0')
-		{
-			button.setMnemonic(mnemonic);
-			button.setText(label);
 		}
 	} //}}}
 
@@ -702,16 +648,9 @@ public class GUIUtilities
                 {
                         try
                         {
-                            EventQueue.invokeAndWait(new Runnable()
-                            {
-                                    @Override
-                                    public void run()
-                                    {
-                                            message(comp, name, args);
-                                    }
-                            });
+                            EventQueue.invokeAndWait(() -> message(comp, name, args));
                         }
-                        catch (Exception e)
+                        catch (Exception e)		// NOPMD
                         {
                             // ignored
                         }
@@ -746,16 +685,9 @@ public class GUIUtilities
                 {
                         try
                         {
-                                EventQueue.invokeAndWait(new Runnable()
-                                {
-                                        @Override
-                                        public void run()
-                                        {
-                                                error(comp, name, args);
-                                        }
-                                });
+                                EventQueue.invokeAndWait(() -> error(comp, name, args));
                         }
-                        catch (Exception e)
+                        catch (Exception e)		// NOPMD
                         {
                                 // ignored
                         }
@@ -870,14 +802,7 @@ public class GUIUtilities
 		final String[] retValue = new String[1];
 		try
 		{
-			EventQueue.invokeAndWait(new Runnable()
-			{
-				@Override
-				public void run()
-				{
-					retValue[0] = inputProperty(comp, name, args, def);
-				}
-			});
+			EventQueue.invokeAndWait(() -> retValue[0] = inputProperty(comp, name, args, def));
 		}
 		catch (Exception e)
 		{
@@ -917,14 +842,7 @@ public class GUIUtilities
 		final int [] retValue = new int[1];
 		try
 		{
-			EventQueue.invokeAndWait(new Runnable()
-			{
-				@Override
-				public void run()
-				{
-					retValue[0] = confirm(comp, name, args, buttons, type);
-				}
-			});
+			EventQueue.invokeAndWait(() -> retValue[0] = confirm(comp, name, args, buttons, type));
 		}
 		catch (Exception e)
 		{
@@ -965,14 +883,7 @@ public class GUIUtilities
 		final int[] retValue = new int[1];
 		try
 		{
-			EventQueue.invokeAndWait(new Runnable()
-			{
-				@Override
-				public void run()
-				{
-					retValue[0] = option(comp, name, args, type, options, initialValue);
-				}
-			});
+			EventQueue.invokeAndWait(() -> retValue[0] = option(comp, name, args, type, options, initialValue));
 		}
 		catch (Exception e)
 		{
@@ -1001,7 +912,7 @@ public class GUIUtilities
 	{
 		if (EventQueue.isDispatchThread())
 		{
-			JList list = new JList(listModel);
+			JList<Object> list = new JList<>(listModel);
 			list.setVisibleRowCount(8);
 
 			Object[] message = {
@@ -1018,14 +929,7 @@ public class GUIUtilities
 		final int [] retValue = new int[1];
 		try
 		{
-			EventQueue.invokeAndWait(new Runnable()
-			{
-				@Override
-				public void run()
-				{
-					retValue[0] = listConfirm(comp, name, args, listModel);
-				}
-			});
+			EventQueue.invokeAndWait(() -> retValue[0] = listConfirm(comp, name, args, listModel));
 		}
 		catch (Exception e)
 		{
@@ -1051,13 +955,14 @@ public class GUIUtilities
 	 * @return an integer indicating the option selected by the user
 	 * @since jEdit 4.3pre12
 	 */
+	@SuppressWarnings({"unchecked"})
 	public static int listConfirm(final Component comp, final String name, final String[] args,
 		final Object[] listModel, final List selectedItems)
 	{
 
 		if (EventQueue.isDispatchThread())
 		{
-			JList list = new JList(listModel);
+			JList<Object> list = new JList<Object>(listModel);
 			list.setSelectionMode(ListSelectionModel.MULTIPLE_INTERVAL_SELECTION);
 			list.setVisibleRowCount(8);
 			list.addSelectionInterval(0,listModel.length - 1);
@@ -1072,21 +977,13 @@ public class GUIUtilities
 								jEdit.getProperty(name + ".title"),
 								JOptionPane.YES_NO_OPTION,
 								JOptionPane.QUESTION_MESSAGE);
-			Object[] selectedValues = list.getSelectedValues();
-			selectedItems.addAll(Arrays.asList(selectedValues));
+			selectedItems.addAll(list.getSelectedValuesList());
 			return ret;
 		}
 		final int [] retValue = new int[1];
 		try
 		{
-			EventQueue.invokeAndWait(new Runnable()
-			{
-				@Override
-				public void run()
-				{
-					retValue[0] = listConfirm(comp, name, args, listModel, selectedItems);
-				}
-			});
+			EventQueue.invokeAndWait(() -> retValue[0] = listConfirm(comp, name, args, listModel, selectedItems));
 		}
 		catch (Exception e)
 		{
@@ -1109,6 +1006,7 @@ public class GUIUtilities
 	 * @return The selected file(s)
 	 * @since jEdit 2.6pre2
 	 */
+	@Nonnull
 	public static String[] showVFSFileDialog(View view, String path,
 		int type, boolean multipleSelection)
 	{
@@ -1141,6 +1039,7 @@ public class GUIUtilities
 	 * @return The selected file(s)
 	 * @since jEdit 4.3pre10
 	 */
+	@Nonnull
 	public static String[] showVFSFileDialog(Dialog parent, View view,
 		String path, int type, boolean multipleSelection)
 	{
@@ -1166,6 +1065,7 @@ public class GUIUtilities
 	 * @return The selected file(s)
 	 * @since jEdit 4.3pre10
 	 */
+	@Nonnull
 	public static String[] showVFSFileDialog(Frame parent, View view,
 		String path, int type, boolean multipleSelection)
 	{
@@ -1194,44 +1094,18 @@ public class GUIUtilities
 				return new Font("Monospaced", Font.PLAIN, 12);
 			}
 			else {
-				Font font2 = new Font("Lucida Sans Typewriter", Font.PLAIN, font1.getSize());
+				Font font2 =
+					new Font(OperatingSystem.isWindows() ? "Lucida Console" : "Monospaced",
+						Font.PLAIN, font1.getSize());
 				FontRenderContext frc = new FontRenderContext(null, true, false);
 				float scale =
 					font1.getLineMetrics("", frc).getHeight() / font2.getLineMetrics("", frc).getHeight();
-				return new Font(font2.getFamily(), font2.getStyle(), (int)(scale * font1.getSize()));
+				return new Font(font2.getFamily(), font2.getStyle(), (int)(scale * font1.getSize() * 0.85));
 			}
 		}
 	} //}}}
 
 	//{{{ Colors and styles
-
-	//{{{ parseColor() method
-	/**
-	 * Converts a color name to a color object. The name must either be
-	 * a known string, such as `red', `green', etc (complete list is in
-	 * the <code>java.awt.Color</code> class) or a hex color value
-	 * prefixed with `#', for example `#ff0088'.
-	 * @param name The color name
-	 */
-	public static Color parseColor(String name)
-	{
-		return SyntaxUtilities.parseColor(name, Color.black);
-	} //}}}
-
-	//{{{ parseStyle() method
-	/**
-	 * Converts a style string to a style object.
-	 * @param str The style string
-	 * @param family Style strings only specify font style, not font family
-	 * @param size Style strings only specify font style, not font family
-	 * @exception IllegalArgumentException if the style is invalid
-	 * @since jEdit 3.2pre6
-	 */
-	public static SyntaxStyle parseStyle(String str, String family, int size)
-		throws IllegalArgumentException
-	{
-		return SyntaxUtilities.parseStyle(str,family,size,true);
-	} //}}}
 
 	//{{{ getStyleString() method
 	/**
@@ -1300,7 +1174,7 @@ public class GUIUtilities
 		try
 		{
 			if(!Debug.DISABLE_MULTIHEAD)
-				adjustForScreenBounds(desired);
+				GenericGUIUtilities.adjustForScreenBounds(desired);
 		}
 		catch(Exception e)
 		{
@@ -1332,43 +1206,6 @@ public class GUIUtilities
 	public static void loadGeometry(Window win, String name)
 	{
 		loadGeometry(win, win.getParent(), name);
-	} //}}}
-
-	//{{{ adjustForScreenBounds() method
-	/**
-	 * Gives a rectangle the specified bounds, ensuring it is within the
-	 * screen bounds.
-	 * @since jEdit 4.2pre3
-	 */
-	public static void adjustForScreenBounds(Rectangle desired)
-	{
-		// Make sure the window is displayed in visible region
-		Rectangle osbounds = OperatingSystem.getScreenBounds(desired);
-
-		if (desired.width > osbounds.width)
-		{
-			desired.width = osbounds.width;
-		}
-		if (desired.x < osbounds.x)
-		{
-			desired.x = osbounds.x;
-		}
-		if (desired.x + desired.width > osbounds.x + osbounds.width)
-		{
-			desired.x = osbounds.x + osbounds.width - desired.width;
-		}
-		if (desired.height > osbounds.height)
-		{
-			desired.height = osbounds.height;
-		}
-		if (desired.y < osbounds.y)
-		{
-			desired.y = osbounds.y;
-		}
-		if (desired.y + desired.height > osbounds.y + osbounds.height)
-		{
-			desired.y = osbounds.y + osbounds.height - desired.height;
-		}
 	} //}}}
 
 	//{{{ UnixWorkaround class
@@ -1591,232 +1428,24 @@ public class GUIUtilities
 	public static JComponent createMultilineLabel(String str)
 	{
 		JPanel panel = new JPanel(new VariableGridLayout(
-			VariableGridLayout.FIXED_NUM_COLUMNS,1,1,1));
-		int lastOffset = 0;
-		while(true)
-		{
-			int index = str.indexOf('\n',lastOffset);
-			if(index == -1)
-				break;
-			else
+				VariableGridLayout.FIXED_NUM_COLUMNS,1,1,1));
+			int lastOffset = 0;
+			while(true)
 			{
-				panel.add(new JLabel(str.substring(lastOffset,index)));
-				lastOffset = index + 1;
-			}
-		}
-
-		if(lastOffset != str.length())
-			panel.add(new JLabel(str.substring(lastOffset)));
-
-		return panel;
-	} //}}}
-
-	//{{{ requestFocus() method
-	/**
-	 * Focuses on the specified component as soon as the window becomes
-	 * active.
-	 * @param win The window
-	 * @param comp The component
-	 */
-	public static void requestFocus(final Window win, final Component comp)
-	{
-		win.addWindowFocusListener(new WindowAdapter()
-		{
-			@Override
-			public void windowGainedFocus(WindowEvent evt)
-			{
-				EventQueue.invokeLater(new Runnable()
+				int index = str.indexOf('\n',lastOffset);
+				if(index == -1)
+					break;
+				else
 				{
-						@Override
-						public void run()
-						{
-							comp.requestFocusInWindow();
-						}
-				});
-				win.removeWindowFocusListener(this);
-			}
-		});
-	} //}}}
-
-	//{{{ isPopupTrigger() method
-	/**
-	 * Returns if the specified event is the popup trigger event.
-	 * This implements precisely defined behavior, as opposed to
-	 * MouseEvent.isPopupTrigger().
-	 * @param evt The event
-	 * @since jEdit 3.2pre8
-	 */
-	public static boolean isPopupTrigger(MouseEvent evt)
-	{
-		return TextAreaMouseHandler.isRightButton(evt.getModifiers());
-	} //}}}
-
-	//{{{ isMiddleButton() method
-	/**
-	 * @param modifiers The modifiers flag from a mouse event
-	 * @since jEdit 4.1pre9
-	 */
-	public static boolean isMiddleButton(int modifiers)
-	{
-		return TextAreaMouseHandler.isMiddleButton(modifiers);
-	} //}}}
-
-	//{{{ isRightButton() method
-	/**
-	 * @param modifiers The modifiers flag from a mouse event
-	 * @since jEdit 4.1pre9
-	 */
-	public static boolean isRightButton(int modifiers)
-	{
-		return TextAreaMouseHandler.isRightButton(modifiers);
-	} //}}}
-
-	//{{{ getScreenBounds() method
-	/**
-	 * Returns the screen bounds, taking into account multi-screen
-	 * environments.
-	 * @since jEdit 4.3pre18
-	 */
-	public static Rectangle getScreenBounds()
-	{
-		Rectangle bounds = GraphicsEnvironment.getLocalGraphicsEnvironment().
-			getMaximumWindowBounds();
-		GraphicsDevice [] devices = GraphicsEnvironment.
-			getLocalGraphicsEnvironment().getScreenDevices();
-		if (devices.length > 1)
-		{
-			for (GraphicsDevice device: devices)
-			{
-				for (GraphicsConfiguration config: device.getConfigurations())
-					bounds = bounds.union(config.getBounds());
-			}
-		}
-		return bounds;
-	} //}}}
-
-	//{{{ showPopupMenu() method
-	/**
-	 * Shows the specified popup menu, ensuring it is displayed within
-	 * the bounds of the screen.
-	 * @param popup The popup menu
-	 * @param comp The component to show it for
-	 * @param x The x co-ordinate
-	 * @param y The y co-ordinate
-	 * @since jEdit 4.0pre1
-	 * @see javax.swing.JComponent#setComponentPopupMenu(javax.swing.JPopupMenu) setComponentPopupMenu
-	 * which works better and is simpler to use: you don't have to write the code to
-	 * show/hide popups in response to mouse events anymore.
-	 */
-	public static void showPopupMenu(JPopupMenu popup, Component comp,
-		int x, int y)
-	{
-		showPopupMenu(popup,comp,x,y,true);
-	} //}}}
-
-	//{{{ showPopupMenu() method
-	/**
-	 * Shows the specified popup menu, ensuring it is displayed within
-	 * the bounds of the screen.
-	 * @param popup The popup menu
-	 * @param comp The component to show it for
-	 * @param x The x co-ordinate
-	 * @param y The y co-ordinate
-	 * @param point If true, then the popup originates from a single point;
-	 * otherwise it will originate from the component itself. This affects
-	 * positioning in the case where the popup does not fit onscreen.
-	 *
-	 * @since jEdit 4.1pre1
-	 */
-	public static void showPopupMenu(JPopupMenu popup, Component comp,
-		int x, int y, boolean point)
-	{
-		int offsetX = 0;
-		int offsetY = 0;
-
-		int extraOffset = point ? 1 : 0;
-
-		Component win = comp;
-		while(!(win instanceof Window || win == null))
-		{
-			offsetX += win.getX();
-			offsetY += win.getY();
-			win = win.getParent();
-		}
-
-		if(win != null)
-		{
-			Dimension size = popup.getPreferredSize();
-
-			Rectangle screenSize = getScreenBounds();
-
-			if(x + offsetX + size.width + win.getX() > screenSize.width
-				&& x + offsetX + win.getX() >= size.width)
-			{
-				//System.err.println("x overflow");
-				if(point)
-					x -= size.width + extraOffset;
-				else
-					x = win.getWidth() - size.width - offsetX + extraOffset;
-			}
-			else
-			{
-				x += extraOffset;
+					panel.add(new JLabel(str.substring(lastOffset,index)));
+					lastOffset = index + 1;
+				}
 			}
 
-			//System.err.println("y=" + y + ",offsetY=" + offsetY
-			//	+ ",size.height=" + size.height
-			//	+ ",win.height=" + win.getHeight());
-			if(y + offsetY + size.height + win.getY() > screenSize.height
-				&& y + offsetY + win.getY() >= size.height)
-			{
-				if(point)
-					y = win.getHeight() - size.height - offsetY + extraOffset;
-				else
-					y = -size.height - 1;
-			}
-			else
-			{
-				y += extraOffset;
-			}
+			if(lastOffset != str.length())
+				panel.add(new JLabel(str.substring(lastOffset)));
 
-			popup.show(comp,x,y);
-		}
-		else
-			popup.show(comp,x + extraOffset,y + extraOffset);
-
-	} //}}}
-
-	//{{{ isAncestorOf() method
-	/**
-	 * Returns if the first component is an ancestor of the
-	 * second by traversing up the component hierarchy.
-	 *
-	 * @param comp1 The ancestor
-	 * @param comp2 The component to check
-	 * @since jEdit 4.1pre5
-	 */
-	public static boolean isAncestorOf(Component comp1, Component comp2)
-	{
-		while(comp2 != null)
-		{
-			if(comp1 == comp2)
-				return true;
-			else
-				comp2 = comp2.getParent();
-		}
-
-		return false;
-	} //}}}
-
-	//{{{ getParentDialog() method
-	/**
-	 * Traverses the given component's parent tree looking for an
-	 * instance of JDialog, and return it. If not found, return null.
-	 * @param c The component
-	 */
-	public static JDialog getParentDialog(Component c)
-	{
-		return (JDialog) SwingUtilities.getAncestorOfClass(JDialog.class, c);
+			return panel;
 	} //}}}
 
 	//{{{ getComponentParent() method
@@ -1857,25 +1486,6 @@ public class GUIUtilities
 		return null;
 	} //}}}
 
-	//{{{ setEnabledRecursively() method
-	/**
-	 * Call setEnabled() recursively on the container and its descendants.
-	 * @param c The container
-	 * @param enabled The enabled state to set
-	 * @since jEdit 4.3pre17
-	 */
-	public static void setEnabledRecursively(Container c, boolean enabled)
-	{
-		for (Component child: c.getComponents())
-		{
-			if (child instanceof Container)
-				setEnabledRecursively((Container)child, enabled);
-			else
-				child.setEnabled(enabled);
-		}
-		c.setEnabled(enabled);
-	} //}}}
-
 	//{{{ getView() method
 	/**
 	 * Finds the view parent of the specified component.
@@ -1888,52 +1498,6 @@ public class GUIUtilities
 		return (View)getComponentParent(comp,View.class);
 	} //}}}
 
-	//{{{ setButtonContentMargin() method
-	/**
-	 * Sets the content margin of a button (for Nimbus L&amp;F).
-	 * @param button  the button to modify
-	 * @param margin  the new margin
-	 * @since jEdit 5.3
-	 */
-	public static void setButtonContentMargin(AbstractButton button, Insets margin)
-	{
-		UIDefaults defaults = new UIDefaults();
-		defaults.put("Button.contentMargins", margin);
-		defaults.put("ToggleButton.contentMargins", margin);
-		button.putClientProperty("Nimbus.Overrides", defaults);
-	} //}}}
-
-	//{{{ defaultTableDimension() method
-	/**
-	 * JTable cell size, based on global defaults.
-	 */
-	public static Dimension defaultTableCellSize()
-	{
-		JLabel label = new JLabel("miniminiminiminiminiminiminiminiminimini");
-		UIDefaults defaults = UIManager.getDefaults();
-		Object font = defaults.get("Table.font");
-		if (font instanceof Font) label.setFont((Font)font);
-		return label.getPreferredSize();
-	} //}}}
-
-	//{{{ defaultColumnWidth() method
-	/**
-	 * Column width for JTable, based on global defaults.
-	 */
-	public static int defaultColumnWidth()
-	{
-		return defaultTableCellSize().width;
-	} //}}}
-
-	//{{{ defaultRowHeight() method
-	/**
-	 * Row height for JTable, based on global defaults.
-	 */
-	public static int defaultRowHeight()
-	{
-		return defaultTableCellSize().height;
-	} //}}}
-
 	//{{{ addSizeSaver() method
 	/**
 	* Adds a SizeSaver to the specified Frame. For non-Frame's use {@link #saveGeometry(Window,String)}
@@ -1943,7 +1507,7 @@ public class GUIUtilities
 	 * @since jEdit 4.3pre6
 	 * @see #saveGeometry(Window,String)
 	 */
-	public static void addSizeSaver(Frame frame, String name)
+	public static void addSizeSaver(@Nonnull Frame frame, @Nonnull String name)
 	{
 		addSizeSaver(frame,frame.getParent(),name);
 	} //}}}
@@ -1958,7 +1522,7 @@ public class GUIUtilities
 	 * @since jEdit 4.3pre7
 	 * @see #saveGeometry(Window,Container,String)
 	 */
-	public static void addSizeSaver(Frame frame, Container parent, String name)
+	public static void addSizeSaver(@Nonnull Frame frame, Container parent, @Nonnull String name)
 	{
 		SizeSaver ss = new SizeSaver(frame,parent,name);
 		frame.addWindowStateListener(ss);
@@ -2073,13 +1637,7 @@ public class GUIUtilities
 		// Have to do it in the EDT, since it creates gui components
 		try
 		{
-			SwingUtilities.invokeAndWait(new Runnable()
-			{
-				public void run()
-				{
-					splash = new SplashScreen();
-				}
-			});
+			SwingUtilities.invokeAndWait(() -> splash = new SplashScreen());
 		}
 		catch (Exception e)
 		{
@@ -2109,7 +1667,7 @@ public class GUIUtilities
 	private static SoftReference<Map<String, Icon>> iconCache;
 	private static String iconPath = "jeditresource:/org/gjt/sp/jedit/icons/themes/";
 	private static final String defaultIconPath = "jeditresource:/org/gjt/sp/jedit/icons/themes/";
-	private static final HashMap<String, String> deprecatedIcons = new HashMap<String, String>();
+	private static final Map<String, String> deprecatedIcons = new HashMap<>();
 
 	//{{{ _loadMenuItem() method
 	private static JMenuItem _loadMenuItem(String name, ActionContext context, boolean setMnemonic)
@@ -2246,21 +1804,15 @@ public class GUIUtilities
 	//{{{ Inner classes
 
 	private static final AtomicLong executorThreadsCounter = new AtomicLong();
-	private static final ScheduledExecutorService schedExecutor = Executors.newSingleThreadScheduledExecutor(new ThreadFactory()
-	{
-		@Override
-		public Thread newThread(Runnable r)
-		{
-			return new Thread(r, "SizeSaver-" + executorThreadsCounter.incrementAndGet());
-		}
-	});
+	private static final ScheduledExecutorService schedExecutor =
+		Executors.newSingleThreadScheduledExecutor(r -> new Thread(r, "SizeSaver-" + executorThreadsCounter.incrementAndGet()));
 	//{{{ SizeSaver class
 	/**
 	 * A combined ComponentListener and WindowStateListener to continually save a Frames size.<br />
 	 * For non-Frame's use {@link GUIUtilities#saveGeometry(Window,String)}
 	 *
 	 * @author Björn Kautler
-	 * @version $Id: GUIUtilities.java 24110 2015-10-19 16:23:13Z vampire0 $
+	 * @version $Id: GUIUtilities.java 25714 2024-03-29 16:09:39Z ezust $
 	 * @since jEdit 4.3pre6
 	 * @see GUIUtilities#saveGeometry(Window,Container,String)
 	 */
@@ -2279,12 +1831,10 @@ public class GUIUtilities
 		 * @param parent The parent to be relative to.
 		 * @param name The prefix for the settings
 		 */
-		SizeSaver(Frame frame, Container parent, String name)
+		SizeSaver(@Nonnull Frame frame, Container parent, @Nonnull String name)
 		{
-			if (frame == null || name == null)
-			{
-				throw new NullPointerException();
-			}
+			Objects.requireNonNull(frame);
+			Objects.requireNonNull(name);
 			this.frame = frame;
 			this.parent = parent;
 			this.name = name;
@@ -2322,7 +1872,7 @@ public class GUIUtilities
 					break;
 			}
 		} //}}}
-		
+
 		//{{{ cancelResizeSave() method
 		private void cancelResizeSave()
 		{
@@ -2345,21 +1895,7 @@ public class GUIUtilities
 		public void componentMoved(ComponentEvent ce)
 		{
 			final Rectangle bounds = frame.getBounds();
-			final Runnable sizeSaver = new Runnable()
-			{
-				@Override
-				public void run()
-				{
-					EventQueue.invokeLater(new Runnable()
-					{
-						@Override
-						public void run()
-						{
-							save(frame.getExtendedState(), bounds);
-						}
-					});
-				}
-			};
+			final Runnable sizeSaver = () -> EventQueue.invokeLater(() -> save(frame.getExtendedState(), bounds));
 
 			cancelResizeSave();
 			resizeDelayFuture = schedExecutor.schedule(sizeSaver, 500, TimeUnit.MILLISECONDS);

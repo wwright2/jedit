@@ -25,8 +25,6 @@ package org.gjt.sp.jedit.gui;
 //{{{ Imports
 import java.awt.*;
 import java.awt.event.*;
-import java.beans.PropertyChangeEvent;
-import java.beans.PropertyChangeListener;
 import javax.annotation.Nullable;
 import javax.swing.*;
 import javax.swing.border.EmptyBorder;
@@ -36,17 +34,18 @@ import org.gjt.sp.jedit.EditBus.EBHandler;
 import org.gjt.sp.jedit.msg.PropertiesChanged;
 import org.gjt.sp.util.Log;
 import org.gjt.sp.util.ThreadUtilities;
+import org.gjt.sp.util.swing.event.UniqueActionDocumentListener;
 //}}}
 
 /** Activity Log Viewer
- * @version $Id: LogViewer.java 23426 2014-02-28 10:39:28Z kpouer $
+ * @version $Id: LogViewer.java 25698 2023-11-17 01:31:50Z vampire0 $
  */
 public class LogViewer extends JPanel implements DefaultFocusComponent
 {
-
 	private final ColorizerCellRenderer cellRenderer;
 
 	//{{{ LogViewer constructor
+	@SuppressWarnings({"unchecked"})	// The FilteredListModel needs work
 	public LogViewer()
 	{
 		super(new BorderLayout());
@@ -58,42 +57,20 @@ public class LogViewer extends JPanel implements DefaultFocusComponent
 		String settingsDirectory = jEdit.getSettingsDirectory();
 		if(settingsDirectory != null)
 		{
-			String[] args = { MiscUtilities.constructPath(
-								      settingsDirectory, "activity.log") };
-			JLabel label = new JLabel(jEdit.getProperty(
-								    "log-viewer.caption",args));
+			String[] args = { MiscUtilities.constructPath(settingsDirectory, "activity.log") };
+			JLabel label = new JLabel(jEdit.getProperty("log-viewer.caption",args));
 			caption.add(label);
 		}
 
 		caption.add(Box.createHorizontalGlue());
 
 		tailIsOn = jEdit.getBooleanProperty("log-viewer.tail", false);
-		tail = new JCheckBox(
-				     jEdit.getProperty("log-viewer.tail.label"),tailIsOn);
+		tail = new JCheckBox(jEdit.getProperty("log-viewer.tail.label"),tailIsOn);
 		tail.addActionListener(new ActionHandler());
 
 
 		filter = new JTextField();
-		filter.getDocument().addDocumentListener(new DocumentListener()
-		{
-			@Override
-			public void changedUpdate(DocumentEvent e)
-			{
-				setFilter();
-			}
-
-			@Override
-			public void insertUpdate(DocumentEvent e)
-			{
-				setFilter();
-			}
-
-			@Override
-			public void removeUpdate(DocumentEvent e)
-			{
-				setFilter();
-			}
-		});
+		filter.getDocument().addDocumentListener(new UniqueActionDocumentListener(e -> setFilter()));
 		caption.add(filter);
 		caption.add(tail);
 
@@ -106,17 +83,11 @@ public class LogViewer extends JPanel implements DefaultFocusComponent
 		caption.add(Box.createHorizontalStrut(6));
 
 		JButton settings = new JButton(jEdit.getProperty("log-viewer.settings.label"));
-		settings.addActionListener(new ActionListener()
-		{
-			@Override
-			public void actionPerformed(ActionEvent ae)
-			{
-				new LogSettings();
-			}
-		});
+		settings.addActionListener(e -> new LogSettings());
 		caption.add(settings);
 
-		ListModel model = Log.getLogListModel();
+		Log.setMaxLines(jEdit.getIntegerProperty("log-viewer.maxlines", 500));
+		ListModel<String> model = Log.getLogListModel();
 		listModel = new MyFilteredListModel(model);
 		// without this, listModel is held permanently in model.
 		// See addNotify() and removeNotify(), and constructor of
@@ -125,10 +96,10 @@ public class LogViewer extends JPanel implements DefaultFocusComponent
 
 		list = new LogList(listModel);
 		listModel.setList(list);
-		cellRenderer = new ColorizerCellRenderer();
+		cellRenderer = new ColorizerCellRenderer(list);
 		list.setCellRenderer(cellRenderer);
 		setFilter();
-
+                                                                    
 		add(BorderLayout.NORTH,caption);
 		JScrollPane scroller = new JScrollPane(list);
 		Dimension dim = scroller.getPreferredSize();
@@ -159,8 +130,8 @@ public class LogViewer extends JPanel implements DefaultFocusComponent
 	public void addNotify()
 	{
 		super.addNotify();
-		cellRenderer.updateColors();
-		ListModel model = Log.getLogListModel();
+		cellRenderer.updateColors(list);
+		ListModel<String> model = Log.getLogListModel();
 		model.addListDataListener(listModel);
 		model.addListDataListener(listHandler = new ListHandler());
 		if(tailIsOn)
@@ -174,7 +145,7 @@ public class LogViewer extends JPanel implements DefaultFocusComponent
 	public void removeNotify()
 	{
 		super.removeNotify();
-		ListModel model = Log.getLogListModel();
+		ListModel<String> model = Log.getLogListModel();
 		model.removeListDataListener(listModel);
 		model.removeListDataListener(listHandler);
 		listHandler = null;
@@ -190,8 +161,8 @@ public class LogViewer extends JPanel implements DefaultFocusComponent
 
 	//{{{ Private members
 	private ListHandler listHandler;
-	private final FilteredListModel<ListModel> listModel;
-	private final JList list;
+	private FilteredListModel<ListModel<String>> listModel;
+	private final JList<String> list;
 	private final JButton copy;
 	private final JCheckBox tail;
 	private final JTextField filter;
@@ -206,14 +177,14 @@ public class LogViewer extends JPanel implements DefaultFocusComponent
 	private void setFilter()
 	{
 		String toFilter = filter.getText();
-		listModel.setFilter(toFilter.length() == 0 ? " " : toFilter);
+		listModel.setFilter(toFilter.isEmpty() ? " " : toFilter);
 		scrollLaterIfRequired();
 	} //}}}
 
 	//{{{ propertiesChanged() method
 	private void propertiesChanged()
 	{
-		cellRenderer.updateColors();
+		cellRenderer.updateColors(list);
 		list.setFont(jEdit.getFontProperty("view.font"));
 		list.setFixedCellHeight(list.getFontMetrics(list.getFont())
 					.getHeight());
@@ -232,19 +203,13 @@ public class LogViewer extends JPanel implements DefaultFocusComponent
 	private void scrollLaterIfRequired()
 	{
 		if (tailIsOn)
-			ThreadUtilities.runInDispatchThread(new Runnable()
-			{
-				@Override
-				public void run()
-				{
-					scrollToTail();
-				}
-			});
+			ThreadUtilities.runInDispatchThread(this::scrollToTail);
 	} //}}}
 
 	//}}}
 
 	//{{{ ActionHandler class
+	@SuppressWarnings({"deprecation"})	// see note below
 	private class ActionHandler implements ActionListener
 	{
 		@Override
@@ -263,6 +228,9 @@ public class LogViewer extends JPanel implements DefaultFocusComponent
 			else if(src == copy)
 			{
 				StringBuilder buf = new StringBuilder();
+				// TODO: list.getSelectedValues is deprecated. Need to finish the
+				// conversion to generics for this class at some point.
+				
 				Object[] selected = list.getSelectedValues();
 				if(selected != null && selected.length != 0)
 				{
@@ -274,7 +242,7 @@ public class LogViewer extends JPanel implements DefaultFocusComponent
 				}
 				else
 				{
-					ListModel model = list.getModel();
+					ListModel<String> model = list.getModel();
 					for(int i = 0; i < model.getSize(); i++)
 					{
 						buf.append(model.getElementAt(i));
@@ -309,9 +277,9 @@ public class LogViewer extends JPanel implements DefaultFocusComponent
 	} //}}}
 
 	//{{{ LogList class
-	private class LogList extends JList
+	private class LogList extends JList<String>
 	{
-		LogList(ListModel model)
+		LogList(ListModel<String> model)
 		{
 			super(model);
 			setVisibleRowCount(24);
@@ -356,31 +324,57 @@ public class LogViewer extends JPanel implements DefaultFocusComponent
 	} //}}}
 
 	//{{{ ColorizerCellRenderer class
-	private static class ColorizerCellRenderer extends JLabel implements ListCellRenderer
+	private static class ColorizerCellRenderer extends JPanel implements ListCellRenderer<String>
 	{
 		private static Color debugColor;
 		private static Color messageColor;
 		private static Color noticeColor;
 		private static Color warningColor;
 		private static Color errorColor;
+		
+		private String text;
+		private final int borderWidth = 1;
+		private int baseline;
+		private int width;
+		private int height;
+		
+		private JList<String> list;
 
-		private ColorizerCellRenderer()
+		private ColorizerCellRenderer(JList<String> list)
 		{
-			updateColors();
+			this.list = list;
+			updateColors(list);
+		}
+		
+		@Override
+		public Dimension getPreferredSize()
+		{
+			return new Dimension(width, height);	
+		}
+		
+		@Override
+		public void paint(Graphics g)
+		{
+			int currentWidth = (int)list.getFontMetrics(list.getFont()).getStringBounds(text, g).getWidth();
+			width = Math.max(width, currentWidth);
+			g.setColor(getBackground());
+			g.fillRect(0, 0, getWidth(), getHeight());
+			g.setColor(getForeground());
+			g.drawString(text, borderWidth, baseline);
 		}
 
 		// This is the only method defined by ListCellRenderer.
-		// We just reconfigure the JLabel each time we're called.
 		@Override
 		public Component getListCellRendererComponent(
-							      JList list,
-							      Object value,              // value to display
+							      JList<? extends String> list,
+							      String value,              // value to display
 							      int index,                 // cell index
 							      boolean isSelected,        // is the cell selected
 							      boolean cellHasFocus )     // the list and the cell have the focus
 		{
-			String s = value.toString();
-			setText(s);
+			if (value == null)
+				value = "";
+			text = value;
 			if (isSelected)
 			{
 				setBackground(list.getSelectionBackground());
@@ -390,48 +384,51 @@ public class LogViewer extends JPanel implements DefaultFocusComponent
 			{
 				setBackground(list.getBackground());
 				Color color = list.getForeground();
-				if (s.contains("[debug]"))
+				if (text.contains("[debug]"))
 				{
 					color = debugColor;
 				}
-				else if (s.contains("[message]"))
+				else if (text.contains("[message]"))
 				{
 					color = messageColor;
 				}
-				else if (s.contains("[notice]"))
+				else if (text.contains("[notice]"))
 				{
 					color = noticeColor;
 				}
-				else if (s.contains("[warning]"))
+				else if (text.contains("[warning]"))
 				{
 					color = warningColor;
 				}
-				else if (s.contains("[error]"))
+				else if (text.contains("[error]"))
 				{
 					color = errorColor;
 				}
 				setForeground(color);
 			}
-			setEnabled(list.isEnabled());
-			setFont(list.getFont());
-			setOpaque(true);
 			return this;
 		}
 
-		public void updateColors()
+		public void updateColors(JList<String> list)
 		{
+			this.list = list;
 			debugColor = jEdit.getColorProperty("log-viewer.message.debug.color", Color.BLUE);
 			messageColor = jEdit.getColorProperty("log-viewer.message.message.color", Color.BLACK);
 			noticeColor = jEdit.getColorProperty("log-viewer.message.notice.color", Color.GREEN);
 			warningColor = jEdit.getColorProperty("log-viewer.message.warning.color", Color.ORANGE);
 			errorColor = jEdit.getColorProperty("log-viewer.message.error.color", Color.RED);
+			setFont(list.getFont());
+			FontMetrics fm = list.getFontMetrics(list.getFont());
+			baseline = fm.getAscent() + borderWidth;
+			width = list.getWidth();
+			height = fm.getHeight() + (2 * borderWidth);
 		}
 	} //}}}
 
 	//{{{ MyFilteredListModel
-	private static class MyFilteredListModel extends FilteredListModel<ListModel>
+	private static class MyFilteredListModel extends FilteredListModel<ListModel<String>>
 	{
-		MyFilteredListModel(ListModel model)
+		MyFilteredListModel(ListModel<String> model)
 		{
 			super(model);
 		}
@@ -447,7 +444,10 @@ public class LogViewer extends JPanel implements DefaultFocusComponent
 		{
 			if (filter == null || filter.isEmpty())
 				return true;
-			String text = delegated.getElementAt(row).toString().toLowerCase();
+			Object item = delegated.getElementAt(row);
+			if (item == null)
+				return true;
+			String text = item.toString().toLowerCase();
 			if (!showDebug && text.contains("[debug]"))
 				return false;
 			if (!showMessage && text.contains("[message]"))
@@ -463,6 +463,7 @@ public class LogViewer extends JPanel implements DefaultFocusComponent
 	} //}}}
 
 	//{{{ LogSettings dialog
+	@SuppressWarnings({"unchecked"})	// The FilteredListModel needs work
 	private class LogSettings extends JDialog
 	{
 		LogSettings()
@@ -550,6 +551,11 @@ public class LogViewer extends JPanel implements DefaultFocusComponent
 				protected void _save()
 				{
 					jEdit.setIntegerProperty("log-viewer.maxlines", ((SpinnerNumberModel)maxLines.getModel()).getNumber().intValue());
+					Log.setMaxLines(jEdit.getIntegerProperty("log-viewer.maxlines", 500));
+					ListModel<String> model = Log.getLogListModel();
+					listModel = new MyFilteredListModel(model);
+					list.setModel(listModel);
+					listModel.setList(list);
 
 					showDebug = debug.isSelected();
 					jEdit.setBooleanProperty("log-viewer.message.debug", showDebug);
@@ -570,7 +576,6 @@ public class LogViewer extends JPanel implements DefaultFocusComponent
 
 					jEdit.setBooleanProperty("debug.beepOnOutput", beep.isSelected());
 
-					setFilter();
 					// it would be most clean to call jEdit.propertiesChanged() now
 					// which is needed since global debug.beepOnOutput flag is attached to this pane;
 					// but to avoid extra log entries, we workaround it by direct Log access

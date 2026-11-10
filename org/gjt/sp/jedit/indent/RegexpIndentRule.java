@@ -23,7 +23,6 @@
 package org.gjt.sp.jedit.indent;
 
 import java.util.List;
-import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 import java.util.regex.PatternSyntaxException;
 
@@ -36,7 +35,7 @@ import org.gjt.sp.jedit.syntax.TokenMarker;
 
 /**
  * @author Slava Pestov
- * @version $Id: RegexpIndentRule.java 21831 2012-06-18 22:54:17Z ezust $
+ * @version $Id: RegexpIndentRule.java 25503 2021-04-21 21:45:28Z kpouer $
  */
 public class RegexpIndentRule implements IndentRule
 {
@@ -57,6 +56,7 @@ public class RegexpIndentRule implements IndentRule
 	} //}}}
 
 	//{{{ apply() method
+	@Override
 	public void apply(JEditBuffer buffer, int thisLineIndex,
 		int prevLineIndex, int prevPrevLineIndex,
 		List<IndentAction> indentActions)
@@ -90,9 +90,11 @@ public class RegexpIndentRule implements IndentRule
 		return getClass().getName() + '[' + regexp + ']';
 	} //}}}
 
-	private IndentAction prevPrevAction, prevAction, thisAction;
-	private Pattern regexp;
-	private boolean collapse;
+	private final IndentAction prevPrevAction;
+	private final IndentAction prevAction;
+	private final IndentAction thisAction;
+	private final Pattern regexp;
+	private final boolean collapse;
 
 	//{{{ class TokenFilter
 	/**
@@ -101,13 +103,14 @@ public class RegexpIndentRule implements IndentRule
 	 */
 	private static class TokenFilter implements TokenHandler
 	{
-		public StringBuilder result;
+		StringBuilder result;
 
-		public TokenFilter(int originalLength)
+		TokenFilter(int originalLength)
 		{
 			result = new StringBuilder(originalLength);
 		}
 
+		@Override
 		public void handleToken(Segment seg
 			, byte id, int offset, int length
 			, TokenMarker.LineContext context)
@@ -146,6 +149,7 @@ public class RegexpIndentRule implements IndentRule
 			}
 		}
 
+		@Override
 		public void setLineContext(TokenMarker.LineContext lineContext)
 		{
 		}

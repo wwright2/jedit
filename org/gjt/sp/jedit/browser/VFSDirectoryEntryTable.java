@@ -26,9 +26,11 @@ package org.gjt.sp.jedit.browser;
 import javax.swing.event.*;
 import javax.swing.table.*;
 import javax.swing.*;
+import static java.awt.event.InputEvent.*;
 import java.awt.event.*;
 import java.awt.font.*;
 import java.awt.*;
+import java.util.Arrays;
 import java.util.LinkedList;
 import java.util.Set;
 
@@ -49,7 +51,7 @@ import org.gjt.sp.util.ThreadUtilities;
 
 /**
  * @author Slava Pestov
- * @version $Id: VFSDirectoryEntryTable.java 24021 2015-08-14 18:36:19Z makarius $
+ * @version $Id: VFSDirectoryEntryTable.java 25189 2020-04-11 16:57:06Z kpouer $
  * @since jEdit 4.2pre1
  */
 public class VFSDirectoryEntryTable extends JTable
@@ -80,6 +82,32 @@ public class VFSDirectoryEntryTable extends JTable
 		setAutoResizeMode(AUTO_RESIZE_OFF);
 	} //}}}
 
+	@Override
+	protected JTableHeader createDefaultTableHeader()
+	{
+		/*
+		 * Set up column hook in a way that it survives switching of LAF
+		 */
+		JTableHeader header = new JTableHeader(getColumnModel())
+		{
+			ColumnDragHook hook;
+
+			@Override
+			public void updateUI()
+			{
+				if (hook != null)
+				{
+					hook.uninstallHook();
+					hook = null;
+				}
+				super.updateUI();
+				hook = new ColumnDragHook(this);
+			}
+
+		};
+		return header;
+	}
+
 	//{{{ selectFile() method
 	public boolean selectFile(String path)
 	{
@@ -99,7 +127,7 @@ public class VFSDirectoryEntryTable extends JTable
 	//{{{ doTypeSelect() method
 	public void doTypeSelect(String str, boolean dirsOnly)
 	{
-		if(str.length() == 0)
+		if(str.isEmpty())
 			clearSelection();
 		else if(getSelectedRow() == -1)
 			doTypeSelect(str,0,getRowCount(),dirsOnly);
@@ -124,11 +152,11 @@ public class VFSDirectoryEntryTable extends JTable
 		VFSDirectoryEntryTableModel model
 			= (VFSDirectoryEntryTableModel)getModel();
 
-		java.util.List<VFSFile> returnValue = new LinkedList<VFSFile>();
+		java.util.List<VFSFile> returnValue = new LinkedList<>();
 		int[] selectedRows = getSelectedRows();
 		for (int selectedRow : selectedRows)
 			returnValue.add(model.files[selectedRow].dirEntry);
-		return returnValue.toArray(new VFSFile[returnValue.size()]);
+		return returnValue.toArray(new VFSFile[0]);
 	} //}}}
 
 	//{{{ getExpandedDirectories() method
@@ -157,29 +185,19 @@ public class VFSDirectoryEntryTable extends JTable
 		if(entry.dirEntry.getType() == VFSFile.FILE)
 			return;
 
-		Runnable delayedAwtTask = new Runnable()
-		{
-			public void run()
-			{
-				setSelectedRow(row);
-			}
-		};
 		if(entry.expanded)
 		{
 			model.collapse(VFSManager.getVFSForPath(
 				entry.dirEntry.getPath()),row);
 			resizeColumns();
-			ThreadUtilities.runInDispatchThread(delayedAwtTask);
+			ThreadUtilities.runInDispatchThread(() -> setSelectedRow(row));
 		}
 		else
 		{
 			browserView.clearExpansionState();
 			browserView.loadDirectory(entry,entry.dirEntry.getPath(),
-				false, delayedAwtTask);
+				false, () -> setSelectedRow(row));
 		}
-
-
-
 	} //}}}
 
 	//{{{ setDirectory() method
@@ -289,7 +307,7 @@ public class VFSDirectoryEntryTable extends JTable
 			{
 			case KeyEvent.VK_LEFT:
 				evt.consume();
-				if ((evt.getModifiers() & InputEvent.ALT_MASK)>0)
+				if ((evt.getModifiersEx() & ALT_DOWN_MASK) == ALT_DOWN_MASK)
 				{
 					browser.previousDirectory();
 				}
@@ -322,7 +340,7 @@ public class VFSDirectoryEntryTable extends JTable
 				break;
 			case KeyEvent.VK_TAB:
 				evt.consume();
-				if ((evt.getModifiers() & InputEvent.SHIFT_MASK) > 0)
+				if ((evt.getModifiersEx() & SHIFT_DOWN_MASK) == SHIFT_DOWN_MASK)
 				{
 					browserView.getParentDirectoryList().requestFocus();
 				}
@@ -336,7 +354,7 @@ public class VFSDirectoryEntryTable extends JTable
 				ac.invokeAction(evt, browserUp);
 				break;
 			case KeyEvent.VK_UP:
-				if ((evt.getModifiers() & InputEvent.ALT_MASK) >0)
+				if ((evt.getModifiersEx() & ALT_DOWN_MASK) == ALT_DOWN_MASK)
 				{
 					evt.consume();
 					ac.invokeAction(evt, browserUp);
@@ -348,7 +366,7 @@ public class VFSDirectoryEntryTable extends JTable
 				ac.invokeAction(evt, deleteAct);
 				break;
 			case KeyEvent.VK_N:
-				if ((evt.getModifiersEx() & InputEvent.CTRL_DOWN_MASK) == InputEvent.CTRL_DOWN_MASK)
+				if ((evt.getModifiersEx() & CTRL_DOWN_MASK) == CTRL_DOWN_MASK)
 				{
 					evt.consume();
 					EditAction ea = ac.getAction("vfs.browser.new-file");
@@ -377,7 +395,7 @@ public class VFSDirectoryEntryTable extends JTable
 			case KeyEvent.VK_F6:
 			case KeyEvent.VK_RIGHT:
 				evt.consume();
-				if ((evt.getModifiers() & InputEvent.ALT_MASK)>0)
+				if ((evt.getModifiersEx() & ALT_DOWN_MASK) == ALT_DOWN_MASK)
 				{
 					browser.nextDirectory();
 				}
@@ -470,7 +488,7 @@ public class VFSDirectoryEntryTable extends JTable
 	private final JTableHeader header;
 	private final FileCellRenderer renderer;
 	private final StringBuffer typeSelectBuffer = new StringBuffer();
-	private final Timer timer = new Timer(0,new ClearTypeSelect());
+	private final Timer timer = new Timer(0, e -> typeSelectBuffer.setLength(0));
 	private boolean resizingColumns;
 
 	//{{{ doTypeSelect() method
@@ -556,30 +574,26 @@ public class VFSDirectoryEntryTable extends JTable
 		TableColumnModel columns = getColumnModel();
 
 		for(int i = 1; i < model.getColumnCount(); i++)
-			model.setColumnWidth(i,columns.getColumn(i).getWidth());
+			model.saveColumnWidth(i,columns.getColumn(i).getWidth());
 	} //}}}
 
 	//}}}
 
-	//{{{ ClearTypeSelect class
-	class ClearTypeSelect implements ActionListener
-	{
-		public void actionPerformed(ActionEvent evt)
-		{
-			typeSelectBuffer.setLength(0);
-		}
-	} //}}}
-
 	//{{{ ColumnHandler class
-	class ColumnHandler implements TableColumnModelListener
+	private class ColumnHandler implements TableColumnModelListener
 	{
+		@Override
 		public void columnAdded(TableColumnModelEvent e) {}
+		@Override
 		public void columnRemoved(TableColumnModelEvent e) {}
+		@Override
 		public void columnMoved(TableColumnModelEvent e) {
-			((VFSDirectoryEntryTableModel)getModel()).columnMoved(e.getFromIndex(), e.getToIndex());
+			((VFSDirectoryEntryTableModel)getModel()).columnMoved(e.getFromIndex(), e.getToIndex()); // view indexes
 		}
+		@Override
 		public void columnSelectionChanged(ListSelectionEvent e) {}
 
+		@Override
 		public void columnMarginChanged(ChangeEvent e)
 		{
 			saveWidths();
@@ -587,9 +601,8 @@ public class VFSDirectoryEntryTable extends JTable
 	} //}}}
 
 	//{{{ class MainMouseHandler
-	class MainMouseHandler extends MouseInputAdapter
+	private class MainMouseHandler extends MouseInputAdapter
 	{
-
 		@Override
 		public void mouseClicked(MouseEvent e)
 		{
@@ -603,28 +616,36 @@ public class VFSDirectoryEntryTable extends JTable
 			EditBus.send(new VFSPathSelected(browserView.getBrowser().getView(),
 							 node.dirEntry.getPath(), isDir));
 		}
-
 	} //}}}
 
 	//{{{ MouseHandler class
-	class MouseHandler extends MouseInputAdapter
+	private class MouseHandler extends MouseInputAdapter
 	{
 		@Override
-		public void mousePressed(MouseEvent evt)
+		public void mouseClicked(MouseEvent evt)
 		{
 			// double click on columns header
 			if (evt.getSource() == header && evt.getClickCount() == 2)
 			{
 				VFSDirectoryEntryTableModel model = (VFSDirectoryEntryTableModel) header.getTable().getModel();
 				TableColumnModel columnModel = header.getColumnModel();
-				int viewColumn = columnModel.getColumnIndexAtX(evt.getX());
-				int column = columnModel.getColumn(viewColumn).getModelIndex();
+				int viewColumnIndex = columnModel.getColumnIndexAtX(evt.getX());
+
+				// View index must be used here instead of model index because model order is rearranged by custom code
+				// on column move according to view order so that both are equal, but no "structurechanged" is triggered,
+				// so view order is the same as model order (maintained by custom code, while JTable's automatic
+				// indexing is wrong here) before sortByColumn call finishes, where sortColumnIndex is saved
+				// and structureChanged is triggered.
+				//
+				// If use modelIndex, the bug will arise (sort by column, move that column, sort again, result: sorting
+				// mark is at wrong column)
+				int modelColumnIndex = viewColumnIndex;
 				saveWidths();
-				if(model.sortByColumn(column))
+				if(model.sortByColumn(modelColumnIndex))
 				{
 					resizeColumns();
 					Log.log(Log.DEBUG,this,"VFSDirectoryEntryTable sorted by "
-					+ model.getColumnName(column)
+					+ model.getColumnName(modelColumnIndex)
 					+ (model.getAscending() ? " ascending" : " descending") );
 				}
 			}
@@ -632,7 +653,7 @@ public class VFSDirectoryEntryTable extends JTable
 	} //}}}
 
 	//{{{ HeaderRenderer
-	static class HeaderRenderer extends DefaultTableCellRenderer
+	private static class HeaderRenderer extends DefaultTableCellRenderer
 	{
 		private final DefaultTableCellRenderer tcr;
 
@@ -647,7 +668,7 @@ public class VFSDirectoryEntryTable extends JTable
 		{
 			JLabel l = (JLabel)tcr.getTableCellRendererComponent(table,value,isSelected,hasFocus,row,column);
 			VFSDirectoryEntryTableModel model = (VFSDirectoryEntryTableModel)table.getModel();
-			Icon icon = column == model.getSortColumn()
+			Icon icon = column == model.getSortColumnIndex()
 				? model.getAscending() ? ASC_ICON : DESC_ICON
 				: null;
 			l.setIcon(icon);
@@ -663,4 +684,182 @@ public class VFSDirectoryEntryTable extends JTable
 
 	//}}}
 
+
+	/**
+	 * Original code:
+	 *   https://stackoverflow.com/questions/1155137/how-to-keep-a-single-column-from-being-reordered-in-a-jtable/14480948
+	 *
+	 * A delegating MouseInputListener to be installed instead of
+	 * the one registered by the ui-delegate.
+	 *
+	 * It's implemented to prevent dragging the first column or any other
+	 * column over the first.
+	 *
+	 */
+	private static class ColumnDragHook implements MouseInputListener
+	{
+		private final JTableHeader header;
+		private MouseListener mouseDelegate;
+		private MouseMotionListener mouseMotionDelegate;
+		private int minMouseX;
+
+		ColumnDragHook(JTableHeader header)
+		{
+			this.header = header;
+			installHook();
+		}
+
+		/**
+		 * Implemented to do some tweaks/bookkeeping before/after
+		 * passing the event to the original
+		 *
+		 * - temporarily disallow reordering if hit on first column
+		 * - calculate the max mouseX that's allowable in dragging to the left
+		 *
+		 */
+		@Override
+		public void mousePressed(MouseEvent e)
+		{
+			int index = header.columnAtPoint(e.getPoint());
+
+			boolean reorderingAllowed = header.getReorderingAllowed();
+
+			if (index == 0)
+			{
+				// temporarily disable re-ordering
+				header.setReorderingAllowed(false);
+			}
+			mouseDelegate.mousePressed(e);
+			if (index == 0)
+			{
+				// re-enable re-ordering
+				header.setReorderingAllowed(reorderingAllowed);
+			}
+
+			// Calculate minimum X for a column (all except the first one) when dragging
+			if (header.getDraggedColumn() != null)
+			{
+				int draggedColumnX = header.getHeaderRect(index).x;
+				int firstColumnWidth = header.getColumnModel().getColumn(0).getWidth();
+				minMouseX = firstColumnWidth + (e.getX() - draggedColumnX)- 1;
+			}
+		}
+
+		/**
+		 * Implemented to pass the event to the original only if the
+		 * mouseX doesn't lead to dragging the column over the first.
+		 */
+		@Override
+		public void mouseDragged(MouseEvent e)
+		{
+			TableColumn dragged = header.getDraggedColumn();
+
+			if (dragged != null)
+			{
+				int index = header.getTable().convertColumnIndexToView(dragged.getModelIndex());
+
+				if (index == 1)
+				{
+					// dragged column is at second position...
+					if (e.getX() < minMouseX) return; // allow only drags to the right
+				}
+			}
+			mouseMotionDelegate.mouseDragged(e);
+		}
+
+		@Override
+		public void mouseReleased(MouseEvent e) {
+			mouseDelegate.mouseReleased(e);
+		}
+
+		@Override
+		public void mouseClicked(MouseEvent e) {
+			mouseDelegate.mouseClicked(e);
+		}
+
+		@Override
+		public void mouseEntered(MouseEvent e) {
+			mouseDelegate.mouseEntered(e);
+		}
+
+		@Override
+		public void mouseExited(MouseEvent e) {
+			mouseDelegate.mouseExited(e);
+		}
+
+		@Override
+		public void mouseMoved(MouseEvent e) {
+			mouseMotionDelegate.mouseMoved(e);
+		}
+
+
+		protected void installHook()
+		{
+			installMouseHook();
+			installMouseMotionHook();
+		}
+
+		protected void installMouseMotionHook()
+		{
+			MouseMotionListener[] listeners = header.getMouseMotionListeners();
+			for (int i = 0; i < listeners.length; i++) {
+				MouseMotionListener l = listeners[i];
+				if (l.getClass().getName().contains("TableHeaderUI"))
+				{
+					mouseMotionDelegate = l;
+					listeners[i] = this;
+				}
+				header.removeMouseMotionListener(l);
+			}
+			Arrays.stream(listeners).forEach(header::addMouseMotionListener);
+		}
+
+		protected void installMouseHook()
+		{
+			MouseListener[] listeners = header.getMouseListeners();
+			for (int i = 0; i < listeners.length; i++)
+			{
+				MouseListener l = listeners[i];
+				if (l.getClass().getName().contains("TableHeaderUI"))
+				{
+					mouseDelegate = l;
+					listeners[i] = this;
+				}
+				header.removeMouseListener(l);
+			}
+			Arrays.stream(listeners).forEach(header::addMouseListener);
+		}
+
+		public void uninstallHook()
+		{
+			uninstallMouseHook();
+			uninstallMouseMotionHook();
+		}
+
+		protected void uninstallMouseMotionHook()
+		{
+			MouseMotionListener[] listeners = header.getMouseMotionListeners();
+			for (int i = 0; i < listeners.length; i++)
+			{
+				MouseMotionListener l = listeners[i];
+				if (l == this)
+					listeners[i] = mouseMotionDelegate;
+				header.removeMouseMotionListener(l);
+			}
+			Arrays.stream(listeners).forEach(header::addMouseMotionListener);
+		}
+
+		protected void uninstallMouseHook()
+		{
+			MouseListener[] listeners = header.getMouseListeners();
+			for (int i = 0; i < listeners.length; i++)
+			{
+				MouseListener l = listeners[i];
+				if (l == this)
+					listeners[i] = mouseDelegate;
+				header.removeMouseListener(l);
+			}
+			Arrays.stream(listeners).forEach(header::addMouseListener);
+		}
+	}
 }

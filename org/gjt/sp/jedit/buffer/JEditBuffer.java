@@ -24,9 +24,7 @@
 package org.gjt.sp.jedit.buffer;
 
 //{{{ Imports
-import org.gjt.sp.jedit.Debug;
-import org.gjt.sp.jedit.Mode;
-import org.gjt.sp.jedit.TextUtilities;
+import org.gjt.sp.jedit.*;
 import org.gjt.sp.jedit.indent.IndentAction;
 import org.gjt.sp.jedit.indent.IndentRule;
 import org.gjt.sp.jedit.syntax.*;
@@ -42,11 +40,13 @@ import org.gjt.sp.util.StandardUtilities;
 import javax.annotation.Nonnull;
 import javax.swing.text.Position;
 import javax.swing.text.Segment;
-import java.awt.*;
 import java.util.*;
 import java.util.List;
 import java.util.concurrent.locks.ReentrantReadWriteLock;
 import java.util.regex.Pattern;
+
+import static org.gjt.sp.jedit.LargeFileMode.ask;
+import static org.gjt.sp.jedit.buffer.WordWrap.none;
 //}}}
 
 /**
@@ -68,7 +68,7 @@ import java.util.regex.Pattern;
  * </ul>
  *
  * @author Slava Pestov
- * @version $Id: JEditBuffer.java 24027 2015-08-25 14:21:12Z makarius $
+ * @version $Id: JEditBuffer.java 25698 2023-11-17 01:31:50Z vampire0 $
  *
  * @since jEdit 4.3pre3
  */
@@ -84,11 +84,20 @@ public class JEditBuffer
 	 * @since jEdit 3.2pre4
 	 */
 	public static final String ENCODING = "encoding";
+	/**
+	 * Wrap mode, the value must be one of {@link org.gjt.sp.jedit.buffer.WordWrap}
+	 * @since jEdit 5.7pre1
+	 */
+	public static final String WRAP = "wrap";
+	/**
+	 * This property contains the large file mode option for this buffer.
+	 * @since jEdit 5.7pre1
+	 */
+	public static final String LARGE_MODE_FILE = "largefilemode";
 
 	//{{{ JEditBuffer constructors
-
 	{
-		bufferListeners = new Vector<Listener>();
+		bufferListeners = new Vector<>();
 		lock = new ReentrantReadWriteLock();
 		contentMgr = new ContentManager();
 		lineMgr = new LineManager();
@@ -96,9 +105,10 @@ public class JEditBuffer
 		undoMgr = new UndoManager(this);
 		integerArray = new IntegerArray();
 		propertyLock = new Object();
-		properties = new HashMap<Object, PropValue>();
+		properties = new HashMap<>();
 	}
 
+	@SuppressWarnings({"unchecked"})
 	public JEditBuffer(Map props)
 	{
 		//{{{ need to convert entries of 'props' to PropValue instances
@@ -110,9 +120,9 @@ public class JEditBuffer
 
 		// fill in defaults for these from system properties if the
 		// corresponding buffer.XXX properties not set
-		if(getProperty(ENCODING) == null)
+		if(!hasProperty(ENCODING))
 			properties.put(ENCODING,new PropValue(System.getProperty("file.encoding"),false));
-		if(getProperty(LINESEP) == null)
+		if(!hasProperty(LINESEP))
 			properties.put(LINESEP,new PropValue(System.getProperty("line.separator"),false));
 
 		setFoldHandler(new DummyFoldHandler());
@@ -124,7 +134,7 @@ public class JEditBuffer
 	 */
 	public JEditBuffer()
 	{
-		properties.put("wrap",new PropValue("none",false));
+		setWordWrap(none);
 		properties.put("folding",new PropValue("none",false));
 		tokenMarker = new TokenMarker();
 		tokenMarker.addRuleSet(new ParserRuleSet("text","MAIN"));
@@ -132,9 +142,9 @@ public class JEditBuffer
 
 		loadText(null,null);
 		// corresponding buffer.XXX properties not set
-		if(getProperty(ENCODING) == null)
+		if(!hasProperty(ENCODING))
 			properties.put(ENCODING,new PropValue(System.getProperty("file.encoding"),false));
-		if(getProperty(LINESEP) == null)
+		if(!hasProperty(LINESEP))
 			properties.put(LINESEP,new PropValue(System.getProperty("line.separator"),false));
 
 		setFoldHandler(new DummyFoldHandler());
@@ -162,6 +172,18 @@ public class JEditBuffer
 	public void setLoading(boolean loading)
 	{
 		this.loading = loading;
+	} //}}}
+
+	//{{{ isElasticTabstopsOn() method
+	public boolean isElasticTabstopsOn()
+	{
+		return elasticTabstopsOn;
+	} //}}}
+
+	//{{{ setElasticTabstopsOn() method
+	public void setElasticTabstopsOn(boolean elasticTabstopsOn)
+	{
+		this.elasticTabstopsOn = elasticTabstopsOn;
 	} //}}}
 
 	//{{{ isPerformingIO() method
@@ -195,7 +217,18 @@ public class JEditBuffer
 	 */
 	public boolean isEditable()
 	{
-		return !(isPerformingIO());
+		return !(isPerformingIO()) && editable;
+	} //}}}
+
+	//{{{ setEditable() method
+	/**
+	 * @param editable {@code true} to set the buffer editable, {@code false} otherwise. Default is {@code true}.
+	 * This does not change the read only flag on the file, just makes the buffer
+	 * editable or not.
+	 */
+	public void setEditable(boolean editable)
+	{
+		this.editable = editable;
 	} //}}}
 
 	//{{{ isReadOnly() method
@@ -376,7 +409,7 @@ public class JEditBuffer
 	 * Returns the end offset of the specified line.
 	 * This method is thread-safe.
 	 * @param line The line
-	 * @return The end offset of the specified line, that is the offset 
+	 * @return The end offset of the specified line, that is the offset
 	 * after the end-of-line character. Note that
 	 * <code>buffer.getLineOfOffset(buffer.getLineEndOffset(x))</code>
 	 * does not return <code>x</code> but <code>x+1</code>.
@@ -976,7 +1009,6 @@ public class JEditBuffer
 	public void simpleIndentLine(int lineIndex)
 	{
 		int[] whitespaceChars = new int[1];
-		int currentIndent = getCurrentIndentForLine(lineIndex, whitespaceChars);
 
 		int prevLineIndex = getPriorNonEmptyLine(lineIndex);
 		if (prevLineIndex == -1)
@@ -1137,7 +1169,7 @@ loop:		for(int i = 0; i < seg.count; i++)
 		int newIndent = oldIndent;
 
 		List<IndentRule> indentRules = getIndentRules(lineIndex);
-		List<IndentAction> actions = new LinkedList<IndentAction>();
+		List<IndentAction> actions = new LinkedList<>();
 		for (IndentRule rule : indentRules)
 			rule.apply(this, lineIndex, prevLineIndex, prevPrevLineIndex, actions);
 
@@ -1383,9 +1415,7 @@ loop:		for(int i = 0; i < seg.count; i++)
 			lineMgr.setFirstInvalidLineContext(-1);
 		else if(oldContext != context)
 			lineMgr.setFirstInvalidLineContext(lineIndex + 1);
-		else if(firstInvalidLineContext == -1)
-			/* do nothing */;
-		else
+		else if(firstInvalidLineContext != -1)
 		{
 			lineMgr.setFirstInvalidLineContext(Math.max(
 				firstInvalidLineContext,lineIndex + 1));
@@ -1539,6 +1569,33 @@ loop:		for(int i = 0; i < seg.count; i++)
 		}
 	} //}}}
 
+	//{{{ isClosed() method
+	public boolean isClosed()
+	{
+		return closed;
+	} //}}}
+
+	//{{{ close() method
+	public void close()
+	{
+		closed = true;
+	} //}}}
+
+	//{{{ hasProperty() method
+	/**
+	 * @return true if the buffer local property exists.
+	 *
+	 * This method is thread-safe.
+	 *
+	 * @param name The property name. For backwards compatibility, this
+	 * is an {@code Object}, not a {@code String}.
+	 * @since jEdit 5.6pre1
+	 */
+	public boolean hasProperty(Object name)
+	{
+		return null != getProperty(name);
+	} //}}}
+
 	//{{{ getDefaultProperty() method
 	public Object getDefaultProperty(String key)
 	{
@@ -1561,11 +1618,7 @@ loop:		for(int i = 0; i < seg.count; i++)
 			PropValue test = properties.get(name);
 			if(test == null)
 				properties.put(name,new PropValue(value,false));
-			else if(test.value.equals(value))
-			{
-				// do nothing
-			}
-			else
+			else if(!test.value.equals(value))
 			{
 				test.value = value;
 				test.defaultValue = false;
@@ -1595,13 +1648,7 @@ loop:		for(int i = 0; i < seg.count; i++)
 	{
 		// Need to reset properties that were cached defaults,
 		// since the defaults might have changed.
-		Iterator<PropValue> iter = properties.values().iterator();
-		while(iter.hasNext())
-		{
-			PropValue value = iter.next();
-			if(value.defaultValue)
-				iter.remove();
-		}
+		properties.values().removeIf(value -> value.defaultValue);
 	} //}}}
 
 	//{{{ getStringProperty() method
@@ -1765,6 +1812,66 @@ loop:		for(int i = 0; i < seg.count; i++)
 		}
 	} //}}}
 
+	//{{{ getWordWrap() method
+	/**
+	 * Returns the current word wrap mode
+	 *
+	 * @return the current word wrap mode
+	 * @since jEdit 5.7pre1
+	 */
+	public WordWrap getWordWrap()
+	{
+		return WordWrap.valueOf(getStringProperty(WRAP));
+	} //}}}
+
+	//{{{ setWordWrap() method
+	/**
+	 * set word wrap
+	 *
+	 * @param wordWrap the new word wrap
+	 * @since jEdit 5.7pre1
+	 */
+	public void setWordWrap(WordWrap wordWrap)
+	{
+		setProperty(WRAP, wordWrap.name());
+	} //}}}
+
+
+	/**
+	 * Returns the LargeFileMode option
+	 *
+	 * @return the option value, never null (if invalid or null {@link LargeFileMode#ask} is returned
+	 * @since jEdit 5.7pre1
+	 */
+	public LargeFileMode getLargeFileMode()
+	{
+		String largeFileMode = getStringProperty(LARGE_MODE_FILE);
+		if (largeFileMode == null)
+			return ask;
+		try
+		{
+			return LargeFileMode.valueOf(largeFileMode);
+		}
+		catch (IllegalArgumentException e)
+		{
+			return ask;
+		}
+	}
+
+	/**
+	 * Set the large file mode option
+	 *
+	 * @param largeFileMode the large file mode
+	 * @since jEdit 5.7pre1
+	 */
+	public void setLargeFileMode(LargeFileMode largeFileMode)
+	{
+		if (largeFileMode == null)
+			unsetProperty(LARGE_MODE_FILE);
+		else
+			setProperty(LARGE_MODE_FILE, largeFileMode.name());
+	}
+
 	//{{{ getRuleSetAtOffset() method
 	/**
 	 * @return the syntax highlighting ruleset at the specified offset.
@@ -1811,16 +1918,8 @@ loop:		for(int i = 0; i < seg.count; i++)
 	{
 		ParserRuleSet rules = getRuleSetAtOffset(offset);
 
-		Object value = null;
-
 		Map<String, String> rulesetProps = rules.getProperties();
-		if(rulesetProps != null)
-			value = rulesetProps.get(name);
-
-		if(value == null)
-			return null;
-		else
-			return String.valueOf(value);
+		return rulesetProps != null ? rulesetProps.get(name) : null;
 	} //}}}
 
 	//{{{ getMode() method
@@ -1851,7 +1950,7 @@ loop:		for(int i = 0; i < seg.count; i++)
 	 * to the name of the mode. A bit inelegant, I know...
 	 * @param mode The mode
 	 */
-	public void setMode(Mode mode)
+	public void setMode(@Nonnull Mode mode)
 	{
 		setMode(mode, false);
 	}
@@ -1866,12 +1965,11 @@ loop:		for(int i = 0; i < seg.count; i++)
 	 * value is false
 	 * @since jEdit 4.5pre1
 	 */
-	public void setMode(Mode mode, boolean forceContextInsensitive)
+	public void setMode(@Nonnull Mode mode, boolean forceContextInsensitive)
 	{
 		/* This protects against stupid people (like me)
 		 * doing stuff like buffer.setMode(jEdit.getMode(...)); */
-		if(mode == null)
-			throw new NullPointerException("Mode must be non-null");
+		Objects.requireNonNull(mode);
 
 		this.mode = mode;
 
@@ -1973,7 +2071,7 @@ loop:		for(int i = 0; i < seg.count; i++)
 							for (Integer foldLevel: precedingFoldLevels)
 							{
 								j--;
-								lineMgr.setFoldLevel(j,foldLevel.intValue());
+								lineMgr.setFoldLevel(j, foldLevel);
 							}
 							if (j < firstUpdatedFoldLevel)
 								firstUpdatedFoldLevel = j;
@@ -2106,7 +2204,7 @@ loop:		for(int i = 0; i < seg.count; i++)
 
 		if(!isEditable())
 		{
-			textArea.getToolkit().beep();
+			javax.swing.UIManager.getLookAndFeel().provideErrorFeedback(null);
 			return;
 		}
 
@@ -2118,7 +2216,7 @@ loop:		for(int i = 0; i < seg.count; i++)
 			fireBeginUndo();
 			Selection[] s = undoMgr.undo();
 			if(s == null || s.length == 0)
-				textArea.getToolkit().beep();
+				javax.swing.UIManager.getLookAndFeel().provideErrorFeedback(null);
 			else
 			{
 				textArea.setCaretPosition(s[s.length - 1].getEnd());
@@ -2148,7 +2246,7 @@ loop:		for(int i = 0; i < seg.count; i++)
 
 		if(!isEditable())
 		{
-			Toolkit.getDefaultToolkit().beep();
+			javax.swing.UIManager.getLookAndFeel().provideErrorFeedback(null);
 			return;
 		}
 
@@ -2160,7 +2258,7 @@ loop:		for(int i = 0; i < seg.count; i++)
 			fireBeginRedo();
 			Selection[] s = undoMgr.redo();
 			if(s == null || s.length == 0)
-				textArea.getToolkit().beep();
+				javax.swing.UIManager.getLookAndFeel().provideErrorFeedback(null);
 			else
 			{
 				textArea.setCaretPosition(s[s.length - 1].getEnd());
@@ -2722,10 +2820,9 @@ loop:		for(int i = 0; i < seg.count; i++)
 	//{{{ Used to store property values
 	protected static class PropValue
 	{
-		PropValue(Object value, boolean defaultValue)
+		PropValue(@Nonnull Object value, boolean defaultValue)
 		{
-			if(value == null)
-				throw new NullPointerException();
+			Objects.requireNonNull(value);
 			this.value = value;
 			this.defaultValue = defaultValue;
 		}
@@ -2752,6 +2849,7 @@ loop:		for(int i = 0; i < seg.count; i++)
 
 	//{{{ Private members
 	private final List<Listener> bufferListeners;
+	private boolean closed;
 	private final ReentrantReadWriteLock lock;
 	private final ContentManager contentMgr;
 	private final LineManager lineMgr;
@@ -2763,6 +2861,7 @@ loop:		for(int i = 0; i < seg.count; i++)
 	private boolean dirty;
 	private boolean readOnly;
 	private boolean readOnlyOverride;
+	private boolean editable = true;
 	private boolean transaction;
 	private boolean loading;
 	private boolean io;
@@ -2771,7 +2870,7 @@ loop:		for(int i = 0; i < seg.count; i++)
 	/** This field should be read instead of "elasticTabstops" property
 	  * when efficiency matters. */
 	// synchronization done in TextArea.propertiesChanged()
-	public boolean elasticTabstopsOn = false;
+	public boolean elasticTabstopsOn;
 	private ColumnBlock columnBlock;
 
 	//{{{ getListener() method
@@ -2818,6 +2917,7 @@ loop:		for(int i = 0; i < seg.count; i++)
 	} //}}}
 
 	//{{{ parseBufferLocalProperties() method
+	@SuppressWarnings({"fallthrough"})
 	private void parseBufferLocalProperties(CharSequence prop)
 	{
 		StringBuilder buf = new StringBuilder();
@@ -2915,7 +3015,7 @@ loop:		for(int i = 0; i < seg.count; i++)
 		{
 			int currentLine = startLine;
 			int colBlockWidth=0;
-			Vector<ColumnBlockLine> columnBlockLines = new Vector<ColumnBlockLine>();
+			Vector<ColumnBlockLine> columnBlockLines = new Vector<>();
 			//while(currentLine<=endLine)
 			ColumnBlock parentColumnBlock = (ColumnBlock) parent;
 			for(int ik=startLine- parentColumnBlock.getStartLine();currentLine<=endLine;ik++)

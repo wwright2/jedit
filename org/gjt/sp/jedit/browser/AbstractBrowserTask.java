@@ -24,15 +24,12 @@ package org.gjt.sp.jedit.browser;
 
 //{{{ Imports
 import org.gjt.sp.jedit.io.VFS;
-import org.gjt.sp.util.Task;
-import org.gjt.sp.util.TaskListener;
-import org.gjt.sp.util.TaskManager;
-import org.gjt.sp.util.ThreadUtilities;
+import org.gjt.sp.util.*;
 //}}}
 
 /**
  * @author Matthieu Casanova
- * @version $Id: AbstractBrowserTask.java 22851 2013-03-17 11:03:48Z thomasmey $
+ * @version $Id: AbstractBrowserTask.java 25679 2023-09-16 21:40:26Z kpouer $
  */
 abstract class AbstractBrowserTask extends Task
 {
@@ -73,16 +70,6 @@ abstract class AbstractBrowserTask extends Task
 		}
 
 		@Override
-		public void waiting(Task task)
-		{
-		}
-
-		@Override
-		public void running(Task task)
-		{
-		}
-
-		@Override
 		public void done(Task task)
 		{
 			if (task == AbstractBrowserTask.this)
@@ -90,21 +77,6 @@ abstract class AbstractBrowserTask extends Task
 				TaskManager.instance.removeTaskListener(this);
 				ThreadUtilities.runInDispatchThread(runnable);
 			}
-		}
-
-		@Override
-		public void statusUpdated(Task task)
-		{
-		}
-
-		@Override
-		public void maximumUpdated(Task task)
-		{
-		}
-
-		@Override
-		public void valueUpdated(Task task)
-		{
 		}
 	}
 }

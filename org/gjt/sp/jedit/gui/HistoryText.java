@@ -25,16 +25,15 @@ package org.gjt.sp.jedit.gui;
 //{{{ Imports
 import javax.swing.*;
 import javax.swing.text.*;
-import javax.swing.event.MouseInputAdapter;
-import java.awt.*;
 import java.awt.event.*;
 import org.gjt.sp.jedit.*;
+import org.gjt.sp.util.GenericGUIUtilities;
 //}}}
 
 /**
  * Controller (manager of models) for HistoryTextArea.
  * @author Slava Pestov
- * @version $Id: HistoryText.java 21831 2012-06-18 22:54:17Z ezust $
+ * @version $Id: HistoryText.java 25461 2021-03-29 21:09:10Z kpouer $
  */
 public class HistoryText
 {
@@ -133,11 +132,6 @@ public class HistoryText
 		int start = getInputStart();
 		String t = getText().substring(0,
 			text.getSelectionStart() - start);
-		if(t == null)
-		{
-			historyPrevious();
-			return;
-		}
 
 		for(int i = index + 1; i < historyModel.getSize(); i++)
 		{
@@ -152,7 +146,7 @@ public class HistoryText
 			}
 		}
 
-		text.getToolkit().beep();
+		javax.swing.UIManager.getLookAndFeel().provideErrorFeedback(null); 
 	} //}}}
 
 	//{{{ doForwardSearch() method
@@ -169,11 +163,6 @@ public class HistoryText
 		int start = getInputStart();
 		String t = getText().substring(0,
 			text.getSelectionStart() - start);
-		if(t == null)
-		{
-			historyNext();
-			return;
-		}
 
 		for(int i = index - 1; i >= 0; i--)
 		{
@@ -188,7 +177,7 @@ public class HistoryText
 			}
 		}
 
-		text.getToolkit().beep();
+		javax.swing.UIManager.getLookAndFeel().provideErrorFeedback(null); 
 	} //}}}
 
 	//{{{ historyPrevious() method
@@ -198,7 +187,7 @@ public class HistoryText
 			return;
 
 		if(index == historyModel.getSize() - 1)
-			text.getToolkit().beep();
+			javax.swing.UIManager.getLookAndFeel().provideErrorFeedback(null); 
 		else if(index == -1)
 		{
 			current = getText();
@@ -221,7 +210,7 @@ public class HistoryText
 			return;
 
 		if(index == -1)
-			text.getToolkit().beep();
+			javax.swing.UIManager.getLookAndFeel().provideErrorFeedback(null); 
 		else if(index == 0)
 			setText(current);
 		else
@@ -299,13 +288,7 @@ public class HistoryText
 		};
 		JMenuItem caption = new JMenuItem(jEdit.getProperty(
 			"history.caption"));
-		caption.addActionListener(new ActionListener()
-		{
-		  public void actionPerformed(ActionEvent e) 
-		  {
-		    new ListModelEditor().open(historyModel);
-		  }
-		});		
+		caption.addActionListener(e -> new ListModelEditor().open(historyModel));
  		popup.add(caption);
  		popup.addSeparator();
 
@@ -322,7 +305,7 @@ public class HistoryText
 			}
 		}
 
-		GUIUtilities.showPopupMenu(popup,text,x,y,false);
+		GenericGUIUtilities.showPopupMenu(popup,text,x,y,false);
 	} //}}}
 
 	//{{{ showPopupMenu() method
@@ -336,7 +319,7 @@ public class HistoryText
 	} //}}}
 
 	//{{{ Private members
-	private JTextComponent text;
+	private final JTextComponent text;
 	private HistoryModel historyModel;
 	private int index;
 	private String current;
@@ -347,6 +330,7 @@ public class HistoryText
 	//{{{ ActionHandler class
 	class ActionHandler implements ActionListener
 	{
+		@Override
 		public void actionPerformed(ActionEvent evt)
 		{
 			int ind = Integer.parseInt(evt.getActionCommand());

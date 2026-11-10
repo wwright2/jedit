@@ -180,7 +180,6 @@ public class ThreadUtilities
 
 	/**
 	 * Run the task in the threadpool.
-	 * The runnable will be encapsulated in a {@link Task}
 	 *
 	 * @param task the task to run
 	 */
@@ -231,7 +230,7 @@ public class ThreadUtilities
 	{
 		private final Runnable runnable;
 
-		private CountDownLatch done = new CountDownLatch(1);
+		private final CountDownLatch done = new CountDownLatch(1);
 
 		private CountDownLatchRunnable(Runnable runnable)
 		{

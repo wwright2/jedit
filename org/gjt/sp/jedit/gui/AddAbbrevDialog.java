@@ -24,6 +24,7 @@ import javax.swing.*;
 import java.awt.event.*;
 import java.awt.*;
 import org.gjt.sp.jedit.*;
+import org.gjt.sp.util.GenericGUIUtilities;
 
 /** Dialog displayed when expanding an unknown abbreviation */
 public class AddAbbrevDialog extends JDialog
@@ -53,7 +54,7 @@ public class AddAbbrevDialog extends JDialog
 		modeSpecific.addActionListener(new ActionHandler());
 		box.add(modeSpecific);
 		box.add(Box.createHorizontalStrut(6));
-		cancel = new JButton(jEdit.getProperty("common.cancel"));
+		JButton cancel = new JButton(jEdit.getProperty("common.cancel"));
 		cancel.addActionListener(new ActionHandler());
 		box.add(cancel);
 		box.add(Box.createGlue());
@@ -67,9 +68,9 @@ public class AddAbbrevDialog extends JDialog
 		setDefaultCloseOperation(DISPOSE_ON_CLOSE);
 
 		if(abbrev == null)
-			GUIUtilities.requestFocus(this,editor.getAbbrevField());
+			GenericGUIUtilities.requestFocus(this,editor.getAbbrevField());
 		else
-			GUIUtilities.requestFocus(this,editor.getBeforeCaretTextArea());
+			GenericGUIUtilities.requestFocus(this,editor.getBeforeCaretTextArea());
 
 		pack();
 		setLocationRelativeTo(view);
@@ -77,23 +78,23 @@ public class AddAbbrevDialog extends JDialog
 	}
 
 	// private members
-	private View view;
-	private AbbrevEditor editor;
-	private JButton global;
-	private JButton modeSpecific;
-	private JButton cancel;
+	private final View view;
+	private final AbbrevEditor editor;
+	private final JButton global;
+	private final JButton modeSpecific;
 
-	class ActionHandler implements ActionListener
+	private class ActionHandler implements ActionListener
 	{
+		@Override
 		public void actionPerformed(ActionEvent evt)
 		{
 			Object source = evt.getSource();
 			if(source == global)
 			{
 				String _abbrev = editor.getAbbrev();
-				if(_abbrev == null || _abbrev.length() == 0)
+				if(_abbrev == null || _abbrev.isEmpty())
 				{
-					getToolkit().beep();
+					javax.swing.UIManager.getLookAndFeel().provideErrorFeedback(null); 
 					return;
 				}
 				Abbrevs.addGlobalAbbrev(_abbrev,editor.getExpansion());
@@ -102,9 +103,9 @@ public class AddAbbrevDialog extends JDialog
 			else if(source == modeSpecific)
 			{
 				String _abbrev = editor.getAbbrev();
-				if(_abbrev == null || _abbrev.length() == 0)
+				if(_abbrev == null || _abbrev.isEmpty())
 				{
-					getToolkit().beep();
+					javax.swing.UIManager.getLookAndFeel().provideErrorFeedback(null); 
 					return;
 				}
 				Abbrevs.addModeAbbrev(view.getBuffer().getMode().getName(),
@@ -116,8 +117,9 @@ public class AddAbbrevDialog extends JDialog
 		}
 	}
 
-	class KeyHandler extends KeyAdapter
+	private class KeyHandler extends KeyAdapter
 	{
+		@Override
 		public void keyPressed(KeyEvent evt)
 		{
 			if(evt.getKeyCode() == KeyEvent.VK_ESCAPE)

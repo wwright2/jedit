@@ -29,6 +29,7 @@ import java.awt.event.*;
 import java.awt.*;
 import java.util.*;
 import org.gjt.sp.jedit.*;
+import org.gjt.sp.util.GenericGUIUtilities;
 //}}}
 /** Displayed when editing abbrevs */
 public class EditAbbrevDialog extends JDialog
@@ -73,7 +74,6 @@ public class EditAbbrevDialog extends JDialog
 	//{{{ Private members
 	private AbbrevEditor editor;
 	private JButton ok;
-	private JButton cancel;
 	private boolean isOK;
 	private String originalAbbrev;
 	private Map abbrevs;
@@ -83,29 +83,31 @@ public class EditAbbrevDialog extends JDialog
 	{
 		this.abbrevs = abbrevs;
 
-		this.originalAbbrev = abbrev;
+		originalAbbrev = abbrev;
 
 		JPanel content = new JPanel(new BorderLayout());
-		content.setBorder(new EmptyBorder(12,12,12,12));
+		content.setBorder(new EmptyBorder(12, 12, 11, 11));
 		setContentPane(content);
 
 		editor = new AbbrevEditor();
 		editor.setAbbrev(abbrev);
 		editor.setExpansion(expansion);
-		editor.setBorder(new EmptyBorder(0,0,12,0));
+		editor.setBorder(new EmptyBorder(0, 0, 17, 0));
 		content.add(BorderLayout.CENTER,editor);
 
 		Box box = new Box(BoxLayout.X_AXIS);
-		box.add(Box.createGlue());
 		ok = new JButton(jEdit.getProperty("common.ok"));
 		ok.addActionListener(new ActionHandler());
 		getRootPane().setDefaultButton(ok);
+		JButton cancel = new JButton(jEdit.getProperty("common.cancel"));
+		cancel.addActionListener(new ActionHandler());
+		GenericGUIUtilities.makeSameSize(ok, cancel);
+		
+		box.add(Box.createGlue());
 		box.add(ok);
 		box.add(Box.createHorizontalStrut(6));
-		cancel = new JButton(jEdit.getProperty("common.cancel"));
-		cancel.addActionListener(new ActionHandler());
 		box.add(cancel);
-		box.add(Box.createGlue());
+		
 		content.add(BorderLayout.SOUTH,box);
 
 		KeyListener listener = new KeyHandler();
@@ -141,16 +143,17 @@ public class EditAbbrevDialog extends JDialog
 	//}}}
 
 	//{{{ ActionHandler class
-	class ActionHandler implements ActionListener
+	private class ActionHandler implements ActionListener
 	{
+		@Override
 		public void actionPerformed(ActionEvent evt)
 		{
 			if(evt.getSource() == ok)
 			{
 				if(editor.getAbbrev() == null
-					|| editor.getAbbrev().length() == 0)
+					|| editor.getAbbrev().isEmpty())
 				{
-					getToolkit().beep();
+					javax.swing.UIManager.getLookAndFeel().provideErrorFeedback(null); 
 					return;
 				}
 

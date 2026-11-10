@@ -28,7 +28,8 @@ import org.gjt.sp.util.Log;
 import org.xml.sax.InputSource;
 import org.xml.sax.SAXException;
 import org.xml.sax.XMLReader;
-import org.xml.sax.helpers.XMLReaderFactory;
+import javax.xml.parsers.SAXParserFactory;
+import javax.xml.parsers.ParserConfigurationException;
 
 import java.io.*;
 import java.nio.file.Files;
@@ -40,7 +41,6 @@ import java.util.Collections;
 import java.util.List;
 import java.util.LinkedHashMap;
 import java.util.regex.*;
-import javax.swing.JOptionPane;
 //}}}
 
 /**
@@ -54,7 +54,7 @@ public class ModeProvider
 {
 	public static ModeProvider instance = new ModeProvider();
 
-	private final LinkedHashMap<String, Mode> modes = new LinkedHashMap<String, Mode>(220);
+	private final LinkedHashMap<String, Mode> modes = new LinkedHashMap<>(250);
 
 	//{{{ removeAll() method
 	public void removeAll()
@@ -64,58 +64,84 @@ public class ModeProvider
 
 	//{{{ removeMode() method
 	/**
- 	 * Will only remove user modes.	
- 	 */
-	public void removeMode(String name) throws IOException
+	 * Will only remove user modes.
+	 * @return true if the mode was removed, false otherwise.
+	 */
+	public boolean removeMode(String name) throws IOException
 	{
 		Mode mode = modes.get(name);
 		if (mode.isUserMode())
 		{
-			modes.remove(name);
+			// check that this mode is in the map
+			Mode oldMode = modes.remove(name);
+			if (oldMode == null)
+				return false;
+
 			// delete mode file from disk and remove the entry from the catalog file.
 			// Actually, just rename the mode file by adding "_unused" to the end of the file name
 			// and comment out the line in the catalog file. This way it is possible to undo
 			// these changes manually without too much work.
 			String modeFilename = (String)mode.getProperty("file");
 			File modeFile = new File(modeFilename);
-			if (modeFile.exists()) 
+			if (modeFile.exists())
 			{
 				Path path = FileSystems.getDefault().getPath(modeFilename);
 				Files.move(path, path.resolveSibling(modeFilename + "_unused"), StandardCopyOption.REPLACE_EXISTING);
+			}
 
-				// delete entry from mode catalog, catalog is in the same directory as the mode file
-				File catalogFile = new File(modeFile.getParent(),"catalog");
-				if (catalogFile.exists())
+			// The mode file may not be present and still referenced in the catalog, so carry on.
+			// delete entry from mode catalog, catalog is in the same directory as the mode file
+			File catalogFile = new File(modeFile.getParent(),"catalog");
+			if (catalogFile.exists())
+			{
+				StringBuilder contents = new StringBuilder();
+				try
 				{
-					try 
+					// read in the catalog file
+					BufferedReader br = new BufferedReader(new FileReader(catalogFile));
+					String line;
+					while((line = br.readLine()) != null)
 					{
-						// read in the catalog file
-						BufferedReader br = new BufferedReader(new FileReader(catalogFile));
-						String line = null;
-						StringBuilder contents = new StringBuilder();
-						while((line = br.readLine()) != null) {
-							contents.append(line).append('\n');
-						}
-						br.close();
-						
-						// remove the catalog entry for this mode
-						Pattern p = Pattern.compile("(?m)(^\\s*[<]MODE.*?NAME=\"" + name + "\".*?[>])");
-						Matcher m = p.matcher(contents);
-						String newContents = m.replaceFirst("<!--$1-->");
-						
-						// rewrite the catalog file
-						BufferedWriter bw = new BufferedWriter(new FileWriter(catalogFile));
-						bw.write(newContents, 0, newContents.length());
-						bw.flush();
-						bw.close();
+						contents.append(line).append('\n');
 					}
-					catch(Exception e) 
-					{
-						// ignored 
-					}
+					br.close();
+				}
+				catch(IOException ioe)
+				{
+					// unable to read the catalog file
+					modes.put(oldMode.getName(), oldMode);
+					throw ioe;
+				}
+
+				if (contents.length() == 0)
+				{
+					// empty catalog file, how did that happen?
+					modes.put(oldMode.getName(), oldMode);
+					return false;
+				}
+
+				// remove the catalog entry for this mode
+				Pattern p = Pattern.compile("(?m)(^\\s*[<]MODE.*?NAME=\"" + name + "\".*?[>])");
+				Matcher m = p.matcher(contents);
+				String newContents = m.replaceFirst("<!--$1-->");
+
+				try
+				{
+					// rewrite the catalog file
+					BufferedWriter bw = new BufferedWriter(new FileWriter(catalogFile));
+					bw.write(newContents, 0, newContents.length());
+					bw.flush();
+					bw.close();
+				}
+				catch(IOException ioe)
+				{
+					// unable to write the catalog file
+					modes.put(oldMode.getName(), oldMode);
+					throw ioe;
 				}
 			}
 		}
+		return true;
 	} //}}}
 
 	//{{{ getMode() method
@@ -158,7 +184,7 @@ public class ModeProvider
 		if (filename != null && filename.endsWith(".gz"))
 			filename = filename.substring(0, filename.length() - 3);
 
-		List<Mode> acceptable = new ArrayList<Mode>(1);
+		List<Mode> acceptable = new ArrayList<>(1);
 		for(Mode mode : modes.values())
 		{
 			if(mode.accept(filepath, filename, firstLine))
@@ -199,28 +225,28 @@ public class ModeProvider
 			}
 			// next best is filepath match, there could be multiple matches,
 			// need to choose the best one
-			List<Mode> filepathMatch = new ArrayList<Mode>();
+			List<Mode> filepathMatch = new ArrayList<>();
 			for (Mode mode : acceptable)
 			{
-				if (mode.acceptFile(filepath, filename)) 
+				if (mode.acceptFile(filepath, filename))
 				{
 					filepathMatch.add(mode);
 				}
 			}
-			if (filepathMatch.size() == 1) 
+			if (filepathMatch.size() == 1)
 			{
-				return filepathMatch.get(0); 	
+				return filepathMatch.get(0);
 			}
 			else if (filepathMatch.size() > 1)
 			{
 				// return the one with the longest glob pattern since that one
 				// is most likely to be more specific and hence the best choice
 				Mode longest = filepathMatch.get(0);
-				for (Mode mode : filepathMatch) 
+				for (Mode mode : filepathMatch)
 				{
 					if (((String)mode.getProperty("filenameGlob")).length() > ((String)longest.getProperty("filenameGlob")).length())
 					{
-						longest = mode;	
+						longest = mode;
 					}
 				}
 				return longest;
@@ -240,7 +266,7 @@ public class ModeProvider
 	 */
 	public Mode[] getModes()
 	{
-		return modes.values().toArray(new Mode[modes.size()]);
+		return modes.values().toArray(new Mode[0]);
 	} //}}}
 
 	//{{{ addMode() method
@@ -277,7 +303,7 @@ public class ModeProvider
 		String modeFile = (String)mode.getProperty("file");
 		String filenameGlob = (String)mode.getProperty("filenameGlob");
 		String firstLineGlob = (String)mode.getProperty("firstlineGlob");
-		
+
 		// copy mode file to user mode directory
 		Path source = FileSystems.getDefault().getPath(modeFile);
 		Files.copy(source, target, StandardCopyOption.REPLACE_EXISTING);
@@ -286,46 +312,44 @@ public class ModeProvider
 		File catalogFile = new File(target.toFile().getParent(),"catalog");
 		if (catalogFile.exists())
 		{
-			try 
+			try
 			{
 				// read in the catalog file
 				BufferedReader br = new BufferedReader(new FileReader(catalogFile));
-				String line = null;
+				String line;
 				StringBuilder contents = new StringBuilder();
 				while((line = br.readLine()) != null)
 				{
 					contents.append(line).append('\n');
 				}
 				br.close();
-				
+
 				// remove any existing catalog entry for this mode
 				Pattern p = Pattern.compile("(?m)(^\\s*[<]MODE.*?NAME=\"" + name + "\".*?[>])");
 				Matcher m = p.matcher(contents);
 				String newContents = m.replaceFirst("<!--$1-->");
-				
+
 				// insert the catalog entry for this mode
 				p = Pattern.compile("(?m)(</MODES>)");
 				m = p.matcher(contents);
-				StringBuilder modeLine = new StringBuilder("\t<MODE NAME=\"");
-				modeLine.append(name).append("\" FILE=\"").append(target.toFile().getName()).append("\"");
-				modeLine.append(filenameGlob == null || filenameGlob.isEmpty() ? "" : " FILE_NAME_GLOB=\"" + filenameGlob + "\"");
-				modeLine.append(firstLineGlob == null || firstLineGlob.isEmpty() ? "" : " FIRST_LINE_GLOB=\"" + firstLineGlob + "\"");
-				modeLine.append("/>");
+				String modeLine = "\t<MODE NAME=\"" + name + "\" FILE=\"" + target.toFile().getName() + "\"" +
+					(filenameGlob == null || filenameGlob.isEmpty() ? "" : " FILE_NAME_GLOB=\"" + filenameGlob + "\"") +
+					(firstLineGlob == null || firstLineGlob.isEmpty() ? "" : " FIRST_LINE_GLOB=\"" + firstLineGlob + "\"") +
+					"/>";
 				newContents = m.replaceFirst(modeLine + "\n$1" );
-				
+
 				// rewrite the catalog file
 				BufferedWriter bw = new BufferedWriter(new FileWriter(catalogFile));
 				bw.write(newContents, 0, newContents.length());
 				bw.flush();
 				bw.close();
 			}
-			catch(Exception e) 
+			catch(Exception e)	// NOPMD
 			{
-				// ignored 
+				// ignored
 			}
 		}
-		
-		
+
 		addMode(mode);
 		loadMode(mode);
 	} //}}}
@@ -340,8 +364,9 @@ public class ModeProvider
 		XMLReader parser;
 		try
 		{
-			parser = XMLReaderFactory.createXMLReader();
-		} catch (SAXException saxe)
+			parser = SAXParserFactory.newInstance().newSAXParser().getXMLReader();
+		}
+		catch (SAXException | ParserConfigurationException saxe)
 		{
 			Log.log(Log.ERROR, this, saxe);
 			return;
@@ -375,7 +400,7 @@ public class ModeProvider
 
 			mode.setProperties(xmh.getModeProperties());
 		}
-		catch (Throwable e)
+		catch (Throwable e)	// NOPMD
 		{
 			error(fileName, e);
 		}

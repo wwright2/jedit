@@ -27,20 +27,16 @@ package org.gjt.sp.jedit.gui;
 //{{{ Imports
 import java.awt.event.*;
 import java.awt.*;
-import java.util.ArrayList;
-import java.util.List;
-import javax.swing.border.*;
-import javax.swing.event.*;
 import javax.swing.*;
 import org.gjt.sp.jedit.*;
-import org.gjt.sp.util.Log;
+import org.gjt.sp.util.GenericGUIUtilities;
 //}}}
 
 //{{{ FontSelector class
 /**
  * A font chooser widget.
  * @author Slava Pestov
- * @version $Id: FontSelector.java 21831 2012-06-18 22:54:17Z ezust $
+ * @version $Id: FontSelector.java 25462 2021-03-29 21:17:46Z kpouer $
  */
 public class FontSelector extends JButton
 {
@@ -74,6 +70,7 @@ public class FontSelector extends JButton
 	} //}}}
 
 	//{{{ paintComponent() method
+	@Override
 	public void paintComponent(Graphics g)
 	{
 		setAntiAliasEnabled(g);
@@ -135,11 +132,12 @@ public class FontSelector extends JButton
 	//{{{ ActionHandler class
 	class ActionHandler implements ActionListener
 	{
+		@Override
 		public void actionPerformed(ActionEvent evt)
 		{
 			Font font;
 
-			JDialog dialog = GUIUtilities.getParentDialog(FontSelector.this);
+			JDialog dialog = GenericGUIUtilities.getParentDialog(FontSelector.this);
 			if(dialog == null)
 			{
 				font = new FontSelectorDialog(

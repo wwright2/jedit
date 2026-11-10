@@ -37,7 +37,7 @@ import java.awt.event.ActionListener;
  * @see ActionSet
  *
  * @author Slava Pestov
- * @version $Id: EditAction.java 23981 2015-08-10 14:56:24Z daleanson $
+ * @version $Id: EditAction.java 25429 2021-03-13 16:13:35Z kpouer $
  */
 public abstract class EditAction extends JEditAbstractEditAction<View>
 {
@@ -46,12 +46,12 @@ public abstract class EditAction extends JEditAbstractEditAction<View>
 	 * Creates a new edit action with the specified name.
 	 * @param name The action name
 	 */
-	public EditAction(String name)
+	protected EditAction(String name)
 	{
 		super(name);
 	}
 	
-	public EditAction(String name, Object[] newArgs) 
+	protected EditAction(String name, Object[] newArgs)
 	{
 		super(name, newArgs);
 	} //}}}
@@ -83,6 +83,17 @@ public abstract class EditAction extends JEditAbstractEditAction<View>
 		return jEdit.getProperty(name + ".mouse-over");
 	} //}}}
 
+	//{{{ getToolTip() method
+	/**
+	 * @return the action's tooltip text. This returns the
+	 * value of the property named by {@link #getName()} suffixed
+	 * with <code>.tooltip</code>.
+	 */
+	public String getToolTip()
+	{
+		return jEdit.getProperty(name + ".tooltip");
+	} //}}}
+
 	//{{{ invoke() method
 	/**
 	 * Invokes the action. This is an implementation of the Command pattern,
@@ -92,7 +103,8 @@ public abstract class EditAction extends JEditAbstractEditAction<View>
 	 * @since jEdit 2.7pre2
 	 * abstract since jEdit 4.3pre7
 	 */
-	abstract public void invoke(View view);
+	@Override
+	public abstract void invoke(View view);
 	//}}}
 
 	//{{{ isToggle() method
@@ -202,6 +214,7 @@ public abstract class EditAction extends JEditAbstractEditAction<View>
 		 *
 		 * @param evt The action event
 		 */
+		@Override
 		public void actionPerformed(ActionEvent evt)
 		{
 			EditAction action = context.getAction(actionName);

@@ -29,7 +29,6 @@ import javax.swing.border.*;
 import javax.swing.event.*;
 import javax.swing.tree.*;
 import java.awt.*;
-import java.awt.event.*;
 import java.util.*;
 import java.util.List;
 
@@ -41,20 +40,16 @@ import org.gjt.sp.util.Log;
 
 /** An abstract options dialog box.
  * @author Slava Pestov
- * @version $Id: OptionsDialog.java 23923 2015-05-22 14:10:47Z ezust $
+ * @version $Id: OptionsDialog.java 25453 2021-03-28 20:08:00Z kpouer $
  * @todo refactor to use OptionGroupPane
  */
-public abstract class OptionsDialog extends EnhancedDialog
-	implements ActionListener, TreeSelectionListener
+public abstract class OptionsDialog extends EnhancedDialog implements TreeSelectionListener
 {
 	//{{{ Instance variables
 	private String name;
 	private JSplitPane splitter;
 	protected JTree paneTree;
 	private JScrollPane stage;
-	private JButton ok;
-	private JButton cancel;
-	private JButton apply;
 	protected OptionPane currentPane;
 	private Map<Object, OptionPane> deferredOptionPanes;
 	//}}}
@@ -90,7 +85,7 @@ public abstract class OptionsDialog extends EnhancedDialog
 	{
 		getDefaultGroup().addOptionPane(pane);
 	} //}}}
-	
+
 	//{{{ ok() method
 	@Override
 	public void ok()
@@ -112,10 +107,9 @@ public abstract class OptionsDialog extends EnhancedDialog
 	{
 		if(currentPane != null)
 			jEdit.setProperty(name + ".last",currentPane.getName());
-	
-		OptionTreeModel m = (OptionTreeModel) paneTree
-			.getModel();
-		save(m.getRoot());
+
+		TreeModel treeModel = paneTree.getModel();
+		save(treeModel.getRoot());
 
 		/* This will fire the PROPERTIES_CHANGED event */
 		jEdit.propertiesChanged();
@@ -135,26 +129,6 @@ public abstract class OptionsDialog extends EnhancedDialog
 		GUIUtilities.saveGeometry(this,name);
 		jEdit.setIntegerProperty(name + ".splitter",splitter.getDividerLocation());
 		super.dispose();
-	} //}}}
-
-	//{{{ actionPerformed() method
-	@Override
-	public void actionPerformed(ActionEvent evt)
-	{
-		Object source = evt.getSource();
-
-		if(source == ok)
-		{
-			ok();
-		}
-		else if(source == cancel)
-		{
-			cancel();
-		}
-		else if(source == apply)
-		{
-			ok(false);
-		}
 	} //}}}
 
 	//{{{ valueChanged() method
@@ -273,6 +247,7 @@ public abstract class OptionsDialog extends EnhancedDialog
 	/**
 	 * Creates the tree model that goes on the left of the option pane,
 	 * loading all the items that are needed.
+	 * @return OptionTreeModel for binary compatibility of plugins (e.g. SideKick)
 	 */
 	protected abstract OptionTreeModel createOptionTreeModel();
 	// }}}
@@ -297,9 +272,9 @@ public abstract class OptionsDialog extends EnhancedDialog
 		this.name = name;
 		deferredOptionPanes = new HashMap<Object, OptionPane>();
 
-		if (pane == null) 
-			pane = jEdit.getProperty(name + ".last");		
-		
+		if (pane == null)
+			pane = jEdit.getProperty(name + ".last");
+
 		JPanel content = new JPanel(new BorderLayout(12,12));
 		content.setBorder(new EmptyBorder(12,12,12,12));
 		setContentPane(content);
@@ -329,17 +304,17 @@ public abstract class OptionsDialog extends EnhancedDialog
 		Box buttons = new Box(BoxLayout.X_AXIS);
 		buttons.add(Box.createGlue());
 
-		ok = new JButton(jEdit.getProperty("common.ok"));
-		ok.addActionListener(this);
+		JButton ok = new JButton(jEdit.getProperty("common.ok"));
+		ok.addActionListener(e -> ok());
 		buttons.add(ok);
 		buttons.add(Box.createHorizontalStrut(6));
 		getRootPane().setDefaultButton(ok);
-		cancel = new JButton(jEdit.getProperty("common.cancel"));
-		cancel.addActionListener(this);
+		JButton cancel = new JButton(jEdit.getProperty("common.cancel"));
+		cancel.addActionListener(e -> cancel());
 		buttons.add(cancel);
 		buttons.add(Box.createHorizontalStrut(6));
-		apply = new JButton(jEdit.getProperty("common.apply"));
-		apply.addActionListener(this);
+		JButton apply = new JButton(jEdit.getProperty("common.apply"));
+		apply.addActionListener(e -> ok(false));
 		buttons.add(apply);
 
 		buttons.add(Box.createGlue());
@@ -557,177 +532,20 @@ public abstract class OptionsDialog extends EnhancedDialog
 	} //}}}
 
 	//{{{ OptionTreeModel class
-	public class OptionTreeModel implements TreeModel
-	{
+	/**
+	 * deprecated use {@link OptionTreeModel}
+	 * Undeprecating until the GlobalOptions, PluginOptions and/or CombinedOptions
+	 * are fixed.
+	 **/
+	public class OptionTreeModel extends org.jedit.options.OptionTreeModel {
 		public OptionTreeModel()
 		{
-			this(new OptionGroup(null));
+			super();
 		}
 
 		public OptionTreeModel(OptionGroup root)
 		{
-			this.root = root;
+			super(root);
 		}
-
-		@Override
-		public void addTreeModelListener(TreeModelListener l)
-		{
-			listenerList.add(TreeModelListener.class, l);
-		}
-
-		@Override
-		public void removeTreeModelListener(TreeModelListener l)
-		{
-			listenerList.remove(TreeModelListener.class, l);
-		}
-
-		@Override
-		public Object getChild(Object parent, int index)
-		{
-			if (parent instanceof OptionGroup)
-			{
-				return ((OptionGroup)parent).getMember(index);
-			}
-			else
-			{
-				return null;
-			}
-		}
-
-		@Override
-		public int getChildCount(Object parent)
-		{
-			if (parent instanceof OptionGroup)
-			{
-				return ((OptionGroup)parent).getMemberCount();
-			}
-			else
-			{
-				return 0;
-			}
-		}
-
-		@Override
-		public int getIndexOfChild(Object parent, Object child)
-		{
-			if (parent instanceof OptionGroup)
-			{
-				return ((OptionGroup)parent)
-					.getMemberIndex(child);
-			}
-			else
-			{
-				return -1;
-			}
-		}
-
-		@Override
-		public Object getRoot()
-		{
-			return root;
-		}
-
-		@Override
-		public boolean isLeaf(Object node)
-		{
-			return !(node instanceof OptionGroup);
-		}
-
-		@Override
-		public void valueForPathChanged(TreePath path, Object newValue)
-		{
-			// this model may not be changed by the TableCellEditor
-		}
-
-		protected void fireNodesChanged(Object source, Object[] path,
-			int[] childIndices, Object[] children)
-		{
-			Object[] listeners = listenerList.getListenerList();
-
-			TreeModelEvent modelEvent = null;
-			for (int i = listeners.length - 2; i >= 0; i -= 2)
-			{
-				if (listeners[i] != TreeModelListener.class)
-					continue;
-
-				if (modelEvent == null)
-				{
-					modelEvent = new TreeModelEvent(source,
-						path, childIndices, children);
-				}
-
-				((TreeModelListener)listeners[i + 1])
-					.treeNodesChanged(modelEvent);
-			}
-		}
-
-		protected void fireNodesInserted(Object source, Object[] path,
-			int[] childIndices, Object[] children)
-		{
-			Object[] listeners = listenerList.getListenerList();
-
-			TreeModelEvent modelEvent = null;
-			for (int i = listeners.length - 2; i >= 0; i -= 2)
-			{
-				if (listeners[i] != TreeModelListener.class)
-					continue;
-
-				if (modelEvent == null)
-				{
-					modelEvent = new TreeModelEvent(source,
-						path, childIndices, children);
-				}
-
-				((TreeModelListener)listeners[i + 1])
-					.treeNodesInserted(modelEvent);
-			}
-		}
-
-		protected void fireNodesRemoved(Object source, Object[] path,
-			int[] childIndices, Object[] children)
-		{
-			Object[] listeners = listenerList.getListenerList();
-
-			TreeModelEvent modelEvent = null;
-			for (int i = listeners.length - 2; i >= 0; i -= 2)
-			{
-				if (listeners[i] != TreeModelListener.class)
-					continue;
-
-				if (modelEvent == null)
-				{
-					modelEvent = new TreeModelEvent(source,
-						path, childIndices, children);
-				}
-
-				((TreeModelListener)listeners[i + 1])
-					.treeNodesRemoved(modelEvent);
-			}
-		}
-
-		protected void fireTreeStructureChanged(Object source,
-			Object[] path, int[] childIndices, Object[] children)
-		{
-			Object[] listeners = listenerList.getListenerList();
-
-			TreeModelEvent modelEvent = null;
-			for (int i = listeners.length - 2; i >= 0; i -= 2)
-			{
-				if (listeners[i] != TreeModelListener.class)
-					continue;
-
-				if (modelEvent == null)
-				{
-					modelEvent = new TreeModelEvent(source,
-						path, childIndices, children);
-				}
-
-				((TreeModelListener)listeners[i + 1])
-					.treeStructureChanged(modelEvent);
-			}
-		}
-
-		private final OptionGroup root;
-		private final EventListenerList listenerList = new EventListenerList();
 	} //}}}
 }

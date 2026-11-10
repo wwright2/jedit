@@ -25,21 +25,22 @@ import java.io.IOException;
 
 /**
  * An interface to detect a reasonable encoding from some bytes at the
- * beginning of a file. To offer your own EncodingDetector, implement this 
- * interface and define a service in your <tt>services.xml</tt> file. 
+ * beginning of a file. To offer your own EncodingDetector, implement this
+ * interface and define a service in your {@code services.xml} file.
  * For example:<pre>
 &lt;SERVICE CLASS=&quot;org.gjt.sp.jedit.io.EncodingDetector&quot; NAME=&quot;XML-PI&quot;&gt;
 	new XMLEncodingDetector();
 &lt;/SERVICE&gt; </pre>
- * 
+ *
  * @since 4.3pre10
  * @author Kazutoshi Satoda
  */
+@FunctionalInterface
 public interface EncodingDetector
 {
 	/**
 	 * Returns the name of a detected encoding for the bytes in sample.
 	 * Returns null if this instance could not detect reasonable one.
 	 */
-	public String detectEncoding(InputStream sample) throws IOException;
+	String detectEncoding(InputStream sample) throws IOException;
 }

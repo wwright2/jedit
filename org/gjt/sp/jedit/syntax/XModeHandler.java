@@ -39,48 +39,53 @@ import org.gjt.sp.util.XMLUtilities;
 
 /**
  * XML handler for mode definition files.
- * @version $Id: XModeHandler.java 21831 2012-06-18 22:54:17Z ezust $
+ * @version $Id: XModeHandler.java 25489 2021-04-05 21:18:30Z kpouer $
  */
 public abstract class XModeHandler extends DefaultHandler
 {
 	//{{{ XModeHandler constructor
-	public XModeHandler (String modeName)
+	protected XModeHandler(String modeName)
 	{
 		this.modeName = modeName;
 		marker = new TokenMarker();
 		marker.addRuleSet(new ParserRuleSet(modeName,"MAIN"));
-		stateStack = new Stack<TagDecl>();
+		stateStack = new Stack<>();
 	} //}}}
 
 	//{{{ resolveEntity() method
+	@Override
 	public InputSource resolveEntity(String publicId, String systemId)
 	{
 		return XMLUtilities.findEntity(systemId, "xmode.dtd", XModeHandler.class);
 	} //}}}
 
 	//{{{ characters() method
+	@Override
 	public void characters(char[] c, int off, int len)
 	{
 		peekElement().setText(c, off, len);
 	} //}}}
 
 	//{{{ startElement() method
+	@Override
 	public void startElement(String uri, String localName,
 				 String qName, Attributes attrs)
 	{
 		TagDecl tag = pushElement(qName, attrs);
 
-		if (qName.equals("WHITESPACE"))
+		if ("WHITESPACE".equals(qName))
 		{
 			Log.log(Log.WARNING,this,modeName + ": WHITESPACE rule "
 				+ "no longer needed");
 		}
-		else if (qName.equals("KEYWORDS"))
+		else if ("KEYWORDS".equals(qName))
 		{
 			keywords = new KeywordMap(rules.getIgnoreCase());
 		}
-		else if (qName.equals("RULES"))
+		else if ("RULES".equals(qName))
 		{
+			assert tag != null;
+			// if qName is not null then pushElement will not returns null
 			if(tag.lastSetName == null)
 				tag.lastSetName = "MAIN";
 			rules = marker.getRuleSet(tag.lastSetName);
@@ -113,6 +118,7 @@ public abstract class XModeHandler extends DefaultHandler
 	} //}}}
 
 	//{{{ endElement() method
+	@Override
 	public void endElement(String uri, String localName, String name)
 	{
 		TagDecl tag = popElement();
@@ -141,7 +147,7 @@ public abstract class XModeHandler extends DefaultHandler
 				else
 					modeProps = props;
 
-				props = new Hashtable<String, String>();
+				props = new Hashtable<>();
 			} //}}}
 			//{{{ RULES
 			else if (tag.tagName.equals("RULES"))
@@ -393,14 +399,16 @@ public abstract class XModeHandler extends DefaultHandler
 	} //}}}
 
 	//{{{ startDocument() method
+	@Override
 	public void startDocument()
 	{
-		props = new Hashtable<String, String>();
+		props = new Hashtable<>();
 		pushElement(null, null);
-		reloadModes = new Vector<Mode>();
+		reloadModes = new Vector<>();
 	} //}}}
 
 	//{{{ endDocument() method
+	@Override
 	public void endDocument()
 	{
 		ParserRuleSet[] rulesets = marker.getRuleSets();
@@ -463,12 +471,12 @@ public abstract class XModeHandler extends DefaultHandler
 	//{{{ Private members
 
 	//{{{ Instance variables
-	private String modeName;
+	private final String modeName;
 	/** The token marker cannot be null. */
 	private final TokenMarker marker;
 	private KeywordMap keywords;
 	/** this stack can contains null elements. */
-	private Stack<TagDecl> stateStack;
+	private final Stack<TagDecl> stateStack;
 	private String propName;
 	private String propValue;
 	private Hashtable<String, String> props;
@@ -541,8 +549,7 @@ public abstract class XModeHandler extends DefaultHandler
 	 */
 	private class TagDecl
 	{
-
-		public TagDecl(String tagName, Attributes attrs)
+		TagDecl(String tagName, Attributes attrs)
 		{
 			this.tagName = tagName;
 
@@ -723,10 +730,10 @@ public abstract class XModeHandler extends DefaultHandler
 				{
 					target.lastEnd = new StringBuffer();
 					target.lastEnd.append(c, off, len);
-					target.lastEndPosMatch = ((this.lastAtLineStart ? ParserRule.AT_LINE_START : 0)
-						| (this.lastAtWhitespaceEnd ? ParserRule.AT_WHITESPACE_END : 0)
-						| (this.lastAtWordStart ? ParserRule.AT_WORD_START : 0));
-					target.lastEndRegexp = this.lastRegexp;
+					target.lastEndPosMatch = ((lastAtLineStart ? ParserRule.AT_LINE_START : 0)
+						| (lastAtWhitespaceEnd ? ParserRule.AT_WHITESPACE_END : 0)
+						| (lastAtWordStart ? ParserRule.AT_WORD_START : 0));
+					target.lastEndRegexp = lastRegexp;
 					target.lastAtLineStart = false;
 					target.lastAtWordStart = false;
 					target.lastAtWhitespaceEnd = false;

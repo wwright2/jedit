@@ -27,13 +27,16 @@ import java.net.URL;
 import java.util.*;
 
 import org.gjt.sp.jedit.input.AbstractInputHandler;
+import org.gjt.sp.util.StandardUtilities;
 import org.jedit.keymap.Keymap;
 import org.gjt.sp.util.Log;
+
+import javax.annotation.Nonnull;
 //}}}
 
 /**
  * A set of actions, either loaded from an XML file, or constructed at runtime
- * by a plugin. 
+ * by a plugin.
  *
  * <h3>Action sets loaded from XML files</h3>
  *
@@ -139,7 +142,7 @@ import org.gjt.sp.util.Log;
  *
  * @author Slava Pestov
  * @author John Gellene (API documentation)
- * @version $Id: ActionSet.java 23981 2015-08-10 14:56:24Z daleanson $
+ * @version $Id: ActionSet.java 25698 2023-11-17 01:31:50Z vampire0 $
  * @since jEdit 4.0pre1
  */
 public class ActionSet extends JEditActionSet<EditAction> implements Comparable
@@ -153,7 +156,7 @@ public class ActionSet extends JEditActionSet<EditAction> implements Comparable
 	{
 		label = "<no label set; plugin bug>";
 	} //}}}
-	
+
 	//{{{ ActionSet constructor
 	/**
 	 * Creates a new action set.
@@ -181,7 +184,7 @@ public class ActionSet extends JEditActionSet<EditAction> implements Comparable
 		}
 		loaded = false;
 	} //}}}
-	
+
 	//{{{ addAction() method
 	/**
 	 * Adds an action to the action set.
@@ -190,17 +193,18 @@ public class ActionSet extends JEditActionSet<EditAction> implements Comparable
 	 * @since jEdit 4.0pre1
 	 */
 	@Override
-	public void addAction(EditAction action)
+	public void addAction(EditAction action)	// NOPMD
 	{
 		super.addAction(action);
 	} //}}}
-	
+
 	//{{{ getArray() method
+	@Override
 	protected EditAction[] getArray(int size)
 	{
 		return new EditAction[size];
 	} //}}}
-	
+
 	//{{{ getActions() method
 	/**
 	 * Returns an array of all actions in this action set.<p>
@@ -210,7 +214,7 @@ public class ActionSet extends JEditActionSet<EditAction> implements Comparable
 	 * @since jEdit 4.0pre1
 	 */
 	@Override
-	public EditAction[] getActions()
+	public EditAction[] getActions()	// NOPMD
 	{
 		return super.getActions();
 	} //}}}
@@ -221,7 +225,7 @@ public class ActionSet extends JEditActionSet<EditAction> implements Comparable
 	 * @param label The label, shown in the shortcuts option pane
 	 * @since jEdit 4.0pre1
 	 */
-	public ActionSet(String label)
+	public ActionSet(@Nonnull String label)
 	{
 		this();
 		setLabel(label);
@@ -243,10 +247,9 @@ public class ActionSet extends JEditActionSet<EditAction> implements Comparable
 	 * @param label The label
 	 * @since jEdit 4.0pre1
 	 */
-	public void setLabel(String label)
+	public void setLabel(@Nonnull String label)
 	{
-		if(label == null)
-			throw new NullPointerException();
+		Objects.requireNonNull(label);
 		this.label = label;
 	} //}}}
 
@@ -270,10 +273,8 @@ public class ActionSet extends JEditActionSet<EditAction> implements Comparable
 	public String[] getCacheableActionNames()
 	{
 		LinkedList<String> retVal = new LinkedList<String>();
-		Enumeration e = actions.elements();
-		while(e.hasMoreElements())
+		for (Object obj : actions.values())
 		{
-			Object obj = e.nextElement();
 			if(obj == placeholder)
 			{
 				// ??? this should only be called with
@@ -284,23 +285,26 @@ public class ActionSet extends JEditActionSet<EditAction> implements Comparable
 			else if(obj instanceof BeanShellAction)
 				retVal.add(((BeanShellAction)obj).getName());
 		}
-		return retVal.toArray(new String[retVal.size()]);
+		return retVal.toArray(StandardUtilities.EMPTY_STRING_ARRAY);
 	} //}}}
-	
+
 	//{{{ getProperty() method
-	protected String getProperty(String name)
+	@Override
+	public String getProperty(String name)
 	{
 		Keymap keymap = jEdit.getKeymapManager().getKeymap();
 		return keymap.getShortcut(name);
 	} //}}}
-	
+
 	//{{{ getInputHandler() method
+	@Override
 	public AbstractInputHandler getInputHandler()
 	{
 		return jEdit.getInputHandler();
 	} //}}}
 
 	//{{{ compareTo() method
+	@Override
 	public int compareTo(Object o)
 	{
 		return label.compareTo(((ActionSet)o).label);
@@ -312,12 +316,13 @@ public class ActionSet extends JEditActionSet<EditAction> implements Comparable
 	{
 		return label;
 	} //}}}
-	
+
 	//{{{ createBeanShellAction() method
 	/**
 	 * Creates a BeanShellAction.
 	 * @since 4.3pre13
 	 */
+	 @Override
 	 protected EditAction createBeanShellAction(String actionName,
 						    String code,
 						    String selected,

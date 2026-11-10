@@ -24,18 +24,18 @@ package org.gjt.sp.jedit.options;
 
 //{{{ Imports
 import javax.swing.*;
-import java.awt.event.*;
 import java.awt.*;
 import org.gjt.sp.jedit.*;
 import org.gjt.sp.jedit.gui.NumericTextField;
 import org.gjt.sp.jedit.browser.VFSBrowser;
+import org.gjt.sp.jedit.manager.BufferManager;
 //}}}
 
 /**
  * The Save and Backup option panel.
  *
  * @author Slava Pestov
- * @author $Id: SaveBackupOptionPane.java 21831 2012-06-18 22:54:17Z ezust $
+ * @author $Id: SaveBackupOptionPane.java 25702 2023-11-17 20:21:41Z vampire0 $
  */
 public class SaveBackupOptionPane extends AbstractOptionPane
 {
@@ -49,9 +49,8 @@ public class SaveBackupOptionPane extends AbstractOptionPane
 	@Override
 	protected void _init()
 	{
-		
 		/* Save-As Uses FSB */
-		
+
 		saveAsUsesFSB = new JCheckBox(jEdit.getProperty(
 			"options.save-back.saveAsUsesFSB"));
 		saveAsUsesFSB.setSelected(jEdit.getBooleanProperty(
@@ -59,14 +58,14 @@ public class SaveBackupOptionPane extends AbstractOptionPane
 		saveAsUsesFSB.setToolTipText(jEdit.getProperty(
 			"options.save-back.saveAsUsesFSB.tooltip"));
 		addComponent(saveAsUsesFSB);
-		
+
 		/* Two-stage save */
 		twoStageSave = new JCheckBox(jEdit.getProperty(
 			"options.save-back.twoStageSave"));
 		twoStageSave.setSelected(jEdit.getBooleanProperty(
 			"twoStageSave"));
 		twoStageSave.setToolTipText(jEdit.getProperty(
-			
+
 			"options.save-back.twoStageSave.tooltip"));
 		addComponent(twoStageSave);
 
@@ -77,24 +76,6 @@ public class SaveBackupOptionPane extends AbstractOptionPane
 			"confirmSaveAll"));
 		addComponent(confirmSaveAll);
 
-		/* Autosave interval */
-		autosave = new NumericTextField(jEdit.getProperty("autosave"), true);
-		addComponent(jEdit.getProperty("options.save-back.autosave"),autosave);
-
-		/* Autosave untitled buffers */
-		autosaveUntitled = new JCheckBox(jEdit.getProperty(
-			"options.save-back.autosaveUntitled"));
-		autosaveUntitled.setSelected(jEdit.getBooleanProperty("autosaveUntitled"));
-		addComponent(autosaveUntitled);
-
-		suppressNotSavedConfirmUntitled = new JCheckBox(jEdit.getProperty(
-			"options.save-back.suppressNotSavedConfirmUntitled"));
-		suppressNotSavedConfirmUntitled.setToolTipText(jEdit.getProperty(
-			"options.save-back.suppressNotSavedConfirmUntitled.tooltip"));
-		suppressNotSavedConfirmUntitled.setSelected(
-			jEdit.getBooleanProperty("suppressNotSavedConfirmUntitled"));
-		addComponent(suppressNotSavedConfirmUntitled);
-
 		useMD5forDirtyCalculation = new JCheckBox(jEdit.getProperty(
 			"options.save-back.useMD5forDirtyCalculation"));
 		useMD5forDirtyCalculation.setToolTipText(jEdit.getProperty(
@@ -104,22 +85,81 @@ public class SaveBackupOptionPane extends AbstractOptionPane
 		addComponent(useMD5forDirtyCalculation);
 
 
+		/* Close Dirty Untitled Buffers without confirm */
+		suppressNotSavedConfirmUntitled = new JCheckBox(jEdit.getProperty(
+			"options.save-back.suppressNotSavedConfirmUntitled"));
+
+		suppressNotSavedConfirmUntitled.setToolTipText(jEdit.getProperty("options.save-back.suppressNotSavedConfirmUntitled.tooltip"));
+		suppressNotSavedConfirmUntitled.setSelected(jEdit.getBooleanProperty("suppressNotSavedConfirmUntitled"));
+		addComponent(suppressNotSavedConfirmUntitled);
+
+		addSeparator("options.autosave");
+
+		/* Autosave Directory */
+
+		autosaveDirectory = new JTextField(jEdit.getProperty(
+			"autosave.directory"));
+		autosaveDirectory.setToolTipText(
+			jEdit.getProperty("options.save-back.backupDirectory.tooltip"));
+
+		JButton browseAutosaveDirectory = new JButton("...");
+		browseAutosaveDirectory.addActionListener(e ->
+		{
+			String[] choosenFolder =
+				GUIUtilities.showVFSFileDialog(null, autosaveDirectory.getText(),
+					VFSBrowser.CHOOSE_DIRECTORY_DIALOG, false);
+			if (choosenFolder.length > 0)
+				autosaveDirectory.setText(choosenFolder[0]);
+		});
+		JPanel panel = new JPanel(new BorderLayout());
+		panel.add(autosaveDirectory);
+		panel.add(browseAutosaveDirectory, BorderLayout.EAST);
+		addComponent(jEdit.getProperty("options.save-back.autosaveDirectory"),
+			panel);
 
 
-		/* Backup count */
-		backups = new NumericTextField(jEdit.getProperty("backups"), true);
-		addComponent(jEdit.getProperty("options.save-back.backups"),backups);
+		/* Autosave untitled buffers */
+		autosaveUntitled = new JCheckBox(jEdit.getProperty(
+			"options.save-back.autosaveUntitled"));
+		autosaveUntitled.setToolTipText(jEdit.getProperty("options.save-back.autosaveUntitled.tooltip"));
+
+		autosaveUntitled.setSelected(jEdit.getBooleanProperty("autosaveUntitled"));
+		addComponent(autosaveUntitled);
+
+		/* Autosave interval */
+		autosave = new NumericTextField(jEdit.getProperty("autosave"), true);
+		autosave.setToolTipText(jEdit.getProperty("options.save-back.autosave.tooltip"));
+		addComponent(jEdit.getProperty("options.save-back.autosave"),autosave);
+
+		addSeparator("options.backup");
 
 		/* Backup directory */
 		backupDirectory = new JTextField(jEdit.getProperty(
 			"backup.directory"));
+		backupDirectory.setToolTipText(
+			jEdit.getProperty("options.save-back.backupDirectory.tooltip"));
+
 		JButton browseBackupDirectory = new JButton("...");
-		browseBackupDirectory.addActionListener(new MyActionListener());
-		JPanel panel = new JPanel(new BorderLayout());
+		browseBackupDirectory.addActionListener(e ->
+		{
+			String[] choosenFolder =
+				GUIUtilities.showVFSFileDialog(null, backupDirectory.getText(),
+					VFSBrowser.CHOOSE_DIRECTORY_DIALOG, false);
+			if (choosenFolder.length > 0)
+				backupDirectory.setText(choosenFolder[0]);
+		});
+		panel = new JPanel(new BorderLayout());
 		panel.add(backupDirectory);
 		panel.add(browseBackupDirectory, BorderLayout.EAST);
 		addComponent(jEdit.getProperty("options.save-back.backupDirectory"),
 			panel);
+
+
+		/* Backup count */
+		backups = new NumericTextField(jEdit.getProperty("backups"), true);
+		backups.setToolTipText(jEdit.getProperty("options.save-back.backups.tooltip"));
+		addComponent(jEdit.getProperty("options.save-back.backups"),backups);
+
 
 		/* Backup filename prefix */
 		backupPrefix = new JTextField(jEdit.getProperty("backup.prefix"));
@@ -148,27 +188,31 @@ public class SaveBackupOptionPane extends AbstractOptionPane
 		jEdit.setBooleanProperty("confirmSaveAll",confirmSaveAll.isSelected());
 		jEdit.setProperty("autosave", this.autosave.getText());
 		jEdit.setProperty("backups",backups.getText());
+
 		jEdit.setProperty("backup.directory",backupDirectory.getText());
+		String autosaveDirectoryOriginal = jEdit.getProperty("autosave.directory");
+		jEdit.setProperty("autosave.directory", autosaveDirectory.getText());
 		jEdit.setProperty("backup.prefix",backupPrefix.getText());
 		jEdit.setProperty("backup.suffix",backupSuffix.getText());
 		jEdit.setBooleanProperty("backupEverySave", backupEverySave.isSelected());
 		boolean newAutosave = autosaveUntitled.isSelected();
 		boolean oldAutosave = jEdit.getBooleanProperty("autosaveUntitled");
 		jEdit.setBooleanProperty("autosaveUntitled", newAutosave);
-		jEdit.setBooleanProperty("suppressNotSavedConfirmUntitled",
-				suppressNotSavedConfirmUntitled.isSelected());
+		jEdit.setBooleanProperty("suppressNotSavedConfirmUntitled", suppressNotSavedConfirmUntitled.isSelected());
+
 		jEdit.setBooleanProperty("useMD5forDirtyCalculation",
 				useMD5forDirtyCalculation.isSelected());
+		BufferManager bufferManager = jEdit.getBufferManager();
 		if ((!newAutosave || jEdit.getIntegerProperty("autosave",0) == 0) && oldAutosave)
 		{
-			Buffer[] buffers = jEdit.getBuffers();
-			for (Buffer buffer : buffers)
-			{
-				if (buffer.isUntitled())
-				{
-					buffer.removeAutosaveFile();
-				}
-			}
+			bufferManager.getUntitledBuffers().forEach(Buffer::removeAutosaveFile);
+		}
+
+		// if autosave dir changed, we should issue to perform an autosave for all dirty and all untitled buffers
+		// to have the autosaves at the new location
+		if (!autosaveDirectory.getText().equals(autosaveDirectoryOriginal))
+		{
+			bufferManager.getDirtyBuffers().forEach(buffer -> buffer.autosave(true));
 		}
 	} //}}}
 
@@ -179,27 +223,13 @@ public class SaveBackupOptionPane extends AbstractOptionPane
 	private JTextField autosave;
 	private JCheckBox autosaveUntitled;
 	private JCheckBox suppressNotSavedConfirmUntitled;
+
 	private JCheckBox useMD5forDirtyCalculation;
 	private JTextField backups;
+	private JTextField autosaveDirectory;
 	private JTextField backupDirectory;
 	private JTextField backupPrefix;
 	private JTextField backupSuffix;
 	private JCheckBox backupEverySave;
 	//}}}
-
-	//{{{ MyActionListener class
-	private class MyActionListener implements ActionListener
-	{
-		public void actionPerformed(ActionEvent e)
-		{
-			String[] choosenFolder =
-				GUIUtilities.showVFSFileDialog(null,
-				   			       backupDirectory.getText(),
-				   			       VFSBrowser.CHOOSE_DIRECTORY_DIALOG,
-				   			       false);
-			if (choosenFolder != null)
-				backupDirectory.setText(choosenFolder[0]);
-		}
-	} //}}}
-
 }

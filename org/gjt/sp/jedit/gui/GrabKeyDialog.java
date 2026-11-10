@@ -32,6 +32,7 @@ import java.util.List;
 
 import org.gjt.sp.jedit.*;
 import org.gjt.sp.jedit.input.AbstractInputHandler;
+import org.gjt.sp.util.GenericGUIUtilities;
 import org.gjt.sp.util.Log;
 //}}}
 
@@ -184,6 +185,7 @@ public class GrabKeyDialog extends JDialog
 			updateAssignedTo(null);
 
 		Box buttons = Box.createHorizontalBox();
+		buttons.setBorder(BorderFactory.createEmptyBorder(17, 0, 0, 0));
 		buttons.add(Box.createGlue());
 
 		if(debugBuffer == null)
@@ -191,7 +193,7 @@ public class GrabKeyDialog extends JDialog
 			ok = new JButton(jEdit.getProperty("common.ok"));
 			ok.addActionListener(new ActionHandler());
 			buttons.add(ok);
-			buttons.add(Box.createHorizontalStrut(12));
+			buttons.add(Box.createHorizontalStrut(6));
 
 			if(binding.isAssigned())
 			{
@@ -199,15 +201,16 @@ public class GrabKeyDialog extends JDialog
 				remove = new JButton(jEdit.getProperty("grab-key.remove"));
 				remove.addActionListener(new ActionHandler());
 				buttons.add(remove);
-				buttons.add(Box.createHorizontalStrut(12));
+				buttons.add(Box.createHorizontalStrut(6));
 			}
 		}
 
 		cancel = new JButton(jEdit.getProperty("common.cancel"));
 		cancel.addActionListener(new ActionHandler());
 		buttons.add(cancel);
-		buttons.add(Box.createGlue());
-
+		
+		GenericGUIUtilities.makeSameSize(ok, cancel);
+		
 		content.add(label);
 		content.add(input);
 		if(debugBuffer == null)
@@ -283,7 +286,7 @@ public class GrabKeyDialog extends JDialog
 	//{{{ getKeyBinding() method
 	private KeyBinding getKeyBinding(String shortcut)
 	{
-		if(shortcut == null || shortcut.length() == 0)
+		if(shortcut == null || shortcut.isEmpty())
 			return null;
 
 		String spacedShortcut = shortcut + ' ';
@@ -304,7 +307,7 @@ public class GrabKeyDialog extends JDialog
 			{
 				// create a temporary (synthetic) prefix
 				// KeyBinding, that won't be saved
-				return new KeyBinding(kb.name, kb.label,
+				return new KeyBinding(kb.name, kb.label, kb.tooltip,
 						      shortcut, true);
 			}
 		}
@@ -321,11 +324,12 @@ public class GrabKeyDialog extends JDialog
 	 */
 	public static class KeyBinding
 	{
-		public KeyBinding(String name, String label,
+		public KeyBinding(String name, String label, String tooltip,
 			String shortcut, boolean isPrefix)
 		{
 			this.name = name;
 			this.label = label;
+			this.tooltip = tooltip;
 			this.shortcut = shortcut;
 			this.isPrefix = isPrefix;
 		}
@@ -333,12 +337,13 @@ public class GrabKeyDialog extends JDialog
 		public String actionSet;
 		public String name;
 		public String label;
+		public String tooltip;
 		public String shortcut;
 		public boolean isPrefix;
 
 		public boolean isAssigned()
 		{
-			return shortcut != null && shortcut.length() > 0;
+			return shortcut != null && !shortcut.isEmpty();
 		}
 	} //}}}
 
@@ -484,7 +489,7 @@ public class GrabKeyDialog extends JDialog
 		private boolean canClose()
 		{
 			String shortcutString = shortcut.getShortcut();
-			if(shortcutString.length() == 0
+			if(shortcutString.isEmpty()
 				&& binding.isAssigned())
 			{
 				// ask whether to remove the old shortcut

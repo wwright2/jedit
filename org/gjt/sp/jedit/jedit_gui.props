@@ -161,7 +161,6 @@ file=new-file \
 	 save-all \
 	 - \
 	 print \
-	 page-setup \
 	 - \
 	 exit
 new-file.icon.small=16x16/actions/document-new.png
@@ -377,6 +376,7 @@ view=new-view \
 	 focus-buffer-switcher \
 	 - \
 	 toggle-line-numbers \
+	 print.toggle-show-page-breaks \
 	 toggle-statusbar \
 	 toggle-gutter \
 	 toggle-buffer-switcher \
@@ -541,9 +541,9 @@ help-menu=about \
 # Title
 
 #{{{ Status bar component visibility
-view.status=( mode , fold , encoding ) wrap multiSelect rectSelect overwrite lineSep buffersets task-monitor memory-status errors clock
-
-view.status.show-caret-status=true
+view.status-leading=caret-status
+view.status=mode fold encoding locked wrap multiSelect rectSelect overwrite lineSep buffersets task-monitor memory-status errors clock
+view.status.compact=false
 #}}}
 
 #}}}
@@ -783,6 +783,11 @@ paste-from-list.max-item-length=1000
 paste-from-list.max-preview-length=100000
 #}}}
 
+#{{{ Help Viewer
+helpviewer.back.icon=22x22/actions/go-previous.png
+helpviewer.forward.icon=22x22/actions/go-next.png
+#}}}
+
 #}}}
 
 #{{{ Global options dialog
@@ -793,7 +798,7 @@ options.last=editing
 #{{{ Options groups
 options.groups=jedit browser
 options.group.jedit=general abbrevs appearance context docking editing \
-	encodings gutter large-files mouse plugin-manager print firewall save-back \
+	encodings gutter large-files mouse plugin-manager firewall save-back \
 	shortcuts status syntax textarea toolbar view
 options.group.browser=browser.general browser.colors browser.custom.context
 #}}}
@@ -813,7 +818,7 @@ options.abbrevs.remove.icon=22x22/actions/list-remove.png
 options.appearance.code=new AppearanceOptionPane();
 
 # List of available languages:
-available.lang=en de fr ja cs ru zh ko
+available.lang=en de fr ja cs ru zh ko zh-tw
 
 # It is encouraged to set the following labels in their own language
 # here (not in localized .props) to catch eyes of non-English users more
@@ -829,6 +834,8 @@ options.appearance.lang.cs=Česky
 options.appearance.lang.ru=Русский
 #Chinese
 options.appearance.lang.zh=中文
+#Taiwan Chinese
+options.appearance.lang.zh-tw=台灣中文
 #}}}
 
 #{{{ Context Menu pane

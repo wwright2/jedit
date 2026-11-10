@@ -32,11 +32,13 @@ import javax.swing.*;
 
 import org.gjt.sp.jedit.io.*;
 import org.gjt.sp.jedit.*;
+import org.gjt.sp.jedit.manager.BufferManager;
 import org.gjt.sp.jedit.menu.MenuItemTextComparator;
+import org.gjt.sp.util.GenericGUIUtilities;
 //}}}
 
 /**
- * @version $Id: BrowserCommandsMenu.java 23222 2013-09-29 20:43:34Z shlomy $
+ * @version $Id: BrowserCommandsMenu.java 25680 2023-09-16 21:54:03Z kpouer $
  * @author Slava Pestov and Jason Ginchereau
  */
 public class BrowserCommandsMenu extends JPopupMenu
@@ -52,11 +54,12 @@ public class BrowserCommandsMenu extends JPopupMenu
 				files[0].getDeletePath());
 			int type = files[0].getType();
 
-			boolean fileOpen = (jEdit.getBuffer(files[0].getPath()) != null);
+			BufferManager bufferManager = jEdit.getBufferManager();
+			boolean fileOpen = bufferManager.getBuffer(files[0].getPath()).isPresent();
 
 			/* We check this flag separately so that we can
 			delete open files from the favorites. */
-			boolean deletePathOpen = (jEdit.getBuffer(files[0].getDeletePath()) != null);
+			boolean deletePathOpen = bufferManager.getBuffer(files[0].getDeletePath()).isPresent();
 
 			boolean delete = !deletePathOpen
 				&& (vfs.getCapabilities()
@@ -87,7 +90,7 @@ public class BrowserCommandsMenu extends JPopupMenu
 
 				// show 'close' item if at least one selected
 				// file is currently open
-				if(jEdit.getBuffer(file.getPath()) != null)
+				if(bufferManager.getBuffer(file.getPath()).isPresent())
 					fileOpen = true;
 			}
 
@@ -161,16 +164,15 @@ public class BrowserCommandsMenu extends JPopupMenu
 			addSeparator();
 			add(createEncodingMenu());
 		}
-		JMenu customMenu = createCustomMenu();
-		if (customMenu != null)
-		{
+
+		createCustomMenu().ifPresent(customMenu -> {
 			addSeparator();
 			Component[] menuComponents = customMenu.getMenuComponents();
 			for (Component menuComponent : menuComponents)
 			{
 				add((JMenuItem) menuComponent);
 			}
-		}
+		});
 
 		addSeparator();
 		add(createPluginMenu(browser));
@@ -201,13 +203,13 @@ public class BrowserCommandsMenu extends JPopupMenu
 	} //}}}
 
 	//{{{ Private members
-	private VFSBrowser browser;
+	private final VFSBrowser browser;
 	private HashMap<String, JRadioButtonMenuItem> encodingMenuItems;
 	private JCheckBoxMenuItem autoDetect;
 	private JRadioButtonMenuItem otherEncoding;
 
 	//{{{ createMenuItem() methods
-	private JMenuItem createMenuItem(String name, String iconName)
+	private static JMenuItem createMenuItem(String name, String iconName)
 	{
 		JMenuItem jMenuItem =
 			GUIUtilities.loadMenuItem(VFSBrowser.getActionContext(), "vfs.browser." + name, false);
@@ -215,7 +217,7 @@ public class BrowserCommandsMenu extends JPopupMenu
 		return jMenuItem;
 	}
 
-	private JMenuItem createMenuItem(String name)
+	private static JMenuItem createMenuItem(String name)
 	{
 		return createMenuItem(name, null);
 	} //}}}
@@ -223,17 +225,15 @@ public class BrowserCommandsMenu extends JPopupMenu
 	//{{{ createEncodingMenu() method
 	private JMenu createEncodingMenu()
 	{
-		ActionHandler actionHandler = new ActionHandler();
+		ActionListener actionHandler = new ActionHandler();
 
-		encodingMenuItems = new HashMap<String, JRadioButtonMenuItem>();
+		encodingMenuItems = new HashMap<>();
 		JMenu encodingMenu = new JMenu(jEdit.getProperty(
 			"vfs.browser.commands.encoding.label"));
 
 		JMenu menu = encodingMenu;
 
-		autoDetect = new JCheckBoxMenuItem(
-			jEdit.getProperty(
-			"vfs.browser.commands.encoding.auto-detect"));
+		autoDetect = new JCheckBoxMenuItem(jEdit.getProperty("vfs.browser.commands.encoding.auto-detect"));
 		autoDetect.setSelected(browser.autoDetectEncoding);
 		autoDetect.setActionCommand("auto-detect");
 		autoDetect.addActionListener(actionHandler);
@@ -242,7 +242,7 @@ public class BrowserCommandsMenu extends JPopupMenu
 
 		ButtonGroup grp = new ButtonGroup();
 
-		List<JMenuItem> encodingMenuItemList = new ArrayList<JMenuItem>();
+		List<JRadioButtonMenuItem> encodingMenuItemList = new ArrayList<>();
 		String[] encodings = MiscUtilities.getEncodings(true);
 		for (String encoding : encodings)
 		{
@@ -257,8 +257,7 @@ public class BrowserCommandsMenu extends JPopupMenu
 		String systemEncoding = System.getProperty("file.encoding");
 		if(encodingMenuItems.get(systemEncoding) == null)
 		{
-			JRadioButtonMenuItem mi = new JRadioButtonMenuItem(
-				systemEncoding);
+			JRadioButtonMenuItem mi = new JRadioButtonMenuItem(systemEncoding);
 			mi.setActionCommand("encoding@" + systemEncoding);
 			mi.addActionListener(actionHandler);
 			grp.add(mi);
@@ -266,13 +265,10 @@ public class BrowserCommandsMenu extends JPopupMenu
 			encodingMenuItemList.add(mi);
 		}
 
-		Collections.sort(encodingMenuItemList,
-			new MenuItemTextComparator());
+		encodingMenuItemList.sort(new MenuItemTextComparator());
 
-		for (JMenuItem item : encodingMenuItemList)
+		for (JRadioButtonMenuItem mi : encodingMenuItemList)
 		{
-			JRadioButtonMenuItem mi = (JRadioButtonMenuItem) item;
-
 			if (menu.getMenuComponentCount() > 20)
 			{
 				JMenu newMenu = new JMenu(jEdit.getProperty("common.more"));
@@ -294,23 +290,23 @@ public class BrowserCommandsMenu extends JPopupMenu
 	} //}}}
 
 	//{{{ createCustomMenu() method
-	private JMenu createCustomMenu()
+	private static Optional<JMenu> createCustomMenu()
 	{
-		if (jEdit.getProperty("browser.custom.context", "").length() != 0)
+		if (!jEdit.getProperty("browser.custom.context", "").isEmpty())
 		{
 			JMenu custom = GUIUtilities.loadMenu(VFSBrowser.getActionContext(),
 				"browser.custom.context");
-			return custom;
+			return Optional.of(custom);
 		}
-		return null;
+		return Optional.empty();
 	} //}}}
 
 	//{{{ createPluginsMenu() method
-	private JMenu createPluginMenu(VFSBrowser browser)
+	private static JMenu createPluginMenu(VFSBrowser browser)
 	{
 		JMenu pluginMenu = new JMenu(jEdit.getProperty(
 			"vfs.browser.plugins.label"));
-		GUIUtilities.setAutoMnemonic(pluginMenu);
+		GenericGUIUtilities.setAutoMnemonic(pluginMenu);
 		return (JMenu)browser.createPluginsMenu(pluginMenu,false);
 
 	} //}}}
@@ -319,8 +315,9 @@ public class BrowserCommandsMenu extends JPopupMenu
 	//}}}
 
 	//{{{ ActionHandler class
-	class ActionHandler implements ActionListener
+	private class ActionHandler implements ActionListener
 	{
+		@Override
 		public void actionPerformed(ActionEvent evt)
 		{
 			String actionCommand = evt.getActionCommand();

@@ -7,7 +7,7 @@
 ### Copyright (C) 1998, 2005 Slava Pestov
 ### French translation by Jojaba (http://jojaba.free.fr)
 
-#{{{ jEdit core (jedit_gui.props)
+#{{{ jEdit core
 
 #{{{ Default user catalog file
 defaultCatalog=<?xml version="1.0"?>\n\
@@ -39,9 +39,9 @@ common.selectAll=Tout sélectionner
 common.selectNone=Ne rien sélectionner
 common.loading=Chargement...
 
-lineSep.unix=Unix (\\n)
-lineSep.windows=DOS/Windows (\\r\\n)
-lineSep.mac=MacOS (\\r)
+lineSep.LF=Unix/MacOS (\\n)
+lineSep.CRLF=DOS/Windows (\\r\\n)
+lineSep.CR=Classic MacOS (\\r)
 #}}}
 
 #{{{ Miscellaneous
@@ -53,7 +53,6 @@ action-set.macros=Macros
 action-set.plugin=Plugin : {0}
 
 macro-handler.beanshell.label=Script BeanShell
-macro-handler.beanshell.glob=*.bsh
 
 save-layout-failed.message=Impossible d''enregistrer la disposition d'ancrage.
 load-layout.title=Chargement de la disposition d'ancrage
@@ -540,8 +539,10 @@ view.status.io=I/O : {0} opérations en cours
 view.status.linesep-changed=Séparateur de ligne défini ainsi : {0}
 view.status.linesep-tooltip=Séparateur de ligne (clic pour modifier)
 view.status.memory-tooltip=Mémoire allouée é Java : {0}Ko/{1}Ko
-view.status.mode-tooltip=Mode d'édition, mode de repli et encodage courants
-view.st,atus.multi-changed=Le mode de sélection multiple est {0,choice,0#désactivé|1#activé}
+view.status.mode-tooltip=Mode d'édition
+view.status.fold-tooltip=Mode de repli
+view.status.encoding-tooltip=Encodage courant
+view.status.multi-changed=Le mode de sélection multiple est {0,choice,0#désactivé|1#activé}
 view.status.multi-tooltip=Mode de sélection multiple (clic pour modifier)
 view.status.narrow=Sélectionner « Développer tous les replis » pour afficher à nouveau tout le texte
 view.status.no-markers=Aucun marqueur défini
@@ -735,7 +736,7 @@ no-write.message=Enregistrement impossible dans {0}.\n\
 badurl.title=URL invalide
 # {0} - L'URL
 # {1} - L'erreur
-badurl.message=Cette URL est invalide : {0}\n
+badurl.message=Cette URL est invalide : {0}\n\
 	({1})
 #}}}
 
@@ -1239,8 +1240,7 @@ options.general.checkModStatus.silentReload=recharger automatiquement sans avert
 options.general.checkModStatusUpon=Vérifier la modification de fichier lorsque :
 options.general.checkModStatusUpon.focus=l'application est active
 options.general.checkModStatusUpon.all=l'application est active, le tampon est visité ou un tampon est enregistré
-options.general.checkModStatusUpon.operations=le tampon est visité ou un tampon est enregistré
-options.general.checkModStatusUpon.focusBuffer=le tampon est visité ou enregistré
+options.general.checkModStatusUpon.visitBuffer=le tampon est visité
 options.general.checkModStatusUpon.none=le tampon est enregistré
 options.general.recentFiles=Fichiers ouverts récemment à mémoriser :
 options.general.hypersearch.maxWarningResults=Nombre de résultats d'hyper-recherche max :
@@ -1255,7 +1255,6 @@ options.general.restore.cli=...en incluant les noms de fichiers spécifiés en l
 options.general.encodingDetectors=Liste des détecteurs automatiques d'encodage :
 options.general.fallbackEncodings=Liste des encodages ajoutés pour prise en charge automatique :
 options.general.fallbackEncodings.tooltip=Une liste d'encodages séparés par un espace pour résoudre des problèmes de reconnaissance d'encodage au démarrage
-options.general.systrayicon=Afficher l'icône de la zone de notification
 #}}}
 
 #{{{ Abbreviations pane
@@ -1295,6 +1294,7 @@ options.appearance.decorateDialogs=Utiliser Swing look & feel pour le style des 
 options.appearance.localization.section.label=Localisation
 options.appearance.usedefaultlocale.label=Utiliser la langue par défaut
 options.appearance.lang.label=Langue (la modification est effective après redémarrage)
+options.appearance.systrayicon=Afficher l'icône de la zone de notification
 #}}}
 
 #{{{ Context Menu pane
@@ -1319,7 +1319,7 @@ options.context.reset.dialog.message=Souhaitez-vous vraiment rétablir le menu c
 options.docking.label=Ancrage
 options.docking.title=Fenêtre
 options.docking.dockPosition=Position d'ancrage
-options.appearance.selectFramework.label=Système d'ancrage :
+options.docking.selectFramework.label=Système d'ancrage :
 options.docking.autoSaveModeLayout.label=Enregistrer automatiquement la disposition d'ancrage spécifique au mode
 options.docking.autoLoadModeLayout.label=Charger automatiquement la disposition d'ancrage spécifique au mode
 options.docking.selectSet.label=Éléments ancrables :
@@ -1357,18 +1357,6 @@ options.editing.elasticTabstops=Retrait via une tabulation « élastique »
 options.editing.elasticTabstops.tooltip=(Expérimental) - peut rendre jEdit instable.
 options.editing.deepIndent=Retrait augmenté
 options.editing.autoIndent=Retrait automatique
-options.editing.largefilemode.title=Mode de fichier volumineux
-options.editing.largefilemode=Que dois-je faire en cas de fichier volumineux :
-options.editing.largefilemode.option.ask=<html><b>Demander</b> que faire lors de l'ouverture d'un fichier volumineux</html>
-options.editing.largefilemode.option.full=<html><b>Conserver la coloration complète</b> : la coloration syntaxique de jEdit fonctionnera comme habituellement, jEdit \
-                                               	pourra devenir <b>très lent, ceci n'est pas recommandé</b></html>
-options.editing.largefilemode.option.limited=<html><b>Coloration syntaxique insensible au contexte</b> : dans ce cas jEdit procédera à \
-		une coloration rapide, mais le résultat ne sera peut-être pas parfait. Le<br/>\
-		tampon est coloré ligne par ligne sans prendre en compte le contexte \
-		de la ligne précédente. Il est possible que la syntaxe ne soit pas précise<br/>\
-		si vous avez des portions de code sur plusieurs lignes (commentaires sur plusieurs lignes, balises xml ...) \
-		Le retour à la ligne souple est également désactivé <b>(meilleur choix)</b></html>
-options.editing.largefilemode.option.nohighlight=Pas de coloration syntaxique, pas de retour à la ligne souple
 #}}}
 
 #{{{ Encodings pane
@@ -1409,6 +1397,24 @@ options.gutter.foldStyleNames.Triangle=Triangle
 options.gutter.foldStyleNames.Square=Carré
 options.gutter.foldStyleNames.Circle=Cercle
 #}}}
+
+#{{{ Large files pane
+options.large-files.label=Fichiers volumineux
+options.editing.largefilemode.title=Large file mode
+options.editing.largefilemode=Que dois-je faire en cas de fichier volumineux (> {0} caractères, ou longueur de ligne > {1}):
+options.editing.largefilemode.tooltip=<html>Values can be changed via jEdit properties: <tt>largeBufferSize</tt> and <tt>longLineLimit</tt></html>
+options.editing.largefilemode.option.ask=<html><b>Demander</b> que faire lors de l'ouverture d'un fichier volumineux</html>
+options.editing.largefilemode.option.full=<html><b>Conserver la coloration complète</b> : la coloration syntaxique de jEdit fonctionnera comme habituellement, jEdit \
+                                                    pourra devenir <b>très lent, ceci n'est pas recommandé</b></html>
+options.editing.largefilemode.option.limited=<html><b>Coloration syntaxique insensible au contexte</b> : dans ce cas jEdit procédera à \
+                                             		une coloration rapide, mais le résultat ne sera peut-être pas parfait. Le<br/>\
+                                             		tampon est coloré ligne par ligne sans prendre en compte le contexte \
+                                             		de la ligne précédente. Il est possible que la syntaxe ne soit pas précise<br/>\
+                                             		si vous avez des portions de code sur plusieurs lignes (commentaires sur plusieurs lignes, balises xml ...) \
+                                             		Le retour à la ligne souple est également désactivé <b>(meilleur choix)</b></html>
+options.editing.largefilemode.option.nohighlight=Pas de coloration syntaxique, pas de retour à la ligne souple
+#}}}
+
 
 #{{{ Mouse pane
 options.mouse.label=Souris
@@ -1482,7 +1488,6 @@ options.save-back.twoStageSave.tooltip=Niveau 1 : Renomme l'ancien fichier. Nive
 options.save-back.confirmSaveAll=Demander confirmation pour « Enregistrer tous les tampons »
 options.save-back.autosaveUntitled=Enregistrer automatiquement les tampons sans titre
 options.save-back.suppressNotSavedConfirmUntitled=Ne jamais marquer les tampons sans titre comme étant modifiés mais non enregistrés.
-options.save-back.suppressNotSavedConfirmUntitled.tooltip=Si ceci est coché, cela signifie que les tampons sans titres seront supprimés quand un autre est créé (c'est une fonctionnalité !)
 options.save-back.useMD5forDirtyCalculation=Ne jamais marquer les tampons comme étant modifiés mais pas enregistrés si le contenu n'a pas changé.
 options.save-back.useMD5forDirtyCalculation.tooltip=Comparer la longueur et le MD5 hash du tampon à l'horaire de chargement pour décider si un tampon édité est modifié mais pas encore enregistré.
 options.save-back.saveAsUsesFSB="Enregistrer sous" par défaut vers le dossier de l'explorateur de fichiers
@@ -1648,10 +1653,6 @@ options.view.fullScreenIncludesMenu=Afficher la barre de menu en mode plein écr
 options.view.fullScreenIncludesToolbar=Afficher les barres d'outils en mode plein écran
 options.view.fullScreenIncludesStatus=Afficher la barre d'état en mode plein écran
 options.bufferset.scope=Localisation du jeu de tampons :
-options.editpane.bufferset.contain=Les nouveaux jeux de tampons se composent :
-options.editpane.bufferset.newbufferset.copy=d'une copie du jeu de tampon courant
-options.editpane.bufferset.newbufferset.empty=d'un tampon vide
-options.editpane.bufferset.newbufferset.currentbuffer=du tampon courant uniquement
 #}}}
 
 
@@ -1995,15 +1996,13 @@ install-plugins.info.size=Taille
 install-plugins.info.releaseDate=Date de mise à disposition
 install-plugins.info.version=Version
 install-plugins.info.category=Catégorie
+install-plugins.info.author=Auteur
+install-plugins.info.released=Mis à disposition
 
 install-plugins.totalSize={0} plugin(s), taille totale : {1}
 install-plugins.select-all=Tout sélectionner
 install-plugins.install=Installer
 install-plugins.show-updates=Afficher les mises à jour
-
-install-plugins.info=<b>Auteur</b>: {0}\n\
-	<b>Mis à disposition</b>: {1}\n\
-	{2}
 
 update-plugins.title=Mise à jour
 
@@ -2284,12 +2283,7 @@ macro.rs.HexConvert.ByteToString.label=Hex à convertir en caractère :
 #{{{ Make Bug Report
 macro.rs.MakeBugReport.OpeningActivityLog.error=Erreur lors de l'ouverture du journal d'activité.
 macro.rs.MakeBugReport.UsefulEntriesForReport.label=Les entrées du journal d'activité qui peuvent être utiles dans un signalement de bogue :\n\n.
-macro.rs.MakeBugReport.MessagejEdit.label=[message] jEdit:
-macro.rs.MakeBugReport.NoticejEdit.label=[notice] jEdit:
-macro.rs.MakeBugReport.NoticeJarClassLoader.label=[notice] JARClassLoader:
-macro.rs.MakeBugReport.MessagejEditStartupComplete.label=[message] jEdit: Startup complete
-macro.rs.MakeBugReport.Error.label=[error]
-macro.rs.MakeBugReport.ReadingActivityLog.error=Erreur lors de la lecture du journal d'activité
+macro.rs.MakeBugReport.ReadingActivityLog.error=Erreur lors de la lecture du journal d'activité.
 #}}}
 
 #{{{ Run Script
@@ -2413,9 +2407,6 @@ macros.folder.Editing.label=Édition
 
 Editing/Duplicate_Lines_Above.label=Dupliquer les lignes vers le haut
 Editing/Duplicate_Lines_Below.label=Dupliquer les lignes vers le bas
-Editing/Emacs_Ctrl-K.label=Emacs Ctrl-K
-Editing/Emacs_Next_Line.label=Emacs ligne suivante
-Editing/Emacs_Previous_Line.label=Emacs ligne précédente
 Editing/Go_to_Column.label=Atteindre la colonne
 Editing/Greedy_Backspace.label=Suppression arrière gourmande
 Editing/Greedy_Delete.label=Suppression gourmande
@@ -2436,7 +2427,6 @@ macros.folder.Files.label=Fichiers
 Files/Browse_Buffer_Directory.label=Explorer le dossier du tampon courant
 Files/Browse_Directory.label=Ouvrir un dossier
 Files/Buffer_Switcher.label=Sélecteur de fichier
-Files/Close_All_Except_Active.label=Fermer tous les autres
 Files/Copy_Name_to_Clipboard.label=Copier le nom de fichier
 Files/Copy_Path_to_Clipboard.label=Copier le chemin du fichier
 Files/Delete_Current.label=Supprimer le fichier courant
@@ -2448,6 +2438,14 @@ Files/Open_Path.label=Ouvrir le fichier (demande du nom)
 Files/Open_Selection.label=Ouvrir le fichier sélectionné
 Files/Send_Buffer_To_Next_Split.label=Placer le tampon dans la zone de partage suivante
 Files/Toggle_ReadOnly.label=Modifier les permissions
+#}}}
+
+#{{{ Emacs
+macros.folder.Emacs.label=Emacs
+
+Emacs/Emacs_Ctrl-K.label=Emacs Ctrl-K
+Emacs/Emacs_Next_Line.label=Emacs ligne suivante
+Emacs/Emacs_Previous_Line.label=Emacs ligne précédente
 #}}}
 
 #{{{ Interface

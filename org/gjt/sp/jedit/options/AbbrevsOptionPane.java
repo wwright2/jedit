@@ -24,7 +24,6 @@ package org.gjt.sp.jedit.options;
 
 //{{{ Imports
 import javax.swing.border.EmptyBorder;
-import javax.swing.event.*;
 import javax.swing.table.*;
 import javax.swing.*;
 import java.awt.event.*;
@@ -34,6 +33,7 @@ import java.util.List;
 
 import org.gjt.sp.jedit.gui.*;
 import org.gjt.sp.jedit.*;
+import org.gjt.sp.util.GenericGUIUtilities;
 import org.gjt.sp.util.StandardUtilities;
 //}}}
 
@@ -41,7 +41,7 @@ import org.gjt.sp.util.StandardUtilities;
 /**
  * Abbrev editor.
  * @author Slava Pestov
- * @version $Id: AbbrevsOptionPane.java 23920 2015-05-22 08:03:45Z ezust $
+ * @version $Id: AbbrevsOptionPane.java 25228 2020-04-13 12:24:58Z kpouer $
  */
 public class AbbrevsOptionPane extends AbstractOptionPane
 {
@@ -73,9 +73,9 @@ public class AbbrevsOptionPane extends AbstractOptionPane
 		panel2.add(label);
 
 		Map<String,Hashtable<String,String>> _modeAbbrevs = Abbrevs.getModeAbbrevs();
-		modeAbbrevs = new HashMap<String,AbbrevsModel>();
+		modeAbbrevs = new HashMap<>();
 		Mode[] modes = jEdit.getModes();
-		Arrays.sort(modes,new StandardUtilities.StringCompare<Mode>(true));
+		Arrays.sort(modes,new StandardUtilities.StringCompare<>(true));
 		String[] sets = new String[modes.length + 1];
 		sets[0] = "global";
 		for(int i = 0; i < modes.length; i++)
@@ -85,8 +85,8 @@ public class AbbrevsOptionPane extends AbstractOptionPane
 			modeAbbrevs.put(name,new AbbrevsModel(_modeAbbrevs.get(name)));
 		}
 
-		setsComboBox = new JComboBox(sets);
-		ActionHandler actionHandler = new ActionHandler();
+		setsComboBox = new JComboBox<>(sets);
+		ActionListener actionHandler = new ActionHandler();
 		setsComboBox.addActionListener(actionHandler);
 		panel2.add(setsComboBox);
 		panel2.add(Box.createGlue());
@@ -96,14 +96,13 @@ public class AbbrevsOptionPane extends AbstractOptionPane
 
 		globalAbbrevs = new AbbrevsModel(Abbrevs.getGlobalAbbrevs());
 		abbrevsTable = new JTable(globalAbbrevs);
-		abbrevsTable.setRowHeight(GUIUtilities.defaultRowHeight());
+		abbrevsTable.setRowHeight(GenericGUIUtilities.defaultRowHeight());
 		abbrevsTable.getColumnModel().getColumn(1).setCellRenderer(
 			new Renderer());
 		abbrevsTable.setAutoResizeMode(JTable.AUTO_RESIZE_ALL_COLUMNS);
 		abbrevsTable.getTableHeader().setReorderingAllowed(false);
 		abbrevsTable.getTableHeader().addMouseListener(new HeaderMouseHandler());
-		abbrevsTable.getSelectionModel().addListSelectionListener(
-			new SelectionHandler());
+		abbrevsTable.getSelectionModel().addListSelectionListener(e -> updateEnabled());
 		abbrevsTable.getSelectionModel().setSelectionMode(
 			ListSelectionModel.SINGLE_SELECTION);
 		abbrevsTable.addMouseListener(new TableMouseHandler());
@@ -127,7 +126,7 @@ public class AbbrevsOptionPane extends AbstractOptionPane
 		buttons.add(remove);
 		edit = new RolloverButton(GUIUtilities.loadIcon(jEdit.getProperty("options.abbrevs.edit.icon")));
 		edit.setToolTipText(jEdit.getProperty("options.abbrevs.edit"));
-		edit.addActionListener(actionHandler);
+		edit.addActionListener(e -> edit());
 		buttons.add(edit);
 		buttons.add(Box.createGlue());
 
@@ -159,7 +158,7 @@ public class AbbrevsOptionPane extends AbstractOptionPane
 	//{{{ Private members
 
 	//{{{ Instance variables
-	private JComboBox setsComboBox;
+	private JComboBox<String> setsComboBox;
 	private JCheckBox expandOnInput;
 	private JTable abbrevsTable;
 	private AbbrevsModel globalAbbrevs;
@@ -189,7 +188,7 @@ public class AbbrevsOptionPane extends AbstractOptionPane
 		String oldAbbrev = abbrev;
 
 		EditAbbrevDialog dialog = new EditAbbrevDialog(
-			GUIUtilities.getParentDialog(AbbrevsOptionPane.this),
+				GenericGUIUtilities.getParentDialog(AbbrevsOptionPane.this),
 			abbrev,expansion,abbrevsModel.toHashtable());
 		abbrev = dialog.getAbbrev();
 		expansion = dialog.getExpansion();
@@ -256,18 +255,10 @@ public class AbbrevsOptionPane extends AbstractOptionPane
 		}
 	} //}}}
 
-	//{{{ SelectionHandler class
-	private class SelectionHandler implements ListSelectionListener
-	{
-		public void valueChanged(ListSelectionEvent evt)
-		{
-			updateEnabled();
-		}
-	} //}}}
-
 	//{{{ ActionHandler class
 	private class ActionHandler implements ActionListener
 	{
+		@Override
 		public void actionPerformed(ActionEvent evt)
 		{
 			AbbrevsModel abbrevsModel = (AbbrevsModel)abbrevsTable.getModel();
@@ -277,7 +268,7 @@ public class AbbrevsOptionPane extends AbstractOptionPane
 			{
 				jEdit.setIntegerProperty("options.abbrevs.combobox.index", setsComboBox.getSelectedIndex());
 				String selected = (String)setsComboBox.getSelectedItem();
-				if(selected.equals("global"))
+				if("global".equals(selected))
 				{
 					abbrevsTable.setModel(globalAbbrevs);
 				}
@@ -290,20 +281,14 @@ public class AbbrevsOptionPane extends AbstractOptionPane
 			else if(source == add)
 			{
 				EditAbbrevDialog dialog = new EditAbbrevDialog(
-					GUIUtilities.getParentDialog(AbbrevsOptionPane.this),
+					GenericGUIUtilities.getParentDialog(AbbrevsOptionPane.this),
 					null,null,abbrevsModel.toHashtable());
 				String abbrev = dialog.getAbbrev();
 				String expansion = dialog.getExpansion();
-				if(abbrev != null && abbrev.length() != 0
-					&& expansion != null
-					&& expansion.length() != 0)
+				if(abbrev != null && !abbrev.isEmpty() && expansion != null && !expansion.isEmpty())
 				{
 					add(abbrevsModel,abbrev,expansion);
 				}
-			}
-			else if(source == edit)
-			{
-				edit();
 			}
 			else if(source == remove)
 			{
@@ -326,14 +311,14 @@ public class AbbrevsOptionPane extends AbstractOptionPane
 			int row,
 			int col)
 		{
-			String valueStr = value.toString();
+			StringBuilder valueStr = new StringBuilder(value.toString());
 
 			// workaround for Swing's annoying processing of
 			// labels starting with <html>, which often breaks
-			if(valueStr.toLowerCase().startsWith("<html>"))
-				valueStr = ' ' + valueStr;
-			return super.getTableCellRendererComponent(table,valueStr,
-				isSelected,cellHasFocus,row,col);
+			if(valueStr.toString().toLowerCase().startsWith("<html>"))
+				valueStr.insert(' ', 0);
+			return super.getTableCellRendererComponent(table, valueStr.toString(),
+				isSelected, cellHasFocus, row, col);
 		}
 	} //}}}
 
@@ -346,16 +331,12 @@ public class AbbrevsOptionPane extends AbstractOptionPane
 		//{{{ AbbrevsModel constructor
 		AbbrevsModel(Map<String,String> abbrevHash)
 		{
-			abbrevs = new Vector<Abbrev>();
+			abbrevs = new Vector<>();
 
 			if(abbrevHash != null)
 			{
 				Set<Map.Entry<String,String>> entrySet = abbrevHash.entrySet();
-				for (Map.Entry<String,String> entry : entrySet)
-				{
-					abbrevs.add(new Abbrev(entry.getKey(),
-					                       entry.getValue()));
-				}
+				entrySet.forEach(entry -> abbrevs.add(new Abbrev(entry.getKey(), entry.getValue())));
 				sort(0);
 			}
 		} //}}}
@@ -364,7 +345,7 @@ public class AbbrevsOptionPane extends AbstractOptionPane
 		void sort(int col)
 		{
 			lastSort = col;
-			Collections.sort(abbrevs,new AbbrevCompare(col));
+			abbrevs.sort(new AbbrevCompare(col));
 			fireTableDataChanged();
 		} //}}}
 
@@ -385,28 +366,31 @@ public class AbbrevsOptionPane extends AbstractOptionPane
 		//{{{ toHashtable() method
 		public Hashtable<String,String> toHashtable()
 		{
-			Hashtable<String,String> hash = new Hashtable<String,String>();
+			Hashtable<String,String> hash = new Hashtable<>();
 			for (Abbrev abbrev : abbrevs)
 			{
-				if (abbrev.abbrev.length() > 0 && abbrev.expand.length() > 0)
+				if (!abbrev.abbrev.isEmpty() && !abbrev.expand.isEmpty())
 					hash.put(abbrev.abbrev, abbrev.expand);
 			}
 			return hash;
 		} //}}}
 
 		//{{{ getColumnCount() method
+		@Override
 		public int getColumnCount()
 		{
 			return 2;
 		} //}}}
 
 		//{{{ getRowCount() method
+		@Override
 		public int getRowCount()
 		{
 			return abbrevs.size();
 		} //}}}
 
 		//{{{ getValueAt() method
+		@Override
 		public Object getValueAt(int row, int col)
 		{
 			Abbrev abbrev = abbrevs.get(row);
@@ -456,13 +440,14 @@ public class AbbrevsOptionPane extends AbstractOptionPane
 		//{{{ AbbrevCompare class
 		private static class AbbrevCompare implements Comparator<Abbrev>
 		{
-			private int col;
+			private final int col;
 
 			AbbrevCompare(int col)
 			{
 				this.col = col;
 			}
 
+			@Override
 			public int compare(Abbrev a1, Abbrev a2)
 			{
 				if(col == 0)

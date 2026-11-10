@@ -28,22 +28,18 @@ import java.awt.Component;
 import java.io.File;
 import java.io.IOException;
 import java.net.Socket;
-import java.util.Arrays;
-import java.util.List;
-import java.util.Map;
-import java.util.Vector;
+import java.util.*;
 
 import javax.swing.*;
-import javax.swing.SwingWorker.StateValue;
 import javax.swing.text.Segment;
 
 import org.gjt.sp.jedit.browser.VFSBrowser;
 import org.gjt.sp.jedit.buffer.BufferUndoListener;
 import org.gjt.sp.jedit.buffer.FoldHandler;
 import org.gjt.sp.jedit.buffer.JEditBuffer;
+import org.gjt.sp.jedit.buffer.WordWrap;
 import org.gjt.sp.jedit.bufferio.BufferAutosaveRequest;
 import org.gjt.sp.jedit.bufferio.BufferIORequest;
-import org.gjt.sp.jedit.bufferio.IoTask;
 import org.gjt.sp.jedit.bufferio.MarkersSaveRequest;
 import org.gjt.sp.jedit.bufferset.BufferSet;
 import org.gjt.sp.jedit.gui.DockableWindowManager;
@@ -52,6 +48,7 @@ import org.gjt.sp.jedit.io.VFS;
 import org.gjt.sp.jedit.io.VFSFile;
 import org.gjt.sp.jedit.io.VFSManager;
 import org.gjt.sp.jedit.msg.BufferUpdate;
+import org.gjt.sp.jedit.msg.PropertiesChanged;
 import org.gjt.sp.jedit.syntax.ModeProvider;
 import org.gjt.sp.jedit.syntax.ParserRuleSet;
 import org.gjt.sp.jedit.syntax.TokenHandler;
@@ -63,6 +60,14 @@ import org.gjt.sp.util.IntegerArray;
 import org.gjt.sp.util.Log;
 import org.gjt.sp.util.StandardUtilities;
 import org.gjt.sp.util.ThreadUtilities;
+
+import static org.gjt.sp.jedit.LargeFileMode.ask;
+import static org.gjt.sp.jedit.LargeFileMode.limited;
+import static org.gjt.sp.jedit.LargeFileMode.full;
+import static org.gjt.sp.jedit.LargeFileMode.nohighlight;
+import static org.gjt.sp.jedit.buffer.WordWrap.hard;
+import static org.gjt.sp.jedit.buffer.WordWrap.none;
+import static org.gjt.sp.jedit.buffer.WordWrap.soft;
 //}}}
 
 /**
@@ -92,7 +97,7 @@ import org.gjt.sp.util.ThreadUtilities;
 
  *
  * @author Slava Pestov
- * @version $Id: Buffer.java 24087 2015-09-19 20:56:09Z daleanson $
+ * @version $Id: Buffer.java 25701 2023-11-17 19:37:45Z vampire0 $
  */
 public class Buffer extends JEditBuffer
 {
@@ -140,6 +145,8 @@ public class Buffer extends JEditBuffer
 	 * @since jEdit 4.0pre4
 	 */
 	public static final String GZIPPED = "gzipped";
+
+	private static final byte[] DUMMY_HASH = new byte[0];
 	//}}}
 
 	//{{{ Input/output methods
@@ -166,6 +173,21 @@ public class Buffer extends JEditBuffer
 		}
 		view.visit(new SaveCaretInfoVisitor());
 		load(view,true);
+	} //}}}
+
+	//{{{ reload() method
+	/**
+	 * Reloads the buffer from disk with a new encoding,
+	 * asking for confirmation if the buffer has unsaved changes.
+	 * @param view The view
+	 * @param encoding the new encoding
+	 * @since jEdit 5.7pre1
+	 */
+	public void reloadWithEncoding(View view, String encoding)
+	{
+		setBooleanProperty(Buffer.ENCODING_AUTODETECT,false);
+		setStringProperty(JEditBuffer.ENCODING, encoding);
+		reload(view);
 	} //}}}
 
 	//{{{ load() method
@@ -197,7 +219,10 @@ public class Buffer extends JEditBuffer
 
 		final boolean loadAutosave;
 
-		if(reload || !getFlag(NEW_FILE))
+		boolean autosaveUntitled = jEdit.getBooleanProperty("autosaveUntitled");
+
+		// for untitled: re-read autosave file if enabled
+		if(reload || !getFlag(NEW_FILE) || (isUntitled() && autosaveUntitled))
 		{
 			if(file != null)
 				modTime = file.lastModified();
@@ -226,7 +251,7 @@ public class Buffer extends JEditBuffer
 				// NEW_FILE flag
 				if(reload || !getFlag(NEW_FILE))
 				{
-					if(!vfs.load(view,this,path))
+					if(!vfs.load(view,this,path, isUntitled()))
 					{
 						setLoading(false);
 						return false;
@@ -240,6 +265,7 @@ public class Buffer extends JEditBuffer
 		//{{{ Do some stuff once loading is finished
 		Runnable runnable = new Runnable()
 		{
+			@Override
 			public void run()
 			{
 				String newPath = getStringProperty(
@@ -326,9 +352,10 @@ public class Buffer extends JEditBuffer
 
 		path = MiscUtilities.constructPath(this.path,path);
 
-		Buffer buffer = jEdit.getBuffer(path);
-		if(buffer != null)
+		Optional<Buffer> bufferOptional = jEdit.getBufferManager().getBuffer(path);
+		if(bufferOptional.isPresent())
 		{
+			Buffer buffer = bufferOptional.get();
 			view.getTextArea().setSelectedText(
 				buffer.getText(0,buffer.getLength()));
 			return true;
@@ -348,10 +375,32 @@ public class Buffer extends JEditBuffer
 	 */
 	public void autosave()
 	{
-		if(autosaveFile == null || !getFlag(AUTOSAVE_DIRTY)
+		autosave(false);
+	} //}}}
+
+	//{{{ autosave() method
+	/**
+	 * Autosaves this buffer.
+	 *
+	 * @param force save even if AUTOSAVE_DIRTY not set
+	 * @since jEdit 5.5pre1
+	 */
+	public void autosave(boolean force)
+	{
+
+		if(autosaveFile == null || (!getFlag(AUTOSAVE_DIRTY) && !force)
 			|| !isDirty() || isPerformingIO() ||
 			!autosaveFile.getParentFile().exists())
 			return;
+
+		// re-set autosave file path, based on the path at the settings
+		File autosaveFileOriginal = autosaveFile;
+		setAutosaveFile();
+
+		// if autosave path settings changed, delete the old file
+		if(autosaveFile != null && !autosaveFileOriginal.toString().equals(autosaveFile.toString())) {
+			autosaveFileOriginal.delete();
+		}
 
 		setFlag(AUTOSAVE_DIRTY,false);
 
@@ -372,18 +421,18 @@ public class Buffer extends JEditBuffer
 	public boolean saveAs(View view, boolean rename)
 	{
 		String fileSavePath = path;
-		if (jEdit.getBooleanProperty("saveAsUsesFSB")) 
+		if (jEdit.getBooleanProperty("saveAsUsesFSB"))
 		{
 			DockableWindowManager dwm = view.getDockableWindowManager();
 			Component comp = dwm.getDockable("vfs.browser");
 			VFSBrowser browser = (VFSBrowser) comp;
-			if (browser != null) 
+			if (browser != null)
 				fileSavePath = browser.getDirectory() + "/";
 		}
 		String[] files = GUIUtilities.showVFSFileDialog(view, fileSavePath, VFSBrowser.SAVE_DIALOG,false);
 		// files[] should have length 1, since the dialog type is
 		// SAVE_DIALOG
-		if(files == null)
+		if(files.length == 0)
 			return false;
 
 		boolean saved = save(view, files[0], rename);
@@ -443,7 +492,7 @@ public class Buffer extends JEditBuffer
 			GUIUtilities.error(view,"buffer-multiple-io",null);
 			return false;
 		}
-		
+
 		setBooleanProperty(BufferIORequest.ERROR_OCCURRED,false);
 
 		if(path == null && getFlag(NEW_FILE))
@@ -609,18 +658,15 @@ public class Buffer extends JEditBuffer
 		}
 
 		// Once save is complete, do a few other things
-		AwtRunnableQueue.INSTANCE.runAfterIoTasks(new Runnable()
-			{
-				public void run()
-				{
-					setPerformingIO(false);
-					setProperty("overwriteReadonly",null);
-					finishSaving(view,oldPath,oldSymlinkPath,
-						newPath,rename,getBooleanProperty(
-							BufferIORequest.ERROR_OCCURRED));
-					updateMarkersFile(view);
-				}
-			});
+		AwtRunnableQueue.INSTANCE.runAfterIoTasks(() ->
+		{
+			setPerformingIO(false);
+			setProperty("overwriteReadonly",null);
+			finishSaving(view,oldPath,oldSymlinkPath,
+				newPath,rename,getBooleanProperty(
+					BufferIORequest.ERROR_OCCURRED));
+			updateMarkersFile(view);
+		});
 
 		return true;
 	} //}}}
@@ -643,7 +689,8 @@ public class Buffer extends JEditBuffer
 		// because for a moment newModTime will be greater than
 		// oldModTime, due to the multithreading
 		// - only supported on local file system
-		if(!isPerformingIO() && file != null && !getFlag(NEW_FILE))
+		// - for untitled, do not check
+		if(!isPerformingIO() && file != null && !getFlag(NEW_FILE) && !isUntitled())
 		{
 			boolean newReadOnly = file.exists() && !file.canWrite();
 			if(newReadOnly != isFileReadOnly())
@@ -849,6 +896,7 @@ public class Buffer extends JEditBuffer
 	 * {@link org.gjt.sp.jedit.jEdit#closeBuffer(View,Buffer)}.
 	 * This method is thread-safe.
 	 */
+	@Override
 	public boolean isClosed()
 	{
 		return getFlag(CLOSED);
@@ -894,6 +942,28 @@ public class Buffer extends JEditBuffer
 		return getFlag(UNTITLED);
 	} //}}}
 
+
+	//{{{ isTitled() method
+	/**
+	 * @return true if this file is not'untitled'. This method is thread-safe.
+	 * @since jEdit 5.6pre1
+	 */
+	public boolean isTitled()
+	{
+		return !isUntitled();
+	} //}}}
+
+	//{{{ setUntitled() method
+	/**
+	 *
+	 * @param untitled untitled value to set
+	 * @since jEdit 5.5pre1
+	 */
+	protected void setUntitled(boolean untitled)
+	{
+		setFlag(UNTITLED, untitled);
+	} //}}}
+
 	//{{{ setDirty() method
 	/**
 	 * Sets the 'dirty' (changed since last save) flag of this buffer.
@@ -902,11 +972,11 @@ public class Buffer extends JEditBuffer
 	public void setDirty(boolean d)
 	{
 		boolean old_d = isDirty();
-		if (isUntitled() && jEdit.getBooleanProperty("suppressNotSavedConfirmUntitled"))
-			d = false;
 		if (d && getLength() == initialLength)
 		{
-			if (jEdit.getBooleanProperty("useMD5forDirtyCalculation"))
+			if (isUntitled())
+				d = false;
+			else if (jEdit.getBooleanProperty("useMD5forDirtyCalculation"))
 				d = !Arrays.equals(calculateHash(), md5hash);
 		}
 		super.setDirty(d);
@@ -944,6 +1014,60 @@ public class Buffer extends JEditBuffer
 		return getFlag(TEMPORARY);
 	} //}}}
 
+	//{{{ isBackup() method
+	/**
+	 * @return if this buffer most probably contains backup file
+	 */
+	public boolean isBackup()
+	{
+		return MiscUtilities.isBackup(MiscUtilities.getFileName(getPath()));
+	} //}}}
+
+	@Override
+	public boolean isEditable()
+	{
+		return super.isEditable() && !isLocked(); // respects "locked" property
+	}
+
+	//{{{ isLocked() method
+	/**
+	 * @return if this buffer is locked for editing
+	 */
+	public boolean isLocked()
+	{
+		return getBooleanProperty("locked", false);
+	}
+	//}}}
+
+	//{{{ setLocked() method
+	/**
+	 * Changes locked state of the buffer.
+	 * @param locked true to lock, false to unlock
+	 */
+	public void setLocked(boolean locked)
+	{
+		setBooleanProperty("locked", locked);
+		propertiesChanged();
+	}
+	//}}}
+
+	//{{{ toggleLocked() method
+	/**
+	 * Toggles locked state of the buffer.
+	 * @param view We show a message in the view's status bar
+	 */
+	public void toggleLocked(View view)
+	{
+		setLocked(!isLocked());
+
+		view.getStatus().setMessageAndClear(
+				jEdit.getProperty("view.status.locked-changed",
+						new Integer[] { isLocked() ? 1 : 0 }));
+		EditBus.send(new PropertiesChanged(Buffer.this));
+
+	}
+	//}}}
+
 	//{{{ getIcon() method
 	/**
 	 * @return this buffer's icon.
@@ -953,7 +1077,7 @@ public class Buffer extends JEditBuffer
 	{
 		if(isDirty())
 			return GUIUtilities.loadIcon("dirty.gif");
-		else if(isReadOnly())
+		else if(isReadOnly() || isLocked())
 			return GUIUtilities.loadIcon("readonly.gif");
 		else if(getFlag(NEW_FILE))
 			return GUIUtilities.loadIcon("new.gif");
@@ -976,8 +1100,8 @@ public class Buffer extends JEditBuffer
 	{
 		super.propertiesChanged();
 		longLineLimit = jEdit.getIntegerProperty("longLineLimit", 4000);
-		String largefilemode = getStringProperty("largefilemode");
-		longBufferMode = "limited".equals(largefilemode) || "nohighlight".equals(largefilemode);
+		LargeFileMode largefilemode = getLargeFileMode();
+		longBufferMode = largefilemode.isLongBufferMode();
 		if (!autoreloadOverridden)
 		{
 			setAutoReloadDialog(jEdit.getBooleanProperty("autoReloadDialog"));
@@ -1010,7 +1134,7 @@ public class Buffer extends JEditBuffer
 		// Try returning it as an integer first
 		try
 		{
-			retVal = new Integer(value);
+			retVal = Integer.valueOf(value);
 		}
 		catch(NumberFormatException nf)
 		{
@@ -1029,26 +1153,26 @@ public class Buffer extends JEditBuffer
 	 */
 	public void toggleWordWrap(View view)
 	{
-		String wrap = getStringProperty("wrap");
-		if(wrap.equals("none"))
+		WordWrap wrap = getWordWrap();
+		if(wrap == none)
 		{
-			String largeFileMode = getStringProperty("largefilemode");
-			if ("limited".equals(largeFileMode) || "nohighlight".equals(largeFileMode))
-				wrap = "hard";
+			LargeFileMode largeFileMode = getLargeFileMode();
+			if (largeFileMode.isLongBufferMode())
+				wrap = hard;
 			else
-				wrap = "soft";
+				wrap = soft;
 		}
-		else if(wrap.equals("soft"))
-			wrap = "hard";
-		else if(wrap.equals("hard"))
-			wrap = "none";
+		else if(wrap == soft)
+			wrap = hard;
+		else if(wrap == hard)
+			wrap = none;
 		view.getStatus().setMessageAndClear(jEdit.getProperty(
 			"view.status.wrap-changed",new String[] {
-			wrap }));
-		setProperty("wrap",wrap);
+				wrap.name() }));
+		setWordWrap(wrap);
 		propertiesChanged();
 	} //}}}
-	
+
 	//{{{ toggleAutoIndent() method
 	/**
 	 * Toggles automatic indentation on and off.
@@ -1065,12 +1189,12 @@ public class Buffer extends JEditBuffer
 		else if (indent.equals("full"))
 			indent = "none";
 		setProperty("autoIndent", indent);
-		
+
 		view.getStatus().setMessageAndClear(
 			jEdit.getProperty("view.status.autoindent-changed",
 				new String[] {indent}));
 	}
-			
+
 
 	//{{{ toggleLineSeparator() method
 	/**
@@ -1101,6 +1225,17 @@ public class Buffer extends JEditBuffer
 		view.getStatus().setMessageAndClear(jEdit.getProperty(
 			"view.status.linesep-changed",new String[] {
 			jEdit.getProperty("lineSep." + status) }));
+		setLineSeparator(lineSep);
+	} //}}}
+
+	//{{{ getContextSensitiveProperty() method
+
+	/**
+	 * Set the line separator value
+	 * @param lineSep the line separator value (should be \r, \n or \r\n)
+	 */
+	public void setLineSeparator(String lineSep)
+	{
 		setProperty(LINESEP, lineSep);
 		setDirty(true);
 		propertiesChanged();
@@ -1118,18 +1253,16 @@ public class Buffer extends JEditBuffer
 	@Override
 	public String getContextSensitiveProperty(int offset, String name)
 	{
-		Object value = super.getContextSensitiveProperty(offset,name);
+		String parentValue = super.getContextSensitiveProperty(offset,name);
+		if (parentValue != null)
+			return parentValue;
+
+		ParserRuleSet rules = getRuleSetAtOffset(offset);
+
+		Object value = jEdit.getMode(rules.getModeName()).getProperty(name);
 
 		if(value == null)
-		{
-			ParserRuleSet rules = getRuleSetAtOffset(offset);
-
-			value = jEdit.getMode(rules.getModeName())
-				.getProperty(name);
-
-			if(value == null)
-				value = mode.getProperty(name);
-		}
+			value = mode.getProperty(name);
 
 		if(value == null)
 			return null;
@@ -1140,7 +1273,7 @@ public class Buffer extends JEditBuffer
 	//}}}
 
 	//}}}
-	
+
 	//{{{ Edit modes, syntax highlighting
 
 	//{{{ setMode() method
@@ -1169,13 +1302,13 @@ public class Buffer extends JEditBuffer
 			{
 				mode.loadIfNecessary();
 				boolean contextInsensitive = mode.getBooleanProperty("contextInsensitive");
-				String largeFileMode = jEdit.getProperty("largefilemode", "ask");
-				
-				if ("ask".equals(largeFileMode))
+				LargeFileMode largeFileMode = LargeFileMode.valueOf(jEdit.getProperty(LARGE_MODE_FILE, ask.name()));
+
+				if (largeFileMode == ask)
 				{
 					if (!contextInsensitive)
 					{
-						// the context is not insensitive 
+						// the context is not insensitive
 						JTextPane tp = new JTextPane();
 						tp.setEditable(false);
 						tp.setText(jEdit.getProperty("largeBufferDialog.message"));
@@ -1193,34 +1326,34 @@ public class Buffer extends JEditBuffer
 						switch (i)
 						{
 							case 0:
-								setProperty("largefilemode", "full");
+								setLargeFileMode(full);
 								setMode(mode);
 								return;
 							case 1:
-								setProperty("largefilemode", "limited");
+								setLargeFileMode(limited);
 								setMode(mode, true);
 								return;
 							case 2:
-								setProperty("largefilemode", "nohighlight");
+								setLargeFileMode(nohighlight);
 								mode =  getDefaultMode();
 								setMode(mode);
 								return;
 						}
 					}
 				}
-				else if ("full".equals(largeFileMode))
+				else if (largeFileMode == full)
 				{
-					setProperty("largefilemode", "full");
+					setLargeFileMode(full);
 					setMode(mode);
 				}
-				else if ("limited".equals(largeFileMode))
+				else if (largeFileMode == limited)
 				{
-					setProperty("largefilemode", "limited");
+					setLargeFileMode(limited);
 					setMode(mode, true);
 				}
-				else if ("nohighlight".equals(largeFileMode))
+				else if (largeFileMode == nohighlight)
 				{
-					setProperty("largefilemode", "nohighlight");
+					setLargeFileMode(nohighlight);
 					mode =  getDefaultMode();
 					setMode(mode);
 				}
@@ -1242,22 +1375,6 @@ public class Buffer extends JEditBuffer
 			defaultMode = jEdit.getMode("text");
 		return defaultMode;
 	}
-
-	//}}}
-
-	//{{{ Deprecated methods
-
-	//{{{ getFile() method
-	/**
-	 * @deprecated Do not call this method, use {@link #getPath()}
-	 * instead.
-	 * @return the file
-	 */
-	@Deprecated
-	public File getFile()
-	{
-		return file;
-	} //}}}
 
 	//}}}
 
@@ -1581,6 +1698,18 @@ public class Buffer extends JEditBuffer
 		return prev;
 	} //}}}
 
+	//{{{ setPrev() method
+	public void setPrev(Buffer prev)
+	{
+		this.prev = prev;
+	} //}}}
+
+	//{{{ setNext() method
+	public void setNext(Buffer next)
+	{
+		this.next = next;
+	} //}}}
+
 	//{{{ getIndex() method
 	/**
 	 * @return the position of this buffer in the buffer list.
@@ -1643,36 +1772,27 @@ public class Buffer extends JEditBuffer
 	//{{{ Buffer constructor
 	Buffer(String path, boolean newFile, boolean temp, Map props)
 	{
+		this(path, newFile, temp, props, false);
+	}
+
+	//{{{ Buffer constructor
+	Buffer(String path, boolean newFile, boolean temp, Map props, boolean untitled)
+	{
 		super(props);
 		textTokenMarker = jEdit.getMode("text").getTokenMarker();
 		markers = new Vector<Marker>();
 
 		setFlag(TEMPORARY,temp);
+		setFlag(UNTITLED,untitled);
 
 		// this must be called before any EditBus messages are sent
 		setPath(path);
 
-		/* Magic: UNTITLED is only set if newFile param to
-		 * constructor is set, NEW_FILE is also set if file
-		 * doesn't exist on disk.
-		 *
-		 * This is so that we can tell apart files created
-		 * with jEdit.newFile(), and those that just don't
-		 * exist on disk.
-		 *
-		 * Why do we need to tell the difference between the
-		 * two? jEdit.addBufferToList() checks if the only
-		 * opened buffer is an untitled buffer, and if so,
-		 * replaces it with the buffer to add. We don't want
-		 * this behavior to occur with files that don't
-		 * exist on disk; only untitled ones.
-		 */
-		setFlag(UNTITLED,newFile);
 		setFlag(NEW_FILE,newFile);
 		setFlag(AUTORELOAD,jEdit.getBooleanProperty("autoReload"));
 		setFlag(AUTORELOAD_DIALOG,jEdit.getBooleanProperty("autoReloadDialog"));
 
-		undoListeners = new Vector<BufferUndoListener>();
+		undoListeners = new Vector<>();
 	} //}}}
 
 	//{{{ commitTemporary() method
@@ -1684,12 +1804,32 @@ public class Buffer extends JEditBuffer
 	} //}}}
 
 	//{{{ close() method
-	void close()
+	@Override
+	public void close()
 	{
-		setFlag(CLOSED,true);
+		close(false);
+	}
 
-		if(autosaveFile != null)
+	//{{{ close() method
+	/**
+	 * close the buffer
+	 * @param doNotSave when true, we do not want to keep the autosave even for untitled
+	 *	e.g.: we closed the buffer by hand
+	 */
+	void close(boolean doNotSave)
+	{
+		super.close();
+		setFlag(CLOSED,true);
+                boolean autosaveUntitled = jEdit.getBooleanProperty("autosaveUntitled");
+
+		if(autosaveFile != null && (doNotSave || !(isUntitled() && autosaveUntitled)))
 			autosaveFile.delete();
+
+		// close az untitled buffer, but need to autosavesave
+		// except we close it manually and do not want to save
+		if ( !doNotSave && isUntitled() && autosaveUntitled ) {
+			autosave();
+		}
 
 		// notify clients with -wait
 		if(waitSocket != null)
@@ -1730,6 +1870,7 @@ public class Buffer extends JEditBuffer
 	}
 
 	//{{{ fireBeginUndo() method
+	@Override
 	protected void fireBeginUndo()
 	{
 		for (BufferUndoListener listener: undoListeners)
@@ -1747,6 +1888,7 @@ public class Buffer extends JEditBuffer
 	} //}}}
 
 	//{{{ fireEndUndo() method
+	@Override
 	protected void fireEndUndo()
 	{
 		for (BufferUndoListener listener: undoListeners)
@@ -1764,6 +1906,7 @@ public class Buffer extends JEditBuffer
 	} //}}}
 
 	//{{{ fireBeginRedo() method
+	@Override
 	protected void fireBeginRedo()
 	{
 		for (BufferUndoListener listener: undoListeners)
@@ -1781,6 +1924,7 @@ public class Buffer extends JEditBuffer
 	} //}}}
 
 	//{{{ fireEndRedo() method
+	@Override
 	protected void fireEndRedo()
 	{
 		for (BufferUndoListener listener: undoListeners)
@@ -1843,7 +1987,7 @@ public class Buffer extends JEditBuffer
 	//{{{ Instance variables
 	/** Indicate if the autoreload property was overridden */
 	private int longLineLimit;
-	private TokenMarker textTokenMarker;
+	private final TokenMarker textTokenMarker;
 	private boolean autoreloadOverridden;
 	private String path;
 	private String symlinkPath;
@@ -1859,7 +2003,7 @@ public class Buffer extends JEditBuffer
 	private final Vector<Marker> markers;
 
 	private Socket waitSocket;
-	private List<BufferUndoListener> undoListeners;
+	private final List<BufferUndoListener> undoListeners;
 //
 //	/** the current ioTask of this buffer */
 //	private volatile IoTask ioTask;
@@ -1882,18 +2026,19 @@ public class Buffer extends JEditBuffer
 		if((vfs.getCapabilities() & VFS.WRITE_CAP) == 0)
 			setFileReadOnly(true);
 		name = vfs.getFileName(path);
+
 		directory = vfs.getParentOfPath(path);
 
 		if(vfs instanceof FileVFS)
 		{
 			file = new File(path);
 			symlinkPath = MiscUtilities.resolveSymlinks(path);
-
 			// if we don't do this, the autosave file won't be
 			// deleted after a save as
 			if(autosaveFile != null)
 				autosaveFile.delete();
-			autosaveFile = new File(file.getParent(),'#' + name + '#');
+
+			setAutosaveFile();
 		}
 		else
 		{
@@ -1905,6 +2050,16 @@ public class Buffer extends JEditBuffer
 		}
 	} //}}}
 
+	//{{{ setAutosaveFile() method
+	/**
+	 * Set the autosave file, based on the autosettings dir.
+	 * @since jEdit 5.5pre1
+	 */
+	private void setAutosaveFile()
+	{
+		File autosaveDir = MiscUtilities.prepareAutosaveDirectory(symlinkPath);
+		autosaveFile = new File(autosaveDir,'#' + name + '#');
+	} //}}}
 
 	//{{{ recoverAutosave() method
 	private boolean recoverAutosave(final View view)
@@ -1915,23 +2070,27 @@ public class Buffer extends JEditBuffer
 		// this method might get called at startup
 		GUIUtilities.hideSplashScreen();
 
+		boolean autosaveUntitled = jEdit.getBooleanProperty("autosaveUntitled");
+
 		final Object[] args = { autosaveFile.getPath() };
-		int result = GUIUtilities.confirm(view,"autosave-found",args,
+
+		int result;
+		// if it was an untitled autosave, recover without question
+		if (isUntitled() && autosaveUntitled) {
+			VFSManager.getFileVFS().load(view,this,autosaveFile.getPath(), isUntitled());
+			return true;
+		} else {
+			result = GUIUtilities.confirm(view,"autosave-found",args,
 			JOptionPane.YES_NO_OPTION,JOptionPane.WARNING_MESSAGE);
+		}
 
 		if(result == JOptionPane.YES_OPTION)
 		{
-			VFSManager.getFileVFS().load(view,this,autosaveFile.getPath());
+			VFSManager.getFileVFS().load(view,this,autosaveFile.getPath(), isUntitled());
 
 			// show this message when all I/O requests are
 			// complete
-			AwtRunnableQueue.INSTANCE.runAfterIoTasks(new Runnable()
-			{
-				public void run()
-				{
-					GUIUtilities.message(view,"autosave-loaded",args);
-				}
-			});
+			AwtRunnableQueue.INSTANCE.runAfterIoTasks(() -> GUIUtilities.message(view,"autosave-loaded",args));
 
 			return true;
 		}
@@ -2047,9 +2206,8 @@ public class Buffer extends JEditBuffer
 	/** @return an MD5 hash of the contents of the buffer */
 	private byte[] calculateHash()
 	{
-		final byte[] dummy = new byte[1];
 		if (!jEdit.getBooleanProperty("useMD5forDirtyCalculation"))
-			return dummy;
+			return DUMMY_HASH;
 		return StandardUtilities.md5(getSegment(0, getLength()));
 	}
 
@@ -2058,8 +2216,15 @@ public class Buffer extends JEditBuffer
 	 */
 	private void updateHash()
 	{
-		initialLength = getLength();
-		md5hash = calculateHash();
+		if (isUntitled())
+		{
+			initialLength = 0;
+		}
+		else
+		{
+			initialLength = getLength();
+			md5hash = calculateHash();
+		}
 	}
 
 	//{{{ finishLoading() method
@@ -2107,8 +2272,7 @@ public class Buffer extends JEditBuffer
 		// But I don't think anyone calls it like that anyway.
 		if(!error && !path.equals(oldPath))
 		{
-			Buffer buffer = jEdit.getBuffer(path);
-
+			Optional<Buffer> optionalBuffer = jEdit.getBufferManager().getBuffer(path);
 			if(rename)
 			{
 				/* if we save a file with the same name as one
@@ -2116,37 +2280,32 @@ public class Buffer extends JEditBuffer
 				 * close the existing file, since the user
 				 * would have confirmed the overwrite in the
 				 * 'save as' dialog box anyway */
-				if(buffer != null && /* can't happen? */
-					!buffer.getPath().equals(oldPath))
-				{
-					buffer.setDirty(false);
-					jEdit.closeBuffer(view,buffer);
-				}
+				optionalBuffer
+					.filter(buffer -> !buffer.getPath().equals(oldPath))
+					.ifPresent(buffer ->
+					{
+						buffer.setDirty(false);
+						jEdit.closeBuffer(view,buffer);
+					});
 
 				setPath(path);
-				jEdit.visit(new JEditVisitorAdapter()
-				{
-					@Override
-					public void visit(EditPane editPane)
+				jEdit.getEditPaneManager().forEach(editPane ->
 					{
 						BufferSet bufferSet = editPane.getBufferSet();
-						if (bufferSet.indexOf(Buffer.this) != -1)
+						if (bufferSet.contains(this))
 						{
 							bufferSet.sort();
 						}
-					}
-				});
+					});
 			}
 			else
 			{
 				/* if we saved over an already open file using
 				 * 'save a copy as', then reload the existing
 				 * buffer */
-				if(buffer != null && /* can't happen? */
-					!buffer.getPath().equals(oldPath))
-				{
-					buffer.load(view,true);
-				}
+				optionalBuffer
+					.filter(buffer -> !buffer.getPath().equals(oldPath))
+					.ifPresent(buffer -> buffer.load(view, true));
 			}
 		} //}}}
 

@@ -27,9 +27,8 @@ import java.awt.Color;
 import java.awt.Component;
 import java.awt.Font;
 import java.awt.GridLayout;
-import java.awt.event.ActionEvent;
-import java.awt.event.ActionListener;
 
+import javax.swing.BorderFactory;
 import javax.swing.Box;
 import javax.swing.BoxLayout;
 import javax.swing.JButton;
@@ -38,7 +37,6 @@ import javax.swing.JDialog;
 import javax.swing.JFrame;
 import javax.swing.JLabel;
 import javax.swing.JPanel;
-import javax.swing.border.EmptyBorder;
 import javax.swing.JOptionPane;
 
 import org.gjt.sp.jedit.jEdit;
@@ -47,11 +45,12 @@ import org.gjt.sp.jedit.syntax.SyntaxStyle;
 import org.gjt.sp.jedit.syntax.DefaultTokenHandler;
 import org.gjt.sp.jedit.syntax.Token;
 import org.gjt.sp.jedit.textarea.JEditTextArea;
+import org.gjt.sp.util.GenericGUIUtilities;
+import org.gjt.sp.util.SyntaxUtilities;
 import org.gjt.sp.jedit.buffer.JEditBuffer;
 
-//{{{ StyleEditor class
 /** Style editor dialog */
-public class StyleEditor extends EnhancedDialog implements ActionListener
+public class StyleEditor extends EnhancedDialog
 {
 	//{{{ invokeForCaret() method
 	/**
@@ -79,7 +78,7 @@ public class StyleEditor extends EnhancedDialog implements ActionListener
 			start = next;
 			token = token.next;
 		}
-		if (token.id == Token.END || token.id == Token.NULL)
+		if (token.id == Token.END || (token.id % Token.ID_COUNT) == Token.NULL)
 		{
 			JOptionPane.showMessageDialog(textArea.getView(),
 				jEdit.getProperty("syntax-style-no-token.message"),
@@ -89,8 +88,9 @@ public class StyleEditor extends EnhancedDialog implements ActionListener
 		}
 		String typeName = Token.tokenToString(token.id);
 		String property = "view.style." + typeName.toLowerCase();
-		SyntaxStyle currentStyle = GUIUtilities.parseStyle(
-				jEdit.getProperty(property), "Dialog",12);
+		Font font = new JLabel().getFont();
+		SyntaxStyle currentStyle = SyntaxUtilities.parseStyle(
+				jEdit.getProperty(property), font.getFamily(), font.getSize(), true);
 		SyntaxStyle style = new StyleEditor(textArea.getView(),
 				currentStyle, typeName).getStyle();
 		if(style != null)
@@ -106,18 +106,21 @@ public class StyleEditor extends EnhancedDialog implements ActionListener
 		super(parent, jEdit.getProperty("style-editor.title"),true);
 		initialize(parent, style, styleName);
 	}
+
 	public StyleEditor(JFrame parent, SyntaxStyle style, String styleName)
 	{
 		super(parent, jEdit.getProperty("style-editor.title"),true);
 		initialize(parent, style, styleName);
-	}
+	} //}}}
+
+	//{{{ initialize() method
 	private void initialize(Component comp, SyntaxStyle style, String styleName)
 	{
-		JPanel content = new JPanel(new BorderLayout(12,12));
-		content.setBorder(new EmptyBorder(12,12,12,12));
+		JPanel content = new JPanel(new BorderLayout(12, 12));
+		content.setBorder(BorderFactory.createEmptyBorder(12, 12, 12, 12));
 		setContentPane(content);
 
-		JPanel panel = new JPanel(new GridLayout(5,2,12,12));
+		JPanel panel = new JPanel(new GridLayout(5, 2, 12, 12));
 
 		panel.add(new JLabel(jEdit.getProperty("style-editor.tokenType")));
 		panel.add(new JLabel(styleName));
@@ -133,10 +136,14 @@ public class StyleEditor extends EnhancedDialog implements ActionListener
 		panel.add(new JLabel());
 
 		Color fg = style.getForegroundColor();
-
+		if (fg == null) 
+		{
+			fg = jEdit.getActiveView().getEditPane().getTextArea().getPainter().getForeground();	
+			
+		}
 		fgColorCheckBox = new JCheckBox(jEdit.getProperty("style-editor.fgColor"));
 		fgColorCheckBox.setSelected(fg != null);
-		fgColorCheckBox.addActionListener(this);
+		fgColorCheckBox.addActionListener(e -> fgColor.setEnabled(fgColorCheckBox.isSelected()));
 		panel.add(fgColorCheckBox);
 
 		fgColor = new ColorWellButton(fg);
@@ -144,9 +151,13 @@ public class StyleEditor extends EnhancedDialog implements ActionListener
 		panel.add(fgColor);
 
 		Color bg = style.getBackgroundColor();
+		if (bg == null) 
+		{
+			bg = jEdit.getActiveView().getEditPane().getTextArea().getPainter().getBackground();	
+		}
 		bgColorCheckBox = new JCheckBox(jEdit.getProperty("style-editor.bgColor"));
 		bgColorCheckBox.setSelected(bg != null);
-		bgColorCheckBox.addActionListener(this);
+		bgColorCheckBox.addActionListener(e -> bgColorCheckBox.isSelected());
 		panel.add(bgColorCheckBox);
 
 		bgColor = new ColorWellButton(bg);
@@ -156,15 +167,20 @@ public class StyleEditor extends EnhancedDialog implements ActionListener
 		content.add(BorderLayout.CENTER,panel);
 
 		Box box = new Box(BoxLayout.X_AXIS);
-		box.add(Box.createGlue());
-		box.add(ok = new JButton(jEdit.getProperty("common.ok")));
+		box.setBorder(BorderFactory.createEmptyBorder(17, 0, 0, 0));
+		JButton ok = new JButton(jEdit.getProperty("common.ok"));
 		getRootPane().setDefaultButton(ok);
-		ok.addActionListener(this);
-		box.add(Box.createHorizontalStrut(6));
-		box.add(cancel = new JButton(jEdit.getProperty("common.cancel")));
-		cancel.addActionListener(this);
+		ok.addActionListener(e -> ok());
+		JButton cancel = new JButton(jEdit.getProperty("common.cancel"));
+		cancel.addActionListener(e -> cancel());
+		
+		GenericGUIUtilities.makeSameSize(ok, cancel);
+		
 		box.add(Box.createGlue());
-
+		box.add(ok);
+		box.add(Box.createHorizontalStrut(6));
+		box.add(cancel);
+		
 		content.add(BorderLayout.SOUTH,box);
 
 		pack();
@@ -174,21 +190,8 @@ public class StyleEditor extends EnhancedDialog implements ActionListener
 		setVisible(true);
 	} //}}}
 
-	//{{{ actionPerformed() method
-	public void actionPerformed(ActionEvent evt)
-	{
-		Object source = evt.getSource();
-		if(source == ok)
-			ok();
-		else if(source == cancel)
-			cancel();
-		else if(source == fgColorCheckBox)
-			fgColor.setEnabled(fgColorCheckBox.isSelected());
-		else if(source == bgColorCheckBox)
-			bgColor.setEnabled(bgColorCheckBox.isSelected());
-	} //}}}
-
 	//{{{ ok() method
+	@Override
 	public void ok()
 	{
 		okClicked = true;
@@ -196,6 +199,7 @@ public class StyleEditor extends EnhancedDialog implements ActionListener
 	} //}}}
 
 	//{{{ cancel() method
+	@Override
 	public void cancel()
 	{
 		dispose();
@@ -207,19 +211,15 @@ public class StyleEditor extends EnhancedDialog implements ActionListener
 		if(!okClicked)
 			return null;
 
-		Color foreground = (fgColorCheckBox.isSelected()
-			? fgColor.getSelectedColor()
-			: null);
+		Color foreground = fgColorCheckBox.isSelected() ? fgColor.getSelectedColor() : null;
+		Color background = bgColorCheckBox.isSelected() ? bgColor.getSelectedColor() : null;
 
-		Color background = (bgColorCheckBox.isSelected()
-			? bgColor.getSelectedColor()
-			: null);
-
+		Font font = new JLabel().getFont();
 		return new SyntaxStyle(foreground,background,
-				new Font("Dialog",
+				new Font(font.getFamily(),
 				(italics.isSelected() ? Font.ITALIC : 0)
 				| (bold.isSelected() ? Font.BOLD : 0),
-				12));
+				font.getSize()));
 	} //}}}
 
 	//{{{ Private members
@@ -229,8 +229,6 @@ public class StyleEditor extends EnhancedDialog implements ActionListener
 	private ColorWellButton fgColor;
 	private JCheckBox bgColorCheckBox;
 	private ColorWellButton bgColor;
-	private JButton ok;
-	private JButton cancel;
 	private boolean okClicked;
 	//}}}
-} //}}}
+}

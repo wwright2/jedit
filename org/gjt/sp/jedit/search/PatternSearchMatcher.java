@@ -31,7 +31,7 @@ import org.gjt.sp.util.ReverseCharSequence;
  * @see java.util.regex.Pattern
  *
  * @author Marcelo Vanzin
- * @version $Id: PatternSearchMatcher.java 24042 2015-09-01 17:46:14Z daleanson $
+ * @version $Id: PatternSearchMatcher.java 25301 2020-05-01 16:38:04Z kpouer $
  * @since jEdit 4.3pre5
  */
 public class PatternSearchMatcher extends SearchMatcher
@@ -243,13 +243,58 @@ public class PatternSearchMatcher extends SearchMatcher
         Matcher nc_matcher = nc_pattern.matcher( p );
         if ( nc_matcher.find() ) 
         {
-            String newRegex = nc_matcher.replaceAll( "" );
-            return Pattern.compile(newRegex, flags);
+        	int index = nc_matcher.start();
+        	int open_count = 0;
+        	for (int i = index; i < p.length(); i++) 
+        	{
+        		if (p.charAt(i) == '(' && (i == 0 || p.charAt(i - 1) != '\\')) 
+        		{
+        			++ open_count;	
+        		}
+        		if (p.charAt(i) == ')' && (i == 0 || p.charAt(i - 1) != '\\')) 
+        		{
+        			-- open_count;	
+        		}
+        		if (open_count == 0 && i < p.length() - 1) 
+        		{
+        		    int end = i + 1;
+        		    char c = p.charAt( end );
+        		    
+        		    // check for "{n,m}" quantifiers
+        		    if (c == '{')
+        		    {
+        		        while (c != '}' && end < p.length() - 1)
+        		        {
+        		            ++ end;
+        		            c = p.charAt(end);
+        		        }
+        		        ++ end;
+        		    }
+                    
+        		    // check for ?+* quanitifiers
+                    c = p.charAt(end);
+                    if ((c == '?' || c == '+' || c == '*') && end < p.length() - 1) 
+                    {
+                        ++ end;
+                    }
+                    
+                    // check for ?+ quantifier quantifiers
+                    c = p.charAt(end);
+                    if ((c == '?' || c == '+') && end < p.length() - 1) 
+                    {
+                        ++ end;
+                    }
+                    
+                    // delete the non-capturing group
+        			StringBuilder sb = new StringBuilder(p);
+        			sb.delete(index, end);
+        			
+        			// recurse to find any remaining non-capturing groups
+        			return removeNonCapturingGroups(Pattern.compile(sb.toString(), flags), flags);
+        		}
+        	}
         } 
-        else 
-        {
-            return re;
-        }
+        return re;
     } //}}}
     
 	//{{{ toString() method
@@ -269,7 +314,7 @@ public class PatternSearchMatcher extends SearchMatcher
 	}
 
 	//{{{ Private members
-	private int flags;
+	private final int flags;
 	private Pattern	re;
 	private final String pattern;
 	//}}}

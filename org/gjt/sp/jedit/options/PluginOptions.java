@@ -26,12 +26,12 @@ package org.gjt.sp.jedit.options;
 import java.awt.Dialog;
 import java.awt.Frame;
 import org.gjt.sp.jedit.gui.OptionsDialog;
-import org.gjt.sp.jedit.options.*;
 import org.gjt.sp.jedit.*;
-import org.gjt.sp.util.Log;
 //}}}
 /**
- @deprecated use CombinedOptions
+ deprecated use CombinedOptions
+ I've undeprecated this, CombinedOptions does not provide the same api and cannot
+ be traded out for PluginOptions.
  */
 public class PluginOptions extends OptionsDialog
 {
@@ -60,6 +60,7 @@ public class PluginOptions extends OptionsDialog
 	} //}}}
 
 	//{{{ createOptionTreeModel() method
+	@Override
 	protected OptionTreeModel createOptionTreeModel()
 	{
 		OptionTreeModel paneTreeModel = new OptionTreeModel();
@@ -104,6 +105,7 @@ public class PluginOptions extends OptionsDialog
 	} //}}}
 
 	//{{{ getDefaultGroup() method
+	@Override
 	protected OptionGroup getDefaultGroup()
 	{
 		return pluginsGroup;

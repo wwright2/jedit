@@ -65,12 +65,14 @@ public class DockableLayout implements LayoutManager2
 	} //}}}
 
 	//{{{ addLayoutComponent() method
+	@Override
 	public void addLayoutComponent(String name, Component comp)
 	{
 		addLayoutComponent(comp, name);
 	} //}}}
 
 	//{{{ addLayoutComponent() method
+	@Override
 	public void addLayoutComponent(Component comp, Object cons)
 	{
 		if(cons == null || CENTER.equals(cons))
@@ -94,6 +96,7 @@ public class DockableLayout implements LayoutManager2
 	} //}}}
 
 	//{{{ removeLayoutComponent() method
+	@Override
 	public void removeLayoutComponent(Component comp)
 	{
 		if(center == comp)
@@ -109,6 +112,7 @@ public class DockableLayout implements LayoutManager2
 	} //}}}
 
 	//{{{ preferredLayoutSize() method
+	@Override
 	public Dimension preferredLayoutSize(Container parent)
 	{
 		Dimension prefSize = new Dimension(0,0);
@@ -138,6 +142,7 @@ public class DockableLayout implements LayoutManager2
 	} //}}}
 
 	//{{{ minimumLayoutSize() method
+	@Override
 	public Dimension minimumLayoutSize(Container parent)
 	{
 		// I'm lazy
@@ -145,12 +150,14 @@ public class DockableLayout implements LayoutManager2
 	} //}}}
 
 	//{{{ maximumLayoutSize() method
+	@Override
 	public Dimension maximumLayoutSize(Container parent)
 	{
 		return new Dimension(Integer.MAX_VALUE,Integer.MAX_VALUE);
 	} //}}}
 
 	//{{{ layoutContainer() method
+	@Override
 	public void layoutContainer(Container parent)
 	{
 		Dimension size = parent.getSize();
@@ -158,10 +165,10 @@ public class DockableLayout implements LayoutManager2
 		Dimension _topToolbars = new Dimension(0,0);
 		Dimension _bottomToolbars = new Dimension(0,0);
 
-		int topButtonHeight = -1;
-		int bottomButtonHeight = -1;
-		int leftButtonWidth = -1;
-		int rightButtonWidth = -1;
+		int topButtonHeight;
+		int bottomButtonHeight;
+		int leftButtonWidth;
+		int rightButtonWidth;
 
 		Dimension _top = top.getPreferredSize();
 		Dimension _left = left.getPreferredSize();
@@ -203,7 +210,7 @@ public class DockableLayout implements LayoutManager2
 				? 0 : closeBoxWidth;
 
 			topButtonHeight = top.getWindowContainer()
-				.getWrappedDimension(_width
+				.getWrappedDimension(top.getSize().width
 				- closeBoxWidth * 2);
 			topButtons.setBounds(
 				padding,
@@ -212,7 +219,7 @@ public class DockableLayout implements LayoutManager2
 				topButtonHeight);
 
 			bottomButtonHeight = bottom.getWindowContainer()
-				.getWrappedDimension(_width);
+				.getWrappedDimension(bottom.getSize().width);
 			bottomButtons.setBounds(
 				padding,
 				size.height - bottomButtonHeight,
@@ -226,7 +233,7 @@ public class DockableLayout implements LayoutManager2
 
 			//{{{ Lay out dependent buttons
 			leftButtonWidth = left.getWindowContainer()
-				.getWrappedDimension(_height);
+				.getWrappedDimension(left.getSize().height);
 			leftButtons.setBounds(
 				0,
 				topHeight + topButtonHeight,
@@ -234,7 +241,7 @@ public class DockableLayout implements LayoutManager2
 				_height - topHeight - bottomHeight);
 
 			rightButtonWidth = right.getWindowContainer()
-				.getWrappedDimension(_height);
+				.getWrappedDimension(right.getSize().height);
 			rightButtons.setBounds(
 				size.width - rightButtonWidth,
 				topHeight + topButtonHeight,
@@ -296,7 +303,7 @@ public class DockableLayout implements LayoutManager2
 				? 0 : closeBoxWidth);
 
 			leftButtonWidth = left.getWindowContainer()
-				.getWrappedDimension(_height
+				.getWrappedDimension(left.getSize().height
 				- closeBoxWidth * 2);
 			leftButtons.setBounds(
 				0,
@@ -305,7 +312,7 @@ public class DockableLayout implements LayoutManager2
 				_height - padding * 2);
 
 			rightButtonWidth = right.getWindowContainer()
-				.getWrappedDimension(_height);
+				.getWrappedDimension(right.getSize().height);
 			rightButtons.setBounds(
 				size.width - rightButtonWidth,
 				padding,
@@ -319,7 +326,7 @@ public class DockableLayout implements LayoutManager2
 
 			//{{{ Lay out dependent buttons
 			topButtonHeight = top.getWindowContainer()
-				.getWrappedDimension(_width);
+				.getWrappedDimension(top.getSize().width);
 			topButtons.setBounds(
 				leftButtonWidth + leftWidth,
 				0,
@@ -327,7 +334,7 @@ public class DockableLayout implements LayoutManager2
 				topButtonHeight);
 
 			bottomButtonHeight = bottom.getWindowContainer()
-				.getWrappedDimension(_width);
+				.getWrappedDimension(bottom.getSize().width);
 			bottomButtons.setBounds(
 				leftButtonWidth + leftWidth,
 				_height - bottomButtonHeight,
@@ -445,18 +452,21 @@ public class DockableLayout implements LayoutManager2
 	} //}}}
 
 	//{{{ getLayoutAlignmentX() method
+	@Override
 	public float getLayoutAlignmentX(Container target)
 	{
 		return 0.5f;
 	} //}}}
 
 	//{{{ getLayoutAlignmentY() method
+	@Override
 	public float getLayoutAlignmentY(Container target)
 	{
 		return 0.5f;
 	} //}}}
 
 	//{{{ invalidateLayout() method
+	@Override
 	public void invalidateLayout(Container target) {}
 	//}}}
 }

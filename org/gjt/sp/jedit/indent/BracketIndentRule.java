@@ -30,12 +30,12 @@ import org.gjt.sp.jedit.syntax.TokenMarker;
 
 /**
  * @author Slava Pestov
- * @version $Id: BracketIndentRule.java 21831 2012-06-18 22:54:17Z ezust $
+ * @version $Id: BracketIndentRule.java 25503 2021-04-21 21:45:28Z kpouer $
  */
 public abstract class BracketIndentRule implements IndentRule
 {
 	//{{{ BracketIndentRule constructor
-	public BracketIndentRule(char openBracket, char closeBracket)
+	BracketIndentRule(char openBracket, char closeBracket)
 	{
 		this.openBracket = openBracket;
 		this.closeBracket = closeBracket;
@@ -82,32 +82,12 @@ public abstract class BracketIndentRule implements IndentRule
 		private final int beginIndex;
 		private final int endIndex;
 
-		public LineScanner(int begin, int end)
+		LineScanner(int begin, int end)
 		{
-			this.result = new Brackets();
-			this.scannedIndex = 0;
-			this.beginIndex = begin;
-			this.endIndex = end;
-		}
-
-		boolean rejectsToken(byte id)
-		{
-			// Rejects comments and literals.
-			// Accepts all others.
-			switch (id)
-			{
-			case Token.COMMENT1:
-			case Token.COMMENT2:
-			case Token.COMMENT3:
-			case Token.COMMENT4:
-			case Token.LITERAL1:
-			case Token.LITERAL2:
-			case Token.LITERAL3:
-			case Token.LITERAL4:
-				return true;
-			default:
-				return false;
-			}
+			result = new Brackets();
+			scannedIndex = 0;
+			beginIndex = begin;
+			endIndex = end;
 		}
 
 		private void scan(Segment seg, int offset, int length)
@@ -150,17 +130,21 @@ public abstract class BracketIndentRule implements IndentRule
 			}
 		}
 
+		@Override
 		public void handleToken(Segment seg
 			, byte id, int offset, int length
 			, TokenMarker.LineContext context)
 		{
-			if (!rejectsToken(id))
+			// Rejects comments and literals.
+			// Accepts all others.
+			if (!Token.isCommentOrLiteral(id))
 			{
 				scan(seg, offset, length);
 			}
 			scannedIndex += length;
 		}
 
+		@Override
 		public void setLineContext(TokenMarker.LineContext lineContext)
 		{
 		}

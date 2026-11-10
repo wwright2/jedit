@@ -88,20 +88,13 @@ public class ViewOptionPane extends AbstractOptionPane
 
 		addComponent(layoutPanel);
 
-		/* Floatable Toolbars */
-		floatableToolbars = new JCheckBox(jEdit.getProperty(
-			"options.view.floatableToolbars"));
-		floatableToolbars.setSelected(jEdit.getBooleanProperty(
-			"view.toolbar.floatable"));
-		addComponent(floatableToolbars);
-
-		/* Abbreviate pathnames when possible */		
+		/* Abbreviate pathnames when possible */
 		abbreviatePaths = new JCheckBox(jEdit.getProperty(
 			"options.view.abbreviatePaths"));
 		abbreviatePaths.setSelected(jEdit.getBooleanProperty(
 			"view.abbreviatePaths"));
 		addComponent(abbreviatePaths);
-		
+
 		/* Show full path */
 		showFullPath = new JCheckBox(jEdit.getProperty(
 			"options.view.showFullPath"));
@@ -162,7 +155,7 @@ public class ViewOptionPane extends AbstractOptionPane
 
 		// Buffer set settings
 		addSeparator();
-		buffersetScope = new JComboBox();
+		buffersetScope = new JComboBox<BufferSet.Scope>();
 		buffersetScope.addItem(BufferSet.Scope.global);
 		buffersetScope.addItem(BufferSet.Scope.view);
 		buffersetScope.addItem(BufferSet.Scope.editpane);
@@ -243,9 +236,8 @@ public class ViewOptionPane extends AbstractOptionPane
 		jEdit.setBooleanProperty("view.toolbar.alternateLayout",
 			layout.getIcon() == layoutIcon3
 			|| layout.getIcon() == layoutIcon4);
-		jEdit.setBooleanProperty("view.abbreviatePaths",abbreviatePaths.isSelected());		
+		jEdit.setBooleanProperty("view.abbreviatePaths",abbreviatePaths.isSelected());
 		jEdit.setBooleanProperty("view.showFullPath",showFullPath.isSelected());
-		jEdit.setBooleanProperty("view.toolbar.floatable", floatableToolbars.isSelected());
 
 		jEdit.setBooleanProperty("view.showSearchbar",showSearchbar
 			.isSelected());
@@ -272,12 +264,11 @@ public class ViewOptionPane extends AbstractOptionPane
 	private JButton alternateDockingLayout, alternateToolBarLayout;
 	private JCheckBox abbreviatePaths;
 	private JCheckBox showFullPath;
-	private JCheckBox floatableToolbars;
 	private JCheckBox showSearchbar;
 	private JCheckBox beepOnSearchAutoWrap;
 	private JCheckBox showBufferSwitcher;
 	private JTextField bufferSwitcherMaxRowCount;
-	private JComboBox buffersetScope;
+	private JComboBox<BufferSet.Scope> buffersetScope;
 	private JCheckBox sortBuffers;
 	private JCheckBox sortByName;
 	private JCheckBox fullScreenIncludesMenu;

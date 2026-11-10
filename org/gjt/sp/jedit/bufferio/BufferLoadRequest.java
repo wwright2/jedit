@@ -25,11 +25,7 @@ package org.gjt.sp.jedit.bufferio;
 //{{{ Imports
 import java.io.*;
 import java.nio.charset.*;
-import java.util.Collections;
-import java.util.List;
-import java.util.ArrayList;
-import java.util.Set;
-import java.util.HashSet;
+import java.util.*;
 import java.util.zip.GZIPInputStream;
 import org.gjt.sp.jedit.io.*;
 import org.gjt.sp.jedit.*;
@@ -40,10 +36,12 @@ import org.gjt.sp.util.*;
 /**
  * A buffer load request.
  * @author Slava Pestov
- * @version $Id: BufferLoadRequest.java 23224 2013-09-30 20:51:42Z shlomy $
+ * @version $Id: BufferLoadRequest.java 25506 2021-04-23 16:42:53Z kpouer $
  */
 public class BufferLoadRequest extends BufferIORequest
 {
+	private final boolean untitled;
+	
 	//{{{ BufferLoadRequest constructor
 	/**
 	 * Creates a new buffer I/O request.
@@ -52,14 +50,16 @@ public class BufferLoadRequest extends BufferIORequest
 	 * @param session The VFS session
 	 * @param vfs The VFS
 	 * @param path The path
+	 * @param untitled is the buffer untitled
 	 */
-	public BufferLoadRequest(View view, Buffer buffer,
-		Object session, VFS vfs, String path)
+	public BufferLoadRequest(View view, Buffer buffer, Object session, VFS vfs, String path, boolean untitled)
 	{
 		super(view,buffer,session,vfs,path);
+		this.untitled = untitled;
 	} //}}}
 
 	//{{{ run() method
+	@Override
 	public void _run()
 	{
 		try
@@ -75,7 +75,7 @@ public class BufferLoadRequest extends BufferIORequest
 			path = vfs._canonPath(session,path,view);
 
 			readContents();
-			buffer.setNewFile(false);
+			buffer.setNewFile(untitled);
 
 			if (jEdit.getBooleanProperty("persistentMarkers") &&
 			    (vfs.isMarkersFileSupported()))
@@ -124,18 +124,7 @@ public class BufferLoadRequest extends BufferIORequest
 		}
 		finally
 		{
-			try
-			{
-				vfs._endVFSSession(session,view);
-			}
-			catch(Exception e)
-			{
-				Log.log(Log.ERROR,this,e);
-				String[] pp = { e.toString() };
-				VFSManager.error(view,path,"ioerror.read-error",pp);
-
-				buffer.setBooleanProperty(ERROR_OCCURRED,true);
-			}
+			endSessionQuietly();
 		}
 	} //}}}
 
@@ -184,8 +173,7 @@ public class BufferLoadRequest extends BufferIORequest
 		}
 		catch(IOException e)
 		{
-			Log.log(Log.NOTICE, this
-				, path + ": Reopening to rewind the stream");
+			Log.log(Log.NOTICE, this, path + ": Reopening to rewind the stream");
 			// Reopen the stream because the mark has been
 			// invalidated while previous reading.
 			markedStream.close();
@@ -196,8 +184,7 @@ public class BufferLoadRequest extends BufferIORequest
 				{
 					in = new GZIPInputStream(in);
 				}
-				BufferedInputStream result
-					= AutoDetection.getMarkedStream(in);
+				BufferedInputStream result = AutoDetection.getMarkedStream(in);
 				in = null;
 				return result;
 			}
@@ -222,75 +209,40 @@ public class BufferLoadRequest extends BufferIORequest
 	{
 		long length = getContentLength();
 
-		BufferedInputStream markedStream
-			= AutoDetection.getMarkedStream(getNakedStream());
+		BufferedInputStream markedStream = AutoDetection.getMarkedStream(getNakedStream());
 		try
 		{
-			boolean gzipped = false;
 			// encodingProviders is consist of given
 			// encodings as String or contents-aware
 			// detectors as EncodingDetector.
-			List<Object> encodingProviders
-				= new ArrayList<Object>();
+			List<EncodingDetector> encodingProviders = getEncodingDetectors();
 
 			boolean autodetect = buffer.getBooleanProperty(Buffer.ENCODING_AUTODETECT);
-			if(autodetect)
-			{
-				gzipped = AutoDetection.isGzipped(markedStream);
-				markedStream.reset();
-
-				encodingProviders.addAll(AutoDetection.getEncodingDetectors());
-				// If the detected encoding fail, fallback to
-				// the original encoding.
-				encodingProviders.add(buffer.getStringProperty(JEditBuffer.ENCODING));
-
-				String fallbackEncodings = jEdit.getProperty("fallbackEncodings");
-				if(fallbackEncodings != null && fallbackEncodings.length() > 0)
-					Collections.addAll(encodingProviders, fallbackEncodings.split("\\s+"));
-			}
-			else
-			{
-				gzipped = buffer.getBooleanProperty(Buffer.GZIPPED);
-				encodingProviders.add(buffer.getStringProperty(JEditBuffer.ENCODING));
-			}
+			boolean gzipped = isGzipped(markedStream, autodetect);
 
 			if(gzipped)
 			{
 				Log.log(Log.DEBUG, this, path + ": Stream is gzipped.");
-				markedStream = AutoDetection.getMarkedStream(
-					new GZIPInputStream(markedStream));
+				markedStream = AutoDetection.getMarkedStream(new GZIPInputStream(markedStream));
 			}
 
-			Set<String> failedEncodings = new HashSet<String>();
+			Collection<String> failedEncodings = new HashSet<>();
 			Exception encodingError = null;
-			for(Object encodingProvider: encodingProviders)
+			for(EncodingDetector encodingProvider: encodingProviders)
 			{
-				String encoding = null;
-				if (encodingProvider instanceof String)
-				{
-					encoding = (String)encodingProvider;
-				}
-				else if(encodingProvider instanceof EncodingDetector)
-				{
-					markedStream = rewindContentsStream(markedStream, gzipped);
-					encoding = ((EncodingDetector)encodingProvider).detectEncoding(new BufferedInputStream(markedStream));
-				}
-				else
-				{
-					Log.log(Log.DEBUG, this, "Strange encodingProvider: " + encodingProvider);
-				}
+				markedStream = rewindContentsStream(markedStream, gzipped);
+				String encoding = encodingProvider.detectEncoding(new BufferedInputStream(markedStream));
 
-				if(encoding == null || encoding.length() <= 0
-					|| failedEncodings.contains(encoding))
+				if(encoding == null || encoding.length() <= 0 || failedEncodings.contains(encoding))
 				{
 					continue;
 				}
 
+				// this encoding might be the good one
 				markedStream = rewindContentsStream(markedStream, gzipped);
 				try
 				{
-					read(EncodingServer.getTextReader(markedStream, encoding)
-						, length, false);
+					read(EncodingServer.getTextReader(markedStream, encoding), length, false);
 					if(autodetect)
 					{
 						// Store the successful properties.
@@ -302,30 +254,21 @@ public class BufferLoadRequest extends BufferIORequest
 					}
 					return;
 				}
-				catch(CharConversionException e)
+				catch(CharConversionException | CharacterCodingException | UnsupportedEncodingException | UnsupportedCharsetException e)
 				{
 					encodingError = e;
 				}
-				catch(CharacterCodingException e)
-				{
-					encodingError = e;
-				}
-				catch(UnsupportedEncodingException e)
-				{
-					encodingError = e;
-				}
-				catch(UnsupportedCharsetException e)
-				{
-					encodingError = e;
-				}
-				Log.log(Log.NOTICE, this, path + ": " + encoding
-					+ ": " + encodingError);
+
+				// if we are here, then loading with the detected encoding failed, we will continue the loop
+				Log.log(Log.NOTICE, this, path + ": " + encoding + ": " + encodingError);
 				failedEncodings.add(encoding);
 			}
-			// All possible detectors and encodings failed.
-			Object[] pp = { TextUtilities.join(failedEncodings,","), "" };
+
+			// All possible detectors and encodings failed, encodingError cannot be null.
+			Object[] pp = { String.join(",", failedEncodings), "" };
 			if(failedEncodings.size() < 2)
 			{
+				assert  encodingError != null;
 				pp[1] = encodingError.toString();
 			}
 			else
@@ -334,10 +277,8 @@ public class BufferLoadRequest extends BufferIORequest
 			}
 			VFSManager.error(view,path,"ioerror.encoding-error",pp,Log.NOTICE);
 			markedStream = rewindContentsStream(markedStream, gzipped);
-			read(EncodingServer.getEncoding(
-				buffer.getStringProperty(JEditBuffer.ENCODING)
-				).getPermissiveTextReader(markedStream)
-				, length, false);
+			Encoding encoding = EncodingServer.getEncoding(buffer.getStringProperty(JEditBuffer.ENCODING));
+			read(encoding.getPermissiveTextReader(markedStream), length, false);
 			if(autodetect && gzipped)
 			{
 				buffer.setBooleanProperty(Buffer.GZIPPED,true);
@@ -349,16 +290,63 @@ public class BufferLoadRequest extends BufferIORequest
 		}
 	} //}}}
 
+	//{{{ isGzipped() method
+	/**
+	 * Decide by settings or detection if the stream is gzipped
+	 * @param markedStream the stream to check
+	 * @param autodetect should we autodetect or not
+	 * @return true if the stream is gzipped
+	 * @throws IOException an exception if autodetect fails
+	 */
+	private boolean isGzipped(BufferedInputStream markedStream, boolean autodetect) throws IOException
+	{
+		boolean gzipped;
+		if(autodetect)
+		{
+			gzipped = AutoDetection.isGzipped(markedStream);
+			markedStream.reset();
+		}
+		else
+			gzipped = buffer.getBooleanProperty(Buffer.GZIPPED);
+
+		return gzipped;
+	} //}}}
+
+	//{{{ getEncodingDetectors() method
+	private List<EncodingDetector> getEncodingDetectors()
+	{
+		List<EncodingDetector> encodingProviders = new ArrayList<>();
+		boolean autodetect = buffer.getBooleanProperty(Buffer.ENCODING_AUTODETECT);
+		if(autodetect)
+		{
+			encodingProviders.addAll(AutoDetection.getEncodingDetectors());
+			// If the detected encoding fail, fallback to
+			// the original encoding.
+			encodingProviders.add(new StaticCharsetEncodingDetector(buffer.getStringProperty(JEditBuffer.ENCODING)));
+
+			String fallbackEncodings = jEdit.getProperty("fallbackEncodings");
+			if(fallbackEncodings != null && !fallbackEncodings.isEmpty())
+			{
+				Arrays.stream(fallbackEncodings
+					.split("\\s+"))
+					.map(StaticCharsetEncodingDetector::new)
+					.forEach(encodingProviders::add);
+			}
+		}
+		else
+		{
+			encodingProviders.add(new StaticCharsetEncodingDetector(buffer.getStringProperty(JEditBuffer.ENCODING)));
+		}
+		return encodingProviders;
+	} //}}}
+
 	//{{{ readMarkers() method
-	private static void readMarkers(Buffer buffer, InputStream _in)
-		throws IOException, InterruptedException
+	private static void readMarkers(Buffer buffer, InputStream _in) throws IOException, InterruptedException
 	{
 		// For `reload' command
 		buffer.removeAllMarkers();
 
-		BufferedReader in = new BufferedReader(new InputStreamReader(_in));
-
-		try
+		try (BufferedReader in = new BufferedReader(new InputStreamReader(_in)))
 		{
 			String line;
 			while((line = in.readLine()) != null)
@@ -367,7 +355,7 @@ public class BufferLoadRequest extends BufferIORequest
 					throw new InterruptedException();
 
 				// malformed marks file?
-				if(line.length() == 0)
+				if(line.isEmpty())
 					continue;
 
 				// compatibility kludge for jEdit 3.1 and earlier
@@ -382,10 +370,6 @@ public class BufferLoadRequest extends BufferIORequest
 				buffer.addMarker(shortcut,position);
 			}
 			buffer.setMarkersChanged(false);
-		}
-		finally
-		{
-			in.close();
 		}
 	} //}}}
 }

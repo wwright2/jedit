@@ -10,7 +10,8 @@ import javax.swing.ListSelectionModel;
 import javax.swing.table.DefaultTableModel;
 
 import org.gjt.sp.jedit.jEdit;
-import org.gjt.sp.jedit.GUIUtilities;
+import org.gjt.sp.util.GenericGUIUtilities;
+
 /** A dialog that pops up when you click on "Previously Entered Strings"
   * from a HistoryTextField.
   *
@@ -21,17 +22,18 @@ import org.gjt.sp.jedit.GUIUtilities;
 */
 public class ListModelEditor
 {
-
 	public void open(DefaultListModel listModel)
 	{
 		final DefaultTableModel tableModel = createTableModel(listModel);
 		final JTable table = new JTable(tableModel);
+		// TODO: put this string in properties
 		table.setToolTipText("Move: PgUp/PgDown; Edit: Double-Click or Insert/Delete");
-		table.setRowHeight(GUIUtilities.defaultRowHeight());
-		table.getColumnModel().getColumn(0).setPreferredWidth(GUIUtilities.defaultColumnWidth());
+		table.setRowHeight(GenericGUIUtilities.defaultRowHeight());
+		table.getColumnModel().getColumn(0).setPreferredWidth(GenericGUIUtilities.defaultColumnWidth());
 
 		table.addKeyListener(new KeyAdapter()
 		{
+			@Override
 			public void keyPressed(KeyEvent e)
 			{
 				int[] selRows = table.getSelectedRows();
@@ -101,8 +103,8 @@ public class ListModelEditor
 		return new DefaultTableModel(tableRowData, new String[] { "" });
 	}
 
-	private void updatelistModel(DefaultListModel listModel,
-	    DefaultTableModel tableModel)
+	@SuppressWarnings({"unchecked"})
+	private static void updatelistModel(DefaultListModel listModel, DefaultTableModel tableModel)
 	{
 		listModel.removeAllElements();
 		for (int i = 0; i < tableModel.getRowCount(); i++)

@@ -24,7 +24,6 @@ package org.gjt.sp.jedit.bufferio;
 
 //{{{ Imports
 import java.io.*;
-import java.io.Closeable;
 
 import org.gjt.sp.jedit.io.*;
 import org.gjt.sp.jedit.*;
@@ -34,7 +33,7 @@ import org.gjt.sp.util.*;
 /**
  * A buffer insert request.
  * @author Slava Pestov
- * @version $Id: BufferInsertRequest.java 22357 2012-10-13 04:58:01Z ezust $
+ * @version $Id: BufferInsertRequest.java 25507 2021-04-23 17:20:22Z kpouer $
  */
 public class BufferInsertRequest extends BufferIORequest
 {
@@ -47,13 +46,13 @@ public class BufferInsertRequest extends BufferIORequest
 	 * @param vfs The VFS
 	 * @param path The path
 	 */
-	public BufferInsertRequest(View view, Buffer buffer,
-		Object session, VFS vfs, String path)
+	public BufferInsertRequest(View view, Buffer buffer, Object session, VFS vfs, String path)
 	{
 		super(view,buffer,session,vfs,path);
 	} //}}}
 
 	//{{{ run() method
+	@Override
 	public void _run()
 	{
 		InputStream in = null;
@@ -67,29 +66,17 @@ public class BufferInsertRequest extends BufferIORequest
 
 			VFSFile entry = vfs._getFile(
 				session,path,view);
-			long length;
-			if(entry != null)
-				length = entry.getLength();
-			else
-				length = 0L;
+			long length = entry != null ? entry.getLength() : 0L;
 
 			in = vfs._createInputStream(session,path,false,view);
 			if(in == null)
 				return;
 
-			final SegmentBuffer seg = read(
-				autodetect(in),length,true);
+			final SegmentBuffer seg = read(autodetect(in),length,true);
 
 			/* we don't do this in Buffer.insert() so that
 			   we can insert multiple files at once */
-			AwtRunnableQueue.INSTANCE.runAfterIoTasks(new Runnable()
-			{
-				public void run()
-				{
-					view.getTextArea().setSelectedText(
-						seg.toString());
-				}
-			});
+			AwtRunnableQueue.INSTANCE.runAfterIoTasks(() -> view.getTextArea().setSelectedText(seg.toString()));
 		}
 		catch(InterruptedException e)
 		{
@@ -106,19 +93,8 @@ public class BufferInsertRequest extends BufferIORequest
 		}
 		finally
 		{
-			IOUtilities.closeQuietly((Closeable)in);
-			try
-			{
-				vfs._endVFSSession(session,view);
-			}
-			catch(Exception e)
-			{
-				Log.log(Log.ERROR,this,e);
-				String[] pp = { e.toString() };
-				VFSManager.error(view,path,"ioerror.read-error",pp);
-
-				buffer.setBooleanProperty(ERROR_OCCURRED,true);
-			}
+			IOUtilities.closeQuietly(in);
+			endSessionQuietly();
 		}
 	} //}}}
 }

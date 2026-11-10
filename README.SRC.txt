@@ -9,7 +9,7 @@ General jEdit documentation can be found in the 'doc' directory.
  For all tasks:
 
   - Apache Ant. Get it from <http://ant.apache.org>.
-    1.8.2 or newer has to be used.
+    1.9.10 or newer has to be used.
   - The Ant Optional package. This is included in the download from ants website,
     as well as the AntPlugin from the Plugin Manager,
     but not in some default installs on various *nix systems.
@@ -19,27 +19,27 @@ General jEdit documentation can be found in the 'doc' directory.
  For building jEdit, the API documentation or any of the
  distribution files except of the source package:
 
-  - A Java compiler of at least version 1.7, such as Oracle's javac
-    which is included in the JDK. Get it from <http://www.java.com/download> or
-    from your package manager - e. g. openjdk-7-jdk.
+  - A Java compiler of version 11, such as OpenJDK's javac which is
+    included in the JDK. Get it from <http://www.java.com/download>
+    or from your package manager - e. g. openjdk-11-jdk.
 
  For building the API documentation:
 
   - Sun's javadoc tool, which is included in the JDK.
     Get it from <http://www.java.com/download> or from your package
-    manager - e. g. sun-java7-jdk.
+    manager - e. g. openjdk-11-jdk.
 
  For building the windows installer (for the final step):
 
-  - Unicode Inno Setup. Get it from <http://www.jrsoftware.org/isdl.php>
+  - Inno Setup 6.0.0 or newer. Get it from <http://www.jrsoftware.org/isdl.php>
   - A box running windows or wine, e. g. on *nix. If Inno Setup should be
     run via wine, a wine version of at least 1.3.10 is required because
     of a bug in earlier wine versions.
 
- For building the Mac OS X disk image (DMG) for easy distribution
+ For building the OS X disk image (DMG) for easy distribution
  (for the final step):
 
-  - A box running Mac OS X
+  - A box running OS X
 
 
 * Tasks
@@ -49,7 +49,7 @@ General jEdit documentation can be found in the 'doc' directory.
 
  - retrieve                retrieve the dependencies
   retrieves almost all dependencies needed for building jEdit, only InnoSetup for the
-  windows installer and wine, if InnoSetup should be run on *nix or Mac OS X, have to
+  windows installer and wine, if InnoSetup should be run on *nix or OS X, have to
   be installed and configured in build.properties manually.
 
  - build                   build the jEdit JAR-file with full debug-information
@@ -98,17 +98,17 @@ General jEdit documentation can be found in the 'doc' directory.
  - dist-java               build the Java-installer
   builds the Java installer in the dist-folder, configured in build.properties.
 
- - dist-mac                build the Mac OS X disk image (DMG-file)
-  builds the Mac OS X internet-enabled disk image (DMG-file) if building on a box
-  running Mac OS X. If building on a box running something else, there will be a file
+ - dist-mac                build the OS X disk image (DMG-file)
+  builds the OS X internet-enabled disk image (DMG-file) if building on a box
+  running OS X. If building on a box running something else, there will be a file
   called jedit<version_here>-dist-mac-finish.tar.bz2 in the dist-folder,
-  configured in build.properties. Give that to someone running Mac OS X and ask him
+  configured in build.properties. Give that to someone running OS X and ask him
   to extract the archive and to execute "ant dist-mac-finish".
   The only thing that needs to be installed for this final step is Apache Ant.
 
- - dist-mac-finish         finish building the Mac OS X disk image (DMG-file) on Mac OS X
-  builds the Mac OS X internet-enabled disk image (DMG-file) in the dist-folder,
-  configured in build.properties if building on a box running Mac OS X.
+ - dist-mac-finish         finish building the OS X disk image (DMG-file) on OS X
+  builds the OS X internet-enabled disk image (DMG-file) in the dist-folder,
+  configured in build.properties if building on a box running OS X.
   This target is normally only run directly, if someone just has to do
   the final step that was prepared by "dist-mac" or "dist".
 
@@ -173,26 +173,26 @@ General jEdit documentation can be found in the 'doc' directory.
 
 * Tips for Eclipse/NetBeans/IDE users:
 
-A file "jsr305.jar" contains definitions of the annotations 
-used in jEdit source code. It is downloaded automatically by ivy 
+A file "jsr305.jar" contains definitions of the annotations
+used in jEdit source code. It is downloaded automatically by ivy
 as part of the ant build process, to your lib/compile subfolder.
 If you add that jar to the
 project properties - java build path - libraries, that will
 get rid of the compiler errors on the annotations.
 
-A file "tools.jar" from the JDK is also needed in your 
-java build path. 
+A file "tools.jar" from the JDK is also needed in your
+java build path.
 
 The ant build process creates a subfolder called "build" for its work.
-Eclipse does the same and may pick the same folder. 
+Eclipse does the same and may pick the same folder.
 It is recommended you check/ensure that a different build
-directory ("Default Ouptut Folder") for Eclipse is used. 
+directory ("Default Ouptut Folder") for Eclipse is used.
 
 Some of the source directories are only needed for building packages on
 certain platforms. If you add jEdit source to an IDE like Eclipse that tries
 to compile every .java file, you'll get some errors from these directories unless
 you have the right libraries, which are automatically downloaded by ivy.
-However, if you tell Eclipse to exclude these directories, 
+However, if you tell Eclipse to exclude these directories,
 you can still build and run/debug jEdit from source. Follow these steps:
 
  - Project properties - Java build path

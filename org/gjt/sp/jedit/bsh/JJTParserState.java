@@ -2,6 +2,7 @@
 
 package org.gjt.sp.jedit.bsh;
 
+@SuppressWarnings("unchecked")
 class JJTParserState {
   private java.util.Stack nodes;
   private java.util.Stack marks;
@@ -75,7 +76,7 @@ class JJTParserState {
 
 
   void openNodeScope(Node n) {
-    marks.push(new Integer(mk));
+    marks.push(Integer.valueOf(mk));
     mk = sp;
     n.jjtOpen();
   }

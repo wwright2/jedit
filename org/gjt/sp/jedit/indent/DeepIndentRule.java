@@ -37,7 +37,7 @@ import javax.swing.text.Segment;
  * Deep indent rule.
  *
  * @author Matthieu Casanova
- * @version $Id: DeepIndentRule.java 21831 2012-06-18 22:54:17Z ezust $
+ * @version $Id: DeepIndentRule.java 25503 2021-04-21 21:45:28Z kpouer $
  */
 public class DeepIndentRule implements IndentRule
 {
@@ -52,6 +52,7 @@ public class DeepIndentRule implements IndentRule
 	} //}}}
 
 	//{{{ apply() method
+	@Override
 	public void apply(JEditBuffer buffer, int thisLineIndex,
 			  int prevLineIndex, int prevPrevLineIndex,
 			  List<IndentAction> indentActions)
@@ -118,7 +119,7 @@ public class DeepIndentRule implements IndentRule
 	 * Returns the length of the string as if it were indented with
 	 * spaces instead of tabs.
 	 */
-	private int getIndent(CharSequence line, int tabSize)
+	private static int getIndent(CharSequence line, int tabSize)
 	{
 		int cnt = 0;
 		for (int i = 0;  i < line.length(); i++)
@@ -151,20 +152,21 @@ public class DeepIndentRule implements IndentRule
 		int openOffset;
 		int closeOffset;
 
-		private int searchPos;
-		private Stack<Integer> open;
-		private Stack<Integer> close;
+		private final int searchPos;
+		private final Stack<Integer> open;
+		private final Stack<Integer> close;
 
 		Parens(JEditBuffer b, int line, int pos)
 		{
-			this.searchPos = pos;
-			this.open = new Stack<Integer>();
-			this.close = new Stack<Integer>();
+			searchPos = pos;
+			open = new Stack<>();
+			close = new Stack<>();
 			b.markTokens(line, this);
 			openOffset = (open.isEmpty()) ? -1 : open.pop();
 			closeOffset = (close.isEmpty()) ? -1 : close.pop();
 		}
 
+		@Override
 		public void handleToken(Segment seg,
 					byte id,
 					int offset,
@@ -182,19 +184,8 @@ public class DeepIndentRule implements IndentRule
 				length = searchPos - offset + 1;
 			}
 
-			switch (id)
+			if(!Token.isCommentOrLiteral(id))
 			{
-			case Token.COMMENT1:
-			case Token.COMMENT2:
-			case Token.COMMENT3:
-			case Token.COMMENT4:
-			case Token.LITERAL1:
-			case Token.LITERAL2:
-			case Token.LITERAL3:
-			case Token.LITERAL4:
-				/* Ignore comments and literals. */
-				break;
-			default:
 				for (int i = offset; i < offset + length; i++)
 				{
 					if (seg.array[seg.offset + i] == openChar)
@@ -212,10 +203,10 @@ public class DeepIndentRule implements IndentRule
 							close.push(i);
 					}
 				}
-				break;
 			}
 		}
 
+		@Override
 		public void setLineContext(TokenMarker.LineContext lineContext)
 		{
 			/* Do nothing. */

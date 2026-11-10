@@ -26,129 +26,117 @@ import org.gjt.sp.jedit.View;
 import org.gjt.sp.jedit.datatransfer.JEditDataFlavor;
 import org.gjt.sp.jedit.jEdit;
 import org.gjt.sp.jedit.textarea.TextArea;
+import org.gjt.sp.util.GenericGUIUtilities;
 
 import javax.swing.*;
 import javax.swing.border.EmptyBorder;
 import java.awt.*;
 import java.awt.datatransfer.DataFlavor;
 import java.awt.datatransfer.Transferable;
-import java.awt.event.ActionEvent;
-import java.awt.event.ActionListener;
 import java.util.*;
 import java.util.List;
 
-/** "Paste Special" dialog.
+/**
+ * "Paste Special" dialog.
+ *
  * @author Matthieu Casanova
  */
 public class PasteSpecialDialog extends EnhancedDialog
 {
-		private static final DataFlavor[] flavors = {DataFlavor.stringFlavor,
-				JEditDataFlavor.jEditRichTextDataFlavor, JEditDataFlavor.html};
+	private static final DataFlavor[] FLAVORS = {
+		DataFlavor.stringFlavor,
+		JEditDataFlavor.jEditRichTextDataFlavor,
+		JEditDataFlavor.html};
 
-		private final TextArea textArea;
-		private final JButton ok;
+	private final TextArea textArea;
+	private final JList<DataFlavor> flavorList;
 
-		private final JButton cancel;
-		private JList flavorList;
-
-		public PasteSpecialDialog(View view, TextArea textArea)
+	public PasteSpecialDialog(View view, TextArea textArea)
+	{
+		super(view, jEdit.getProperty("paste-special.title"), true);
+		this.textArea = textArea;
+		JPanel content = new JPanel(new BorderLayout());
+		content.setBorder(new EmptyBorder(12, 12, 12, 12));
+		setContentPane(content);
+		Registers.Register register = Registers.getRegister('$');
+		Transferable transferable = register.getTransferable();
+		DataFlavor[] flavors = transferable.getTransferDataFlavors();
+		List<DataFlavor> flavorList = Arrays.asList(flavors);
+		List<DataFlavor> supportedFlavors = new ArrayList<>(FLAVORS.length);
+		for (DataFlavor flavor : FLAVORS)
 		{
-				super(view, jEdit.getProperty("paste-special.title"), true);
-				this.textArea = textArea;
-				JPanel content = new JPanel(new BorderLayout());
-				content.setBorder(new EmptyBorder(12,12,12,12));
-				setContentPane(content);
-				Registers.Register register = Registers.getRegister('$');
-				Transferable transferable = register.getTransferable();
-				DataFlavor[] flavors = transferable.getTransferDataFlavors();
-				List<DataFlavor> flavorList = Arrays.asList(flavors);
-				Vector<DataFlavor> supportedFlavors = new Vector<DataFlavor>(this.flavors.length);
-				for (DataFlavor flavor : this.flavors)
+			if (flavorList.contains(flavor))
+			{
+				supportedFlavors.add(flavor);
+			}
+		}
+		this.flavorList = new JList<>(supportedFlavors.toArray(new DataFlavor[0]));
+		this.flavorList.setCellRenderer(new DefaultListCellRenderer()
+		{
+			@Override
+			public Component getListCellRendererComponent(JList list, Object value, int index, boolean isSelected, boolean cellHasFocus)
+			{
+				super.getListCellRendererComponent(list, value, index, isSelected, cellHasFocus);
+				if (value.equals(DataFlavor.stringFlavor))
 				{
-						if (flavorList.contains(flavor))
-						{
-								supportedFlavors.add(flavor);
-						}
+					setText("Plain text");
 				}
-				this.flavorList = new JList(supportedFlavors);
-				this.flavorList.setCellRenderer(new DefaultListCellRenderer()
+				else if (value.equals(JEditDataFlavor.jEditRichTextDataFlavor))
 				{
-						@Override
-						public Component getListCellRendererComponent(JList list, Object value, int index, boolean isSelected, boolean cellHasFocus)
-						{
-								super.getListCellRendererComponent(list, value, index, isSelected, cellHasFocus);
-								if (value.equals(DataFlavor.stringFlavor))
-								{
-										setText("Plain text");
-								}
-								else if (value.equals(JEditDataFlavor.jEditRichTextDataFlavor))
-								{
-										setText("jEdit rich text");
-								}
-								else if (value.equals(JEditDataFlavor.html))
-								{
-										setText("html");
-								}
-								return this;
-						}
-				});
-				getContentPane().add(new JScrollPane(this.flavorList));
-
-				//{{{ Buttons
-
-				JPanel buttons = new JPanel();
-				buttons.setLayout(new BoxLayout(buttons,BoxLayout.X_AXIS));
-				buttons.setBorder(new EmptyBorder(12,0,0,0));
-				buttons.add(Box.createGlue());
-
-				ok = new JButton(jEdit.getProperty("common.ok"));
-				ok.addActionListener(new ActionListener()
-				{
-						public void actionPerformed(ActionEvent e)
-						{
-								ok();
-						}
-				});
-				getRootPane().setDefaultButton(ok);
-				buttons.add(ok);
-
-				buttons.add(Box.createHorizontalStrut(6));
-
-				cancel = new JButton(jEdit.getProperty("common.cancel"));
-				cancel.addActionListener(new ActionListener()
-				{
-						public void actionPerformed(ActionEvent e)
-						{
-								cancel();
-						}
-				});
-				buttons.add(cancel);
-
-				buttons.add(Box.createGlue());
-				content.add(BorderLayout.SOUTH,buttons);
-
-				//}}}
-
-				pack();
-				setLocationRelativeTo(view);
-				setVisible(true);
-		}
-
-		@Override
-		public void ok()
-		{
-				DataFlavor flavor = (DataFlavor) flavorList.getSelectedValue();
-				if (flavor == null)
-				{
-						flavor = DataFlavor.stringFlavor;
+					setText("jEdit rich text");
 				}
-				Registers.paste(textArea, '$', flavor);
-				dispose();
-		}
+				else if (value.equals(JEditDataFlavor.html))
+				{
+					setText("html");
+				}
+				return this;
+			}
+		});
+		getContentPane().add(new JScrollPane(this.flavorList));
 
-		@Override
-		public void cancel()
+		//{{{ Buttons
+
+		JPanel buttons = new JPanel();
+		buttons.setLayout(new BoxLayout(buttons, BoxLayout.X_AXIS));
+		buttons.setBorder(new EmptyBorder(17, 0, 0, 0));
+		buttons.add(Box.createGlue());
+
+		JButton ok = new JButton(jEdit.getProperty("common.ok"));
+		ok.addActionListener(e -> ok());
+		getRootPane().setDefaultButton(ok);
+		buttons.add(ok);
+
+		buttons.add(Box.createHorizontalStrut(6));
+
+		JButton cancel = new JButton(jEdit.getProperty("common.cancel"));
+		cancel.addActionListener(e -> cancel());
+		buttons.add(cancel);
+
+		GenericGUIUtilities.makeSameSize(ok, cancel);
+
+		content.add(BorderLayout.SOUTH, buttons);
+		//}}}
+
+		pack();
+		setLocationRelativeTo(view);
+		setVisible(true);
+	}
+
+	@Override
+	public void ok()
+	{
+		DataFlavor flavor = flavorList.getSelectedValue();
+		if (flavor == null)
 		{
-				dispose();
+			flavor = DataFlavor.stringFlavor;
 		}
+		Registers.paste(textArea, '$', flavor);
+		dispose();
+	}
+
+	@Override
+	public void cancel()
+	{
+		dispose();
+	}
 }

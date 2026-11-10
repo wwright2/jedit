@@ -7,7 +7,7 @@
 ### Copyright (C) 1998, 2005 Slava Pestov
 ###
 
-#{{{ jEdit core (jedit_gui.props)
+#{{{ jEdit core
 
 #{{{ Default user catalog file
 defaultCatalog=<?xml version="1.0"?>\n\
@@ -34,25 +34,26 @@ common.remove=Удалить
 common.removeCurrent=Удалить выбор
 common.moveUp=Вверх
 common.moveDown=Вниз
-common.clearAll=Очистить Всё
-common.selectAll=Выделить Всё
-common.selectNone=Отменить ВЫделение
+common.clearAll=Очистить всё
+common.selectAll=Выделить всё
+common.selectNone=Отменить выделение
+common.loading=Загрузка...
+common.reset=Сброс
 
-lineSep.unix=Unix (\\n)
-lineSep.windows=DOS/Windows (\\r\\n)
-lineSep.mac=MacOS (\\r)
+lineSep.LF=Unix/MacOS (\\n)
+lineSep.CRLF=DOS/Windows (\\r\\n)
+lineSep.CR=Classic MacOS (\\r)
 #}}}
 
 #{{{ Miscellaneous
 history.caption=Ранее введённые строки:
 
-action-set.jEdit=Встроеные Комманды
+action-set.jEdit=Встроенные Команды
 action-set.browser=Обозреватель Файловой Системы
-action-set.macros=Макро комманды
-action-set.plugin=Модуль: {0}
+action-set.macros=Макросы
+action-set.plugin=Плагин: {0}
 
 macro-handler.beanshell.label=Программа BeanShell
-macro-handler.beanshell.glob=*.bsh
 
 save-layout-failed.message=Не удалось сохранить раскладку дока.
 load-layout.title=Загрузить Раскладку Дока
@@ -67,11 +68,11 @@ view.search.close-tooltip=Спрятать Панель Поиска (ESCAPE)
 
 view.action.prompt=Действие:
 view.action.no-completions=Не найдено заданных действий
-view.action.close-tooltip=Спрятать панел действий (ESCAPE)
+view.action.close-tooltip=Спрятать панель действий (ESCAPE)
 #}}}
 
 #{{{ Context menu
-view.context.customize=Персонализировать Меню...
+view.context.customize=Настроить это меню...
 #}}}
 
 #{{{ System tray menu
@@ -90,26 +91,27 @@ new-file-in-mode.dialog.title=Новый Файл
 new-file-in-mode.dialog.message=Режим Редактирования:
 open-file.label=Открыть...($O)
 reload.label=Перезагрузить($R)
-reload-all.label=Перезагрузить Все($d)
+reload-all.label=Перезагрузить все($d)
 close-buffer.label=Закрыть($C)
-close-buffer.tooltip=Закрыть буффер только в наборе EditPane
+close-buffer.tooltip=Закрыть буфер только в наборе EditPane
 global-close-buffer.label=Закрыть (глобально)
-global-close-buffer.tooltip=Закрыть буффер во всех видах
+global-close-buffer.tooltip=Закрыть буфер во всех видах
 closeall-except-active.tooltip=Закрыть остальные в наборе EditPane
 closeall-except-active.label=Закрыть остальные($O)
-closeall-bufferset.label=Закрыть Все($e)
+closeall-bufferset.label=Закрыть все($e)
 closeall-bufferset.tooltip=Очистить набор Editpane
 bufferset-toggle-exclusive.label=Включить исключительный набор($x)
-bufferset-toggle-exclusive.tooltip=Когда буффер открыт, закрыть его в других непересекающихся наборах
-close-all.label=Закрыть Все (Глобально)
-close-all.tooltip=Закрыть все буфферы во всех видах
+bufferset-toggle-exclusive.tooltip=Когда буфер открыт, закрыть его в других непересекающихся наборах
+close-all.label=Закрыть все (Глобально)
+close-all.tooltip=Закрыть все буферы во всех видах
 save.label=Сохранить($S)
 save-as.label=Сохранить как...($a)
 save-a-copy-as.label=Сохранить копию как...($y)
 save-a-copy-as.tooltip=Не изменять путь к текущему буферу
-save-all.label=Сохранить Все...($l)
-print.label=Печатать...($P)
-page-setup.label=Свойства Страницы...($g)
+save-all.label=Сохранить все...($l)
+print.label=Печать...($P)
+print-preview.label=Предпросмотр печати...($v)
+page-setup.label=Свойства страницы...($g)
 # Print selection not yet implemented
 #print-selection.label=Prin$t Selection...
 exit.label=Выход($x)
@@ -118,30 +120,30 @@ exit.label=Выход($x)
 recent-files.label=Последние Файлы($F)
 recent-files.textfield.tooltip=Здесь может быть фильтр из префикса или шаблон
 no-recent-files.label=Нет недавних файлов
-clear-recent-files.label=Очистить Список Файлов
+clear-recent-files.label=Очистить список Файлов
 #}}}
 
-reload-encoding.label=Перезагрузить с новой кодировкой($E)
+reload-encoding.label=Перезагрузить в кодировке($E)
 reload-encoding.error=Нет кодировки {0}
 
 #}}}
 
 #{{{ Edit menu
 
-edit.label=Менять($E)
+edit.label=Правка($E)
 undo.label=Отменить($U)
-redo.label=Переприменить($R)
+redo.label=Вернуть($R)
 cut.label=Вырезать($C)
 copy.label=Копировать($o)
 paste.label=Вставить($P)
-select-all.label=Выделить Все($A)
-word-count.label=Счётчик Слов...($W)
-complete-word.label=Закончить слово($m)
-expand-abbrev.label=Раскрыть сокращение($x)
+select-all.label=Выделить все($A)
+word-count.label=Счётчик слов...($W)
+complete-word.label=Завершить слово($m)
+expand-abbrev.label=Развернуть сокращение($x)
 goto-line.label=Перейти к строке...($G)
 
 #{{{ More Clipboard menu
-clipboard.label=Вставка (ещё)($b)
+clipboard.label=ещё вставка($b)
 cut-append.label=Вырезать с добавлением($C)
 copy-append.label=Копировать с добавлением($o)
 vertical-paste.label=Вертикальная вставка($V)
@@ -159,7 +161,7 @@ view-registers.label=Просмотр регистров($w)
 #}}}
 
 #{{{ More Selection menu
-selection.label=Выделение (ещё)($S)
+selection.label=ещё выделение($S)
 select-none.label=Убрать выделение($N)
 select-word.label=Выделить слово($W)
 select-line.label=Выделить строку($L)
@@ -178,8 +180,8 @@ delete-end-line.label=Удалить до конца строки($E)
 join-lines.label=Соединить строки($J)
 delete-paragraph.label=Удалить абзац($P)
 format-paragraph.label=Форматировать абзац($F)
-to-lower.label=В маленькие буквы($L)
-to-upper.label=В большие буквы($U)
+to-lower.label=В нижний регистр($L)
+to-upper.label=В верхний регистр($U)
 #}}}
 
 #{{{ Indent menu
@@ -187,15 +189,15 @@ indent.label=Отступ($I)
 indent-lines.label=Отступ в строках($I)
 shift-left.label=Сдвинуть влево($L)
 shift-right.label=Сдвинуть вправо($R)
-remove-trailing-ws.label=Удалить пробелы на конце
+remove-trailing-ws.label=Удалить пробелы в конце
 spaces-to-tabs.label=Пробелы в табуляцию($S)
 tabs-to-spaces.label=Табуляцию в пробелы($T)
 #}}}
 
 #{{{ Source menu
 source.label=Исходный код($S)
-range-comment.label=Поточный коментарий($R)
-line-comment.label=Построчный коментарий($L)
+range-comment.label=Блочный комментарий($R)
+line-comment.label=Однострочный комментарий($L)
 select-block.label=Выбрать блок кода($S)
 match-bracket.label=Перейти к связанной скобке($M)
 prev-bracket.label=Перейти к предыдущей скобке($P)
@@ -209,32 +211,32 @@ search.label=Поиск($S)
 find.label=Найти...($F)
 find-next.label=Найти следующее($n)
 find-prev.label=Найти предыдущее($v)
-search-in-open-buffers.label=Поиск в открутых буферах...($B)
-search-in-directory.label=Поиск в директории...($D)
+search-in-open-buffers.label=Искать в открытых буферах...($B)
+search-in-directory.label=Искать в каталоге...($D)
 replace-in-selection.label=Замена в выделении($R)
 replace-and-find-next.label=Заменить и продолжить поиск($p)
 replace-all.label=Заменить все($A)
-quick-search.label=Панель постепенного поиска($I)
-hypersearch.label=Панель глобального поиска($H)
-quick-search-word.label=Постепенный поиск слова($n)
-hypersearch-word.label=Глобальный поиск слова($y)
-whole-word.label=Целое слово($W)
-ignore-case.label=Игнороровать размер букв($C)
-regexp.label=Регулярные выражения($x)
-hypersearch-results.label=Глобальные результаты
+quick-search.label=Панель быстрого поиска($I)
+hypersearch.label=Панель гипер-поиска($H)
+quick-search-word.label=Быстрый поиск слова($n)
+hypersearch-word.label=Гипер-поиск слова($y)
+whole-word.label=Целые слова($W)
+ignore-case.label=Игнорировать регистр($C)
+regexp.label=Регулярное выражение($x)
+hypersearch-results.label=Результаты гипер-поиска
 #}}}
 
 #{{{ Markers menu
-markers.label=закладки($M)
-add-marker.label=Добавить/удалить закладку($A)
-add-marker-shortcut.label=Добавить закладку с сокращением($W)
-remove-all-markers.label=Удалить все закладки($m)
-goto-marker.label=Перейти к закладке($G)
-select-marker.label=Выделить до закладки($S)
-swap-marker.label=Обменять каретку с закладкой($p)
-prev-marker.label=Перейти к предыдущей закладке($P)
-next-marker.label=Перейти к следующей закладке($N)
-no-markers.label=Нет закладок
+markers.label=Метки($M)
+add-marker.label=Добавить/удалить метку($A)
+add-marker-shortcut.label=Добавить метку с сокращением($W)
+remove-all-markers.label=Удалить все метки($m)
+goto-marker.label=Перейти к метке($G)
+select-marker.label=Выделить до метки($S)
+swap-marker.label=Обменять курсор с меткой($p)
+prev-marker.label=Перейти к предыдущей метке($P)
+next-marker.label=Перейти к следующей метке($N)
+no-markers.label=Нет меток
 markers.blank-line=[Пустая строка]
 #}}}
 
@@ -262,8 +264,8 @@ new-view.tooltip=Новое главное окно с доком
 new-plain-view.label=Новый простой вид($w)
 new-plain-view.tooltip=Новое главное окно без дока и некоторых панелей
 close-view.label=Закрыть вид($C)
-close-view.tooltip=Закрыть главное окно, и завершить работу, если оно единстевенное
-prev-buffer.label=Перейти к предыдущему боферу($P)
+close-view.tooltip=Закрыть главное окно и завершить работу, если оно единстевенное
+prev-buffer.label=Перейти к предыдущему буферу($P)
 next-buffer.label=Перейти к следующему буферу($N)
 recent-buffer.label=Перейти к последнему буферу($R)
 toggle-buffer-switcher.label=Переключатель буферов($B)
@@ -272,15 +274,15 @@ toggle-line-numbers.label=Номера строк($L)
 toggle-statusbar.label=Строка состояния($t)
 toggle-gutter.label=Кант($G)
 show-context-menu.label=Контекстное меню
-set-view-title.label=Ввести имя виду...
-set-view-title.tooltip=Ввести имя для окна для отличия от других окон.
+set-view-title.label=Задать заголовок окна...
+set-view-title.tooltip=Задать заголовок для окна для отличия от других окон.
 toggle-full-screen.label=Полный экран($f)
 
 #{{{ Scrolling menu
 scrolling.label=Прокрутка($g)
 scroll-to-current-line.label=Прокрутить к текущй строке($t)
-scroll-and-center.label=Прокрутить и центрировать каретку($S)
-center-caret.label=Каректу в центр экрана($C)
+scroll-and-center.label=Прокрутить и центрировать курсор($S)
+center-caret.label=Курсор в центр экрана($C)
 scroll-up-line.label=Прокрутить на строку вверх($U)
 scroll-down-line.label=Прокрутить на строку вниз($D)
 scroll-up-page.label=Прокрутить на страницу вверх($p)
@@ -315,18 +317,18 @@ right-docking-area.label=К правой области дока($R)
 bottom-docking-area.label=К нижней области дока($B)
 focus-textarea.label=К тексту
 close-docking-area.label=Закрыть текущую область дока($C)
-layout-load.label=Загрузить раскладку дока ...($L)
-layout-save.label=Сохранить раскладку дока ...($S)
-layout-load-current-mode.label=Загрузить раскладку дока для текущего режима
-layout-save-current-mode.label=Сохранить раскладку дока для текущего режима
+layout-load.label=Загрузить схему дока ...($L)
+layout-save.label=Сохранить схему дока ...($S)
+layout-load-current-mode.label=Загрузить схему дока для текущего режима
+layout-save-current-mode.label=Сохранить схему дока для текущего режима
 #}}}
 
 #}}}
 
 #{{{ Utilities menu
 
-utils.label=Услуги($U)
-vfs.browser.label=Инспектор файлов($F)
+utils.label=Сервис($U)
+vfs.browser.label=Обозреватель файлов($F)
 action-bar.label=Панель действий($A)
 last-action.label=Повторить последнее действие($p)
 buffer-options.label=Настройки буфера...($B)
@@ -334,42 +336,42 @@ global-options.label=Общие настройки...($G)
 combined-options.label=Настройки...($O)
 
 #{{{ Recent Directories menu
-recent-directories.label=Последние директории($R)
-no-recent-dirs.label=Нет директорий в списке
+recent-directories.label=Последние каталоги($R)
+no-recent-dirs.label=Нет каталогов в списке
 #}}}
 
 #{{{ Favorites menu
-favorites.label=Избранные($v)
-add-buffer-to-favorites.label=Добавить буфер в избранные
-add-dir-to-favorites.label=Добавить директорию в избранные
+favorites.label=Избранное($v)
+add-buffer-to-favorites.label=Добавить буфер в избранное
+add-dir-to-favorites.label=Добавить каталог в избранное
 edit-favorites.label=Настроить избранное
 #}}}
 
 #{{{ Current Directory menu
-current-directory.label=Текущая директория($C)
+current-directory.label=Текущий каталог($C)
 #}}}
 
 #{{{ jEdit Home Directory menu
-jedit-directory.label=Директория $jEdit
+jedit-directory.label=Каталог $jEdit
 #}}}
 
 #{{{ Settings Directory menu
-settings-directory.label=Директория настроек($S)
+settings-directory.label=Каталог настроек($S)
 #}}}
 
 #{{{ BeanShell menu
 beanshell.label=B$eanShell
 eval.label=Выполнить BeanShell...($E)
 eval-for-selected-lines.label=Выполнить для выделенных строк...($F)
-eval-selection.label=Выполнить выделение($S)
+eval-selection.label=Выполнить выделенное($S)
 #}}}
 
 #{{{ Troubleshooting menu
 troubleshooting.label=Отладка($T)
-log-viewer.label=Записи активности($A)
-update-log.label=Обновить записи активности на диске($U)
+log-viewer.label=Журнал активности($A)
+update-log.label=Обновить журнал активности на диске($U)
 io-progress-monitor.label=Прогресс ввода/вывода($I)
-task-monitor.label=Инспектор активности($T)
+task-monitor.label=Монитор заданий($T)
 keyboard-tester.label=Проверка клавиш...($K)
 memory-status.label=Состояние памяти...($M)
 reload-modes.label=Перезагрузить режимы редактирования($R)
@@ -377,29 +379,29 @@ reload-modes.label=Перезагрузить режимы редактиров�
 
 #{{{ Quick options menu
 quick-options.label=Быстрые настройки($Q)
-edit-syntax-style.label=Редактировать стил синтаксиса для токена под кареткой
+edit-syntax-style.label=Редактировать стиль синтаксиса для токена под курсором
 #}}}
 
 #}}}
 
 #{{{ Macros menu
-macros.label=Макро-команда($c)
-new-macro.label=Новая
+macros.label=Макросы($c)
+new-macro.label=Новый
 record-macro.label=Записать...($R)
 stop-recording.label=Закончить запись($S)
-last-macro.label=Повторить последнюю
-record-temp-macro.label=Записать временную($T)
-run-temp-macro.label=Выполнить временную($p)
-run-other-macro.label=Выполнить другую...($O)
+last-macro.label=Повторить последний
+record-temp-macro.label=Записать временный($T)
+run-temp-macro.label=Выполнить временный($p)
+run-other-macro.label=Выполнить другой...($O)
 rescan-macros.label=Пересканировать($n)
-no-macros.label=Нет макро команд
+no-macros.label=Нет макросов
 #}}}
 
 #{{{ Plugins menu
-plugins.label=Модули($P)
-plugin-manager.label=Управление модулями...($M)
-plugin-options.label=Настройки модулей...($O)
-no-plugins.label=Модулей не установлено
+plugins.label=Плагины($P)
+plugin-manager.label=Менеджер плагинов...($M)
+plugin-options.label=Настройки плагинов...($O)
+no-plugins.label=Плагины не установлены
 #}}}
 
 #{{{ Help menu
@@ -468,7 +470,7 @@ select-document-home.label=Выделить до начала буфера
 select-end.label=Выделить до последнего символа строки
 select-home.label=Выделить до первого символа строки
 select-line-end.label=Выделить до конца строки
-select-line-home.label=Выделит до начала строки
+select-line-home.label=Выделить до начала строки
 select-next-char.label=Выделить следующий символ
 select-next-line.label=Выделить следующую строку
 select-next-page.label=Выделить следующую страницу
@@ -507,58 +509,60 @@ view.docking.menu-top=В верхний док
 view.docking.menu-left=В левый док
 view.docking.menu-bottom=В нижний док
 view.docking.menu-right=В правый док
-view.docking.menu-clone=Новое плавающее оконце
+view.docking.menu-clone=Новое плавающее окно
 view.docking.menu-close=Закрыть
 view.docking.menu-undock=Вынуть из дока
 
 view.docking.toggle.label={0} (Переключить)
-view.docking.float.label={0} (Новое плавающее оконце)
+view.docking.float.label={0} (Новое плавающее окно)
 
-directory.not-local=Невозможен доступ к директориям на удалённой фаиловой системе
+directory.not-local=Невозможен доступ к каталогам на удалённой фаиловой системе
 directory.no-files=Нет файлов
 
 #{{{ Gutter highlight
-view.gutter.marker.no-name=Закладка
-view.gutter.marker=Закладка: {0}
+view.gutter.marker.no-name=Метка
+view.gutter.marker=Метка: {0}
 #}}}
 
 #{{{ Status messages
-view.status.add-marker=Клавиша для новой закладки? [{0}]
+view.status.add-marker=Клавиша для новой метки? [{0}]
 view.status.auto-wrap=Строка не найдена: поиск перескочил на противоположную границу!
 view.status.bracket=Подходит к строке {0}: {1}
-view.status.caret-tooltip=Смещение, номера строки и колонки (Относительные смещение, номера строки и колонки [-виртуалн])
+view.status.caret-tooltip=Смещение, номер строки и колонки (Относительные смещение, номер строки и колонки [-виртуалн])
 view.status.copy-append-string-register=В какой регистр добавить? [{0}]
 view.status.copy-string-register=В какой регистр копировать? [{0}]
 view.status.cut-append-string-register=В какой регистр добавить вырезанное? [{0}]
 view.status.cut-string-register=В каой регистр поместить вырезанное? [{0}]
 view.status.expand-folds=Уровень свертки? [1-9]
-view.status.goto-marker=К какой закладке перейти? [{0}]
+view.status.goto-marker=К какой метке перейти? [{0}]
 view.status.incomplete-abbrev=Задано параметров - {0} , требуется - {1} !
-view.status.insert-literal=Нажмите клавишу для непсредственной вставки?
+view.status.insert-literal=Нажмите клавишу для непосредственной вставки?
 view.status.io-1=Ввод/вывод: 1 операция активна
 view.status.io.done=Ввод/вывод закончен
 view.status.io=Ввод/вывод: активно {0} операций
 view.status.linesep-changed=Символ конца строки теперь {0}
 view.status.linesep-tooltip=Символ конца строки (щелчок для смены)
 view.status.memory-tooltip=Память доступная Java: {0}Kb/{1}Kb
-view.status.mode-tooltip=Текущие режим редактирования и свертки, кодировка
-view.status.multi-changed=Режим можественного выделения {0,choice,0#выключен|1#включён}
-view.status.multi-tooltip=Режим можественного выделения (щелчок для смены)
+view.status.mode-tooltip=Текущий режим редактирования
+view.status.fold-tooltip=Текущий свертки
+view.status.encoding-tooltip=Текущий кодировка
+view.status.multi-changed=Режим множественного выделения {0,choice,0#выключен|1#включён}
+view.status.multi-tooltip=Режим множественного выделения (щелчок для смены)
 view.status.narrow=Выполнено "Развернуть все", весь текст видим
-view.status.no-markers=нет закладок
+view.status.no-markers=нет меток
 view.status.no-registers=регистры не заданы
 view.status.overwrite-changed=Режим перезаписи {0,choice,0#выключен|1#включён}
-view.status.overwrite-tooltip=Индикатор режимавставки/перезаписи (щелчок для смены)
+view.status.overwrite-tooltip=Индикатор режима вставки/перезаписи (щелчок для смены)
 view.status.paste-string-register=Из какого регистра вставить? [{0}]
 view.status.print=Печать страницы {0}
 view.status.quick-copy=Режим быстрого копирования
-view.status.recording=Запись макро-команды
+view.status.recording=Запись макроса
 view.status.rect-select-changed=Прямоугольное выделение {0,choice,0#выключено|1#включено}
 view.status.rect-tooltip=Режим прямоугольного выделения (щелчок для смены)
 view.status.replace-all=Замен: {0}, изменённых файлов: {1}
 view.status.search-not-found=Строка не найдена!
-view.status.select-marker=До какой закладки выделить? [{0}]
-view.status.swap-marker=С какой закладкой обменять каректу? \
+view.status.select-marker=До какой метки выделить? [{0}]
+view.status.swap-marker=С какой меткой обменять курсор? \
 	[{0}]
 view.status.vertical-paste-string-register=Из какого регистра вставить? [{0}]
 view.status.wrap-changed=Режим переноса по словам сейчас "{0}"
@@ -566,9 +570,11 @@ view.status.wrap-tooltip=<html>Режим переноса по словам {0}
 view.status.indent-tooltip=Режим автоматического отступа (щелчок для смены)
 view.status.autoindent-changed=Режим автоматического отступа сейчас "{0}"
 view.status.bufferset-tooltip=Набор буферов включает в себя {0}
+view.status.locked-changed=Буфер {0,choice,0#разблокирован|1#заблокирован}
+view.status.locked-tooltip=Буфер {0,choice,0#разблокирован|1#заблокирован} (щелчок для смены)
 wrap.none=выключен
-wrap.hard=постоянный
-wrap.soft=временный
+wrap.hard=жёсткий
+wrap.soft=мягкий
 #}}}
 
 #{{{ Status bar component visibility
@@ -583,15 +589,182 @@ print.headerText=jEdit - {0}
 print.footerText={0} :: страница {1}
 
 print-error.title=Ошибка печати
-print-error.message=При попытке печати произошла ошибка:\n\
-	{0}
+print-error.message=При попытке печати произошла ошибка:\n{0}
+
+print.dialog.title=Print
+print.dialog.pageSetupTitle=Page Setup
+print.dialog.Advanced=Advanced
+print.dialog.All_pages=All pages
+print.dialog.All_sheets=All sheets
+print.dialog.At=At
+print.dialog.Automatic-Feeder=Automatic Feeder
+print.dialog.Bottom=Bottom
+print.dialog.Cassette=Cassette
+print.dialog.Collate=Collate
+print.dialog.Color=Color
+print.dialog.Copies=Copies
+print.dialog.Current_page=Current page
+print.dialog.Draft=Draft
+print.dialog.Even_sheets=Even sheets
+print.dialog.Finishing=Finishing
+print.dialog.Form-Source=Form Source
+print.dialog.General=General
+print.dialog.High=High
+print.dialog.Ink=Ink
+print.dialog.Job=Job
+print.dialog.Job_Details=Job Details
+print.dialog.Large-Format=Large Format
+print.dialog.Layout=Layout
+print.dialog.Left=Left
+print.dialog.Low=Low
+print.dialog.Manual-Envelope=Manual Envelope
+print.dialog.Margins=Margins
+print.dialog.Medium=Medium
+print.dialog.Monochrome=Monochrome
+print.dialog.Normal=Normal
+print.dialog.Now=Now
+print.dialog.Odd_sheets=Odd sheets
+print.dialog.On_Hold=On Hold
+print.dialog.Only_print=Only print
+print.dialog.Orientation=Orientation
+print.dialog.Output_tray=Output tray
+print.dialog.Page_Setup=Page Setup
+print.dialog.Page_ordering=Page ordering
+print.dialog.Pages=Pages
+print.dialog.Pages_per_side=Pages per side
+print.dialog.Paper=Paper
+print.dialog.Paper_size=Paper size
+print.dialog.Paper_source=Paper source
+print.dialog.Print_Document=Print Document
+print.dialog.Priority=Priority
+print.dialog.Quality=Quality
+print.dialog.Range=Range
+print.dialog.Reverse=Reverse
+print.dialog.Right=Right
+print.dialog.Selection=Selection
+print.dialog.Small-Format=Small Format
+print.dialog.Top=Top
+print.dialog.Tractor-Feeder=Tractor Feeder
+print.dialog.Two-sided=Two-sided
+print.dialog.Urgent=Urgent
+print.dialog.a=Engineering A
+print.dialog.accepting-jobs=Accepting jobs
+print.dialog.auto-select=Automatically Select
+print.dialog.b=Engineering B
+print.dialog.c=Engineering C
+print.dialog.d=Engineering D
+print.dialog.e=Engineering E
+print.dialog.envelope=Envelope
+print.dialog.executive=Executive
+print.dialog.folio=Folio
+print.dialog.invite-envelope=Invitation Envelope
+print.dialog.invoice=Invoice
+print.dialog.iso-2a0=2A0 (ISO/DIN & JIS)
+print.dialog.iso-4a0=4A0 (ISO/DIN & JIS)
+print.dialog.iso-a0=A0 (ISO/DIN & JIS)
+print.dialog.iso-a1=A1 (ISO/DIN & JIS)
+print.dialog.iso-a2=A2 (ISO/DIN & JIS)
+print.dialog.iso-a3=A3 (ISO/DIN & JIS)
+print.dialog.iso-a4=A4 (ISO/DIN & JIS)
+print.dialog.iso-a5=A5 (ISO/DIN & JIS)
+print.dialog.iso-a6=A6 (ISO/DIN & JIS)
+print.dialog.iso-a7=A7 (ISO/DIN & JIS)
+print.dialog.iso-a8=A8 (ISO/DIN & JIS)
+print.dialog.iso-a9=A9 (ISO/DIN & JIS)
+print.dialog.iso-a10=A10 (ISO/DIN & JIS)
+print.dialog.iso-b0=B0 (ISO/DIN)
+print.dialog.iso-b1=B1 (ISO/DIN)
+print.dialog.iso-b2=B2 (ISO/DIN)
+print.dialog.iso-b3=B3 (ISO/DIN)
+print.dialog.iso-b4=B4 (ISO/DIN)
+print.dialog.iso-b5=B5 (ISO/DIN)
+print.dialog.iso-b6=B6 (ISO/DIN)
+print.dialog.iso-b7=B7 (ISO/DIN)
+print.dialog.iso-b8=B8 (ISO/DIN)
+print.dialog.iso-b9=B9 (ISO/DIN)
+print.dialog.iso-b10=B10 (ISO/DIN)
+print.dialog.iso-c0=C0 (ISO/DIN)
+print.dialog.iso-c1=C1 (ISO/DIN)
+print.dialog.iso-c2=C2 (ISO/DIN)
+print.dialog.iso-c3=C3 (ISO/DIN)
+print.dialog.iso-c4=C4 (ISO/DIN)
+print.dialog.iso-c5=C5 (ISO/DIN)
+print.dialog.iso-c6=C6 (ISO/DIN)
+print.dialog.iso-c7=C7 (ISO/DIN)
+print.dialog.iso-c8=C8 (ISO/DIN)
+print.dialog.iso-c9=C9 (ISO/DIN)
+print.dialog.iso-c10=C10 (ISO/DIN)
+print.dialog.iso-designated-long=ISO Designated Long
+print.dialog.italian-envelope=Italy Envelope
+print.dialog.italy-envelope=Italy Envelope
+print.dialog.japanese-postcard=Postcard (JIS)
+print.dialog.jis-b0=B0 (JIS)
+print.dialog.jis-b1=B1 (JIS)
+print.dialog.jis-b2=B2 (JIS)
+print.dialog.jis-b3=B3 (JIS)
+print.dialog.jis-b4=B4 (JIS)
+print.dialog.jis-b5=B5 (JIS)
+print.dialog.jis-b6=B6 (JIS)
+print.dialog.jis-b7=B7 (JIS)
+print.dialog.jis-b8=B8 (JIS)
+print.dialog.jis-b9=B9 (JIS)
+print.dialog.jis-b10=B10 (JIS)
+print.dialog.landscape=Landscape
+print.dialog.main=Main
+print.dialog.manual=Manual
+print.dialog.middle=Middle
+print.dialog.monarch-envelope=Monarch Envelope
+print.dialog.na-5x7=5\" x 7\" Paper
+print.dialog.na-6x9-envelope=6x9 Envelope
+print.dialog.na-7x9-envelope=6x7 Envelope
+print.dialog.na-8x10=8\" x 10\" Paper
+print.dialog.na-9x11-envelope=9x11 Envelope
+print.dialog.na-9x12-envelope=9x12 Envelope
+print.dialog.na-10x13-envelope=10x13 Envelope
+print.dialog.na-10x14-envelope=10x14 Envelope
+print.dialog.na-10x15-envelope=10x15 Envelope
+print.dialog.na-legal=Legal
+print.dialog.na-letter=Letter
+print.dialog.na-number-9-envelope=No. 9 Envelope
+print.dialog.na-number-10-envelope=No. 10 Envelope
+print.dialog.na-number-11-envelope=No. 11 Envelope
+print.dialog.na-number-12-envelope=No. 12 Envelope
+print.dialog.na-number-14-envelope=No. 14 Envelope
+print.dialog.not-accepting-jobs=Not accepting jobs
+print.dialog.one-sided=One sided
+print.dialog.oufuko-postcard=Double Postcard (JIS)
+print.dialog.personal-envelope=Personal Envelope
+print.dialog.portrait=Portrait
+print.dialog.quarto=Quarto
+print.dialog.reverse-landscape=Reverse Landscape
+print.dialog.reverse-portrait=Reverse Portrait
+print.dialog.side=Side
+print.dialog.tabloid=Tabloid
+print.dialog.top=Top
+print.dialog.two-sided-long-edge=Two Sided, Long Edge
+print.dialog.two-sided-short-edge=Two Sided, Short Edge
+print.dialog.error.Invalid_left_margin=Invalid left margin.
+print.dialog.error.Invalid_top_margin=Invalid top margin.
+print.dialog.error.Invalid_left_andor_right_margin=Invalid left and/or right margin.
+print.dialog.error.Invalid_top_andor_bottom_margin=Invalid top and/or bottom margin.
+print.dialog.preview=Preview
+
+print.toggle-show-page-breaks.label=Toggle Page Break Marker
+
+printpreview.dialog.title=Print Preview
+printpreview.dialog.nextPage=Next Page
+printpreview.dialog.prevPage=Previous Page
+printpreview.dialog.zoomin=Zoom In
+printpreview.dialog.zoomout=Zoom Out
+
+
 #}}}
 
 #{{{ Various dialog boxes
 
 #{{{ About dialog
 about.title=Информация о jEdit
-about.version=jEdit {0} {1} mode, using {2} Java {3}
+about.version=jEdit {0} в режиме {1}, использует {2} Java {3}
 about.mode.standalone=standalone
 about.mode.server=server
 about.mode.server-background=server-background
@@ -602,36 +775,36 @@ about.navigate=Нажмите любую клавишу для просмотр�
 # insert a space by itself in the text to create blank lines.
 about.text.prefix=jEdit был создан следующими разработчиками:
 about.text.suffix=Отдельная благодарность пользователям\n\
-                  	за их коментарии, предложения и доклады об ошибках.
+                  	за их комментарии, предложения и сообщения об ошибках.
 #}}}
 
 #{{{ Error list dialog, used to report I/O and plugin load errors
-error-list.plugin-manager=Управление модулями
+error-list.plugin-manager=Управление плагинами
 #}}}
 
 #{{{
 largeBufferDialog.title=Буфер{0} слишком велик
 largeBufferDialog.message=Этот буфер слишком велик, что может привести к\n\
-	замдлению работы программы из-за цветового подсвечивания синтаксиса.\n\
+	замедлению работы программы из-за подсветки синтаксиса.\n\
 	Следующие дейтвия могут помочь:\n\
-	-Перейти в режим подсвтки нечувствительной к контексту. Подсветка \n\
+	-Перейти в режим подсветки нечувствительной к контексту. Подсветка \n\
 	производится для каждой строки независимо, что увеличивает скорость\n\
 	работы, но результаты могут быть неверны.\n\
 	- Использовать режим 'текст' (подсветка будет отключена)
 largeBufferDialog.fullSyntax=Полная подсветка синтаксиса
-largeBufferDialog.contextInsensitive=Подсветка синтаксиса, нечуствительная к контексту
-largeBufferDialog.defaultMode=Текстовой режим редактирования
+largeBufferDialog.contextInsensitive=Подсветка синтаксиса, нечувствительная к контексту
+largeBufferDialog.defaultMode=Текстовый режим редактирования
 #}}}
 
 #{{{ I/O error dialog box
 ioerror.title=Ошибка ввода/вывода
-ioerror.caption=Операции ввода/вывода (количеством {0}) не могут быть завершены:
+ioerror.caption=Следующие операции ({0}) ввода/вывода не могут быть завершены:
 ioerror.caption-1=Операция ввода/вывода не может быть завершена:
 
 ioerror={0}
-ioerror.directory-error=Невозможно считать директорию: {0}
-ioerror.directory-error-nomsg=Невозможно считать директорию.
-ioerror.encoding-error=Фаил не может быть корректно загружен (возможна потеря данных)\n\
+ioerror.directory-error=Невозможно прочитать каталог: {0}
+ioerror.directory-error-nomsg=Невозможно прочитать каталог.
+ioerror.encoding-error=Файл не может быть корректно загружен (возможна потеря данных)\n\
 	при использовании кодировки "{0}".\n\
 	({1})\n\
 	Попробуйте использовать другую кодировку.\n\
@@ -643,8 +816,8 @@ ioerror.write-encoding-error=Невозможно кодировать симв�
 ioerror.read-error=Невозможно загрузить: {0}
 ioerror.write-error=Невозможно сохранить: {0}
 ioerror.unsupported-encoding-error=Кодировка {0} не поддерживается Вашей JVM (виртуальной машиной Jawa)
-ioerror.open-directory=Нельзя загрузить директорию в буфер.
-ioerror.save-directory=Нельзя перезаписать директорию буфером.
+ioerror.open-directory=Нельзя загрузить каталог в буфер.
+ioerror.save-directory=Нельзя перезаписать каталог буфером.
 ioerror.no-read=Недостаточный уровень доступа для загрузки файла.
 ioerror.no-write=Недостаточный уровень доступа для сохранения файла.
 ioerror.write-error-readonly=Нельзя сохранить, файл только для чтения.
@@ -653,25 +826,28 @@ ioerror.badurl=Некорректный URL: {0}
 ioerror.delete-error=Невозможно удалить файл.
 ioerror.rename-exists=Невозможно перезаписать существующий файл {0}.
 ioerror.rename-error=Невозможно переименовать в {0}.
-ioerror.mkdir-error=Невозможно создать директорию.
+ioerror.mkdir-error=Невозможно создать каталог.
+ioerror.backup-failed=Бэкап не удался. Проверьте настройки "Сохранение и бэкап".
+ioerror.backup-same-name=Имя файла бэкапа совпадает с именем оригинального файла.
+ioerror.copy-self=Деструктивная операция, копирование файла в самого себя, была отклонена: {0}
 
-vfs.not-supported.list=Невозможно инспектировать директории на файловой системе "{0}".
-vfs.not-supported.load=Невозможно открыть файлы с файловой системы "{0}".
-vfs.not-supported.save=Невозможно сохранять файлы на файловую систему "{0}".
+vfs.not-supported.list=Невозможно инспектировать каталоги в файловой системе "{0}".
+vfs.not-supported.load=Невозможно открыть файлы из файловой системы "{0}".
+vfs.not-supported.save=Невозможно сохранить файлы в файловую систему "{0}".
 
 vfs.overwrite-readonly.title=Файл только для чтения
 vfs.overwrite-readonly.message=Файл {0} только для чтения.\n\
-	Хотите все равно спасти его, сбросив флаг "только дла чтения"?\n\
-	Это двухступенчатая операция (также меняет владельца файла на Unix)
+	Все равно хотите сохранить его, сбросив флаг "только дла чтения"?\n\
+	Это двухэтапная операция (также меняет владельца файла на Unix)
 
 vfs.twostageimpossible.title=Двухступенчатое сохранение невозможно
 vfs.twostageimpossible.message=Двухступенчатое сохранение невозможно, желаете\n\
 	все равно продолжить сохранение?
 
-out-of-memory-error=Недостаточно памяти у Java для завершения запроса.\n\
-	Попробуйте увеличить максимум памяти отведенный Java.\n\
+out-of-memory-error=У Java недостаточно памяти для выполнения операции.\n\
+	Попробуйте увеличить максимум памяти отведенный для Java.\n\
 	\n\
-	Описание изменения памяти для Java находится в разделе\n\
+	Описание изменения памяти Java находится в разделе\n\
 	"Буферы" главы "Основы jEdit" в руководстве пользователя.
 #}}}
 
@@ -681,7 +857,7 @@ ioerror.message=Произошла ошибка ввода/вывода ({0})
 read-error.title=Ошибка чтения
 # {0} - the path name {1} - the error message
 read-error.message=Файл {0}\n\
-	не может быть загружен ис-за ошибки ввода/вывода.\n\
+	не может быть загружен из-за ошибки ввода/вывода.\n\
 	({1})
 
 write-error.title=Ошибка записи
@@ -690,16 +866,16 @@ write-error.message=Файл {0}\n\
 	не может быть сохранён из-за ошибки ввода/вывода.\n\
 	({1})
 
-directory-error.title=Ошибка директории
+directory-error.title=Ошибка каталога
 # {0} - the path name {1} - the error message
-directory-error.message=Директория {0}\n\
-	не может быть прочитана ис-за ошибки ввода/вывода.\n\
+directory-error.message=Каталог {0}\n\
+	не может быть прочитан из-за ошибки ввода/вывода.\n\
 	({1})
 
-directory-error-nomsg.title=Ошибка директории
+directory-error-nomsg.title=Ошибка каталога
 # {0} - the path name
-directory-error-nomsg.message=Директория {0}\n\
-	не может быть прочитана ис-за ошибки ввода/вывода.
+directory-error-nomsg.message=Каталог {0}\n\
+	не может быть прочитан ис-за ошибки ввода/вывода.
 
 encoding-error.title=Несовместимая кодировка
 encoding-error.message=Файл {0}\n\
@@ -712,13 +888,13 @@ encoding-error.message=Файл {0}\n\
 	В случае если не знаете какую кодировку использовать\n\
 	попробуйте "ASCII" или "8859_1".
 
-open-directory.title=Невозможно открыть директорию
-open-directory.message={0} - это директория.\n\
-	Директории нельзя открывать для редактирования.
+open-directory.title=Невозможно открыть каталог
+open-directory.message={0} - это каталог.\n\
+	Каталоги нельзя открывать для редактирования.
 
-save-directory.title=Невозможно сохранить директорию
-save-directory.message={0} - это директория.\n\
-	Буфер невозможно сохранить как директорию.
+save-directory.title=Невозможно сохранить каталог
+save-directory.message={0} - это каталог.\n\
+	Буфер невозможно сохранить как каталог.
 
 no-read.title=Невозможно открыть файл
 no-read.message=Невозможно читать {0}.\n\
@@ -775,9 +951,9 @@ autosave-found.message=Найдем файл автоматического со
 
 autosave-loaded.title=Файл автосохранения загружен
 autosave-loaded.message=Файл автосохранения {0}\n\
-	был загружен. Пожалуйста проверте, действительно ли он содержит Ваши\n\
+	был загружен. Пожалуйста, проверьте, действительно ли он содержит Ваши\n\
 	несохранённые данные. Если Вы желаете сохранить эти изменения, сохраните\n\
-	отркытый файл. В противном случае используйте меню Файл->Перезагрузить.
+	открытый файл. В противном случае используйте меню Файл->Перезагрузить.
 #}}}
 
 #{{{ Save all confirm dialog
@@ -787,34 +963,34 @@ saveall.message=Вы действительно хотите сохранить 
 
 #{{{ Reload all confirm dialog
 reload-all.title=Перезагрузить все буферы
-reload-all.message=Вы действительно хотите перезагрузить все жуферы с диска?\n\
-	Не сохранённые изменения во всех открытых буферах БУДУТ ПОТЕРЯНЫ!
+reload-all.message=Вы действительно хотите перезагрузить все буферы с диска?\n\
+	Несохранённые изменения во всех открытых буферах БУДУТ ПОТЕРЯНЫ!
 #}}}
 
 #{{{ Encoding prompt
-encoding-prompt.title=Отркыть с другой кодировкой
+encoding-prompt.title=Открыть в другой кодировке
 encoding-prompt.message=Использовать кодировку:
 #}}}
 
 #{{{ Macro recording already in progress dialog
-already-recording.title=Запись уже активна
-already-recording.message=Сапис макро-команды уже активна.
+already-recording.title=Запись уже идёт
+already-recording.message=Запись макроса уже идёт.
 #}}}
 
 #{{{ No temporary macro dialog
-no-temp-macro.title=Нет временной макро-команды
-no-temp-macro.message=Временная макро-команда ещё не была записана.
+no-temp-macro.title=Нет временного макроса
+no-temp-macro.message=Временный макрос ещё не был записан.
 #}}}
 
 #{{{ Record macro dialog
-record.title=Запись макро-команды
-record.message=Има для макро-команды:
+record.title=Запись макроса
+record.message=Имя макроса:
 #}}}
 
 #{{{ Some features don't work with -nosettings dialog
 no-settings.title=Функция отключена
-no-settings.message=jEdit был запущен с опцией -nosettings.\n\
-	Чтобы использовать данную функцию, нужно зпаустить jEdit без этой опции.
+no-settings.message=jEdit был запущен с параметром -nosettings.\n\
+	Чтобы использовать данную функцию, нужно запустить jEdit без этого параметра.
 #}}}
 
 #{{{ Some features don't work with the web start version
@@ -831,7 +1007,7 @@ search.find.mnemonic=s
 search.replace=Замена:
 search.replace.mnemonic=w
 search.string-replace-btn=Текст
-search.beanshell-replace-btn=Результат выполнения програмки на BeanShell
+search.beanshell-replace-btn=Результат выполнения сниппета BeanShell
 
 search.settings=Настройки:
 search.keep=Не убирать диалог
@@ -839,13 +1015,13 @@ search.keep.mnemonic=k
 search.word=Слово целиком (q)
 search.word.bar=Слово целиком
 search.word.mnemonic=q
-search.case=Без учета размера букв
+search.case=Без учета регистра
 search.case.mnemonic=i
-search.regexp=Регулярные выражения
+search.regexp=Регулярное выражение
 search.regexp.mnemonic=x
-search.hypersearch=Глобально
+search.hypersearch=Гипер-поиск
 search.hypersearch.mnemonic=h
-search.wrap=Авто-заворот на границе
+search.wrap=Автовозврат к началу
 search.wrap.mnemonic=t
 
 search.direction=Направление:
@@ -861,25 +1037,25 @@ search.current=Текущем буфере
 search.current.mnemonic=c
 search.all=Всех буферах
 search.all.mnemonic=l
-search.directory=Директории:
+search.directory=Каталоги:
 search.directory.mnemonic=d
-search.skipHidden=Пропускать скрытые/запасные
-search.skipBinary=Пропускать файлы с данными
+search.skipHidden=Пропускать скрытые/бэкапы
+search.skipBinary=Пропускать бинарные файлы
 search.skipHidden.mnemonic=h
 search.skipBinary.mnemonic=b
 
-search.directoryField=Директория:
+search.directoryField=Каталог:
 search.directoryField.mnemonic=y
 search.filterField=Фильтр:
 search.filterField.mnemonic=f
 glob.tooltip={*.c,*.h} для нескольких расширений
-search.subdirs=Искать в под-директориях
+search.subdirs=Искать в подкаталогах
 search.subdirs.mnemonic=u
 search.choose=Выбор...
 search.choose.mnemonic=e
-search.synchronize=Согласовать
+search.synchronize=Синхронизировать
 search.synchronize.mnemonic=z
-search.synchronize.tooltip=Установить фильтр и дирекорию в соответсвии с текущим буфером.
+search.synchronize.tooltip=Устанавливает фильтр и каталог в соответствии с расширением/расположением текущего буфера.
 search.findBtn=Искать
 search.findBtn.mnemonic=f
 search.replaceBtn=Заменить
@@ -894,13 +1070,13 @@ search.replaceAllBtn.mnemonic=a
 #}}}
 
 #{{{ Keep searching dialog
-keepsearching.title=Больше не найдено
-keepsearching.message=Ничего не найдено. Продолжить поиск с\n\
+keepsearching.title=Не найдено
+keepsearching.message=Больше ничего не найдено. Продолжить поиск с\n\
 	{0,choice,0#начала|1#конца}?
 #}}}
 
 #{{{ HyperSearch results dialog
-hypersearch-results.title=Результаты глобального поиска
+hypersearch-results.title=Результаты гипер-поиска
 hypersearch-results.result-caption={0} ({1,choice,1#1 совпадение|1<{1,number,integer} совпадений в '{2,choice,1#1 файле|1<{2,number,integer} файлах}'})
 hypersearch-results.open=Открыть
 hypersearch-results.open-view=Открыть в новом окне
@@ -911,10 +1087,10 @@ hypersearch-results.new-search=Новый поиск отсюда
 hypersearch-results.expand-child-nodes=Раскрыть содержимые узлы
 hypersearch-results.collapse-child-nodes=Схлопнуть содержимые узлы
 hypersearch-results.copy-to-clipboard=Копировать в буфер фрагментов
-hypersearch-results.redo=Повторить глобальный поиск
+hypersearch-results.redo=Повторить гипер-поиск
 hypersearch-results.tree-view=Переключить вид как дерево
 hypersearch-results.clear.label=Удалить все узлы
-hypersearch-results.stop.label=Остановить глобальный поиск и показать текущие результаты
+hypersearch-results.stop.label=Остановить гипер-поиск и показать текущие результаты
 hypersearch-results.multi.label=Переключить показ множественных результатов
 hypersearch-results.highlight.label=Задать вид показа совпадений
 hypersearch-results.file-caption={0} ({1,choice,1#1 совпадение|1<{1,number,integer} совпадений в '{2,choice,1#1 строке|1<{2,number,integer} строках}'})
@@ -928,7 +1104,7 @@ hypersearch-status=Поиск
 #{{{ HyperSearch too many results
 hypersearch.tooManyResults.label=Слишком много результатов
 hypersearch.tooManyResults.title=Слишком много результатов
-hypersearch.tooManyResults.message=Заказанный поиск вернул {0} \
+hypersearch.tooManyResults.message=Поиск вернул {0} \
 	результатов и ещё не окончен. Желаете остановить поиск?
 #}}}
 
@@ -951,15 +1127,15 @@ searcherror-bsh.message=Произошла ошибка при выполнен�
 #{{{ Empty fileset error dialog
 empty-fileset.title=Пустое множество файлов
 empty-fileset.message=Указанное множество файлов для поиска не содержит файлов.\n\
-	Пожалуйста, проверте что фильтр имён файлов и директория для поиска\n\
+	Пожалуйста, проверьте что фильтр имеён файлов и каталог для поиска\n\
 	заданы правильно.
 #}}}
 
 #{{{ Can only search local directories dialog
-remote-dir-search.title=Выбрана удалённая директория
-remote-dir-search.message=Вы намереваетесь провести поиск в удалённой директории.\n\
+remote-dir-search.title=Выбран удалённый каталог
+remote-dir-search.message=Вы намереваетесь провести поиск в удалённом каталоге.\n\
 	Такая операция может быть очень медленной из-за сетевого сообщения.\n\
-	Вы уверенны, что желаете продолжать?
+	Вы уверены, что желаете продолжать?
 #}}}
 
 #{{{ "Search in selection" active but nothing selected in text area
@@ -1018,13 +1194,21 @@ close.discard=Выбросить выбранные
 close.discard.mnemonic=d
 #}}}
 
+#{{{ Close all confirm dialog
+closeothers.title=Закрыть все остальные буферы
+closeothers.message=Вы уверены, что хотите закрыть все остальные буферы?
+closeall.title=Закрыть все буферы
+closeall.message=Вы уверены, что хотите закрыть все буферы?
+#}}}
+
+
 #{{{ Files changed on disk dialog
 files-changed.title=Файлы изменён на диске
 files-changed.caption=Следующие файлы были изменены на диске внешней программой:
 files-changed.deleted=Удалён с диска; сохраните чтобы создать вновь:
 files-changed.changed-auto=Автоматически перезагружен:
 files-changed.changed=Изменён на диске:
-files-changed.changed-dirty-auto=Буфер с изменениями- не перезагружен:
+files-changed.changed-dirty-auto=Буфер с изменениями; не перезагружен:
 files-changed.changed-dirty=Буфер с изменениями, а файл изменён на диске:
 files-changed.select-all=Выбрать все
 files-changed.select-all.mnemonic=a
@@ -1036,20 +1220,20 @@ files-changed.ignore.mnemonic=i
 
 #{{{ Abbrev dialogs
 add-abbrev.title=Добавить сокращение
-add-abbrev.mode=Доабвить только для режима
-add-abbrev.global=Дабавить глобально
+add-abbrev.mode=Добавить только для режима
+add-abbrev.global=Добавить глобально
 
 edit-abbrev.title=Изменить сокращение
 
-edit-abbrev.duplicate.title=Дублировать сокращенив
+edit-abbrev.duplicate.title=Дублировать сокращение
 edit-abbrev.duplicate.message=\
 	Расширение для этого сокращения уже существует.\n\
 	\n\
 	Заменить существующее расширение?
 
 abbrev-editor.abbrev=Сокращение:
-abbrev-editor.before=Текст до каретки:
-abbrev-editor.after=Текст после каретки:
+abbrev-editor.before=Текст до курсора:
+abbrev-editor.after=Текст после курсора:
 #}}}
 
 #{{{ XMode errors
@@ -1064,50 +1248,50 @@ xmode-error.empty-tag=Тэг {0} не может быть пустым
 xmode-error.token-invalid=Поле типа {0} недопустимо
 xmode-error.empty-keyword=Ключевое слово text не может быть пустым
 xmode-error.regexp=Недопустимое регулярное выражение\n({0})
-xmode-error.hash-char-and-hash-chars-mutually-exclusive=Недопустимо одновременное присутствие HASH_CHAR и HASH_CHARS
+xmode-error.hash-char-and-hash-chars-mutually-exclusive=HASH_CHAR и HASH_CHARS не могут быть заданы одновременно
 xmode-error.delegate-invalid=Недопустимый делегат: {0}
 #}}}
 
 #{{{ JARClassLoader errors
-plugin-error.title=Ошибка в модуле
-plugin-error.caption=Следующий модуль не может быть загружен:
-plugin-error.caption-1=Следующий модуль не может быть загружен:
+plugin-error.title=Ошибка в плагине
+plugin-error.caption=Следующий плагин не может быть загружен:
+plugin-error.caption-1=Следующий плагин не может быть загружен:
 
 plugin-error.load-error=Невозможно загрузить: {0}\n\
 	Вероятнее всего файл JAR повреждён; попробуйте\n\
-	переустановить его. Полная запись стэка в меню \n\
+	переустановить его. Полная трассировка стека в меню \n\
 	Услуги->Отладка->Записи Активности.
 plugin-error.start-error=Невозможно запустить: {0}\n\
-	Попробуйте обновление до последней версии модуля.
+	Попробуйте обновление до последней версии плагина.
 plugin-error.already-loaded=Установлено две копии. Пожалуйста, удалите одну из \
 	копий.
-plugin-error.dep-jdk=Требуется Java {0} или новее, имеется версия {1}.
-plugin-error.dep-jedit=Требуется jEdit {0} или новее, у Вас версия {1}.\n\
+plugin-error.dep-jdk=Требуется Java {0} или более новая, имеется версия {1}.
+plugin-error.dep-jedit=Требуется jEdit {0} или более новая, у Вас версия {1}.\n\
 	Скачайте новую версия jEdit с сайта <http://www.jedit.org>.
 plugin-error.dep-plugin.no-version=Требуется {1} версии {0} \
-	Или новее,\n\
-	однако {1} че установлено.
+	или новее,\n\
+	однако {1} не установлено.
 plugin-error.dep-plugin.broken=Требуется {0}, однако {0}\n\
 	не может быть загружено.
-plugin-error.dep-plugin=Требуется {1} версии {0} или новее, \
+plugin-error.dep-plugin=Требуется {1} версии {0} или более новый, \
 	однако имеется только {1} версии {2}.
 plugin-error.dep-class=Требуется класс {0}.\n\
-	Попробуйте установить соотвествующее дополнение или библиотеку классов.
+	Попробуйте установить соответствующий плагин или библиотеку классов.
 plugin-error.missing-jar=Требуется JAR-файл {0}.\n\
-	Этот файл, являеющийся частью данного дополнения, не чайден.\n\
-	Попробуйте переустановить дополнение.
-plugin-error.not-42=Это дополнение не поддерживает динамической загрузки.\n\
-	Необходимо перезапустить jEdit после установки или удаления этого дополнения.
+	Этот файл, являющийся частью данного плагина, не найден.\n\
+	Попробуйте переустановить плагин.
+plugin-error.not-42=Этот плагин не поддерживает динамической загрузки.\n\
+	Необходимо перезапустить jEdit после удаления или установки этого плагина.
 
-plugin-error-download.title=Ошибка в дополнении
-plugin-error-download.message=Ошибка при скачивании дополнения, попробуйте другое зеркало\n{0}
+plugin-error-download.title=Ошибка плагина
+plugin-error-download.message=Ошибка при скачивании плагина, попробуйте другое зеркало\n{0}
 #}}}
 
 #{{{ Macro dialogs
-macro-input.title=Ввод макро-команды
-macro-error.title=Ошибка макро-команды
-macro-message.title=Сообщение макро-команды
-macro-confirm.title=Подтверждение макро-команды
+macro-input.title=Ввод макроса
+macro-error.title=Ошибка макроса
+macro-message.title=Сообщение макроса
+macro-confirm.title=Подтверждение макроса
 #}}}
 
 #{{{ BeanShell stuff
@@ -1131,7 +1315,7 @@ beanshell-eval-line.message=Выражение на BeanShell выполняем
 	выбранной строки:\n\
 	\n\
 	Переменные:\n\
-	line - Номер страоки от начала буфера\n\
+	line - Номер строки от начала буфера\n\
 	index - Номер строки от начала выделения\n\
 	text - Текст строки\n\
 	view - Текущий вид\n\
@@ -1142,7 +1326,7 @@ beanshell-eval-line.message=Выражение на BeanShell выполняем
 
 #{{{ Macro not recording dialog
 macro-not-recording.title=Запись не активна
-macro-not-recording.message=В данный момент запись макро-команды не активна.
+macro-not-recording.message=В данный момент запись макроса не активна.
 #}}}
 
 #{{{ Large repeat count warning
@@ -1168,14 +1352,14 @@ memory-status.use=Использовано {0} Kb, всего {1} Kb
 #{{{ Multiple I/O request errors
 buffer-multiple-io.title=Ошибка ввода/вывода
 buffer-multiple-io.message=Для каждого буфера может быть активна только одна \n\
-	операция ввода/вывода. Пожалуйста. подождите пока текущая операция\n\
-	не закончится (или прервите её в мониторе ввода/вывода),\n\
+	операция ввода/вывода. Пожалуйста, подождите пока текущая операция\n\
+	не закончится (или прервите её в мониторе ввода/вывода)\n\
 	прежде чем начинать новую операцию.
 
 browser-multiple-io.title=Ошибка ввода/вывода
 browser-multiple-io.message=Каждый обозреватель файловой системы может выполнять\n\
-	только одну операцию ввода/вывода одновременно. Пожалуйста. подождите пока текущая операция\n\
-	не закончится (или прервите её в мониторе ввода/вывода),\n\
+	только одну операцию ввода/вывода единовременно. Пожалуйста, подождите пока текущая операция\n\
+	не закончится (или прервите её в мониторе ввода/вывода)\n\
 	прежде чем начинать новую операцию.
 #}}}
 
@@ -1186,9 +1370,9 @@ format-maxlinelen.message=Прежде чем использовать эту к
 #}}}
 
 #{{{ Text under caret does not have a syntax style (token type)
-syntax-style-no-token.title=Конфигурация стиля синтаксиса
-syntax-style-no-token.message=Для текста под кареткой нет ассоциированного \
-	стиля синтаксиса, который можно конфигурировать.
+syntax-style-no-token.title=Настройка стиля синтаксиса
+syntax-style-no-token.message=Для текста под курсором нет ассоциированного \
+	стиля синтаксиса, который можно настраивать.
 #}}}
 
 #{{{ View title dialog
@@ -1202,11 +1386,12 @@ buffer-options.caption=Это диалог для настроек влияющ�
 	Для изменения настроек режима редактирования смотри диалог\n\
 	Услуги->Общие настройки->Редактирование.
 buffer-options.loading-saving=Загрузка и сохранение
-buffer-options.lineSeparator=Раззделитель строк:
+buffer-options.lineSeparator=Разделитель строк:
 buffer-options.encoding=Кодировка:
 buffer-options.gzipped=Сжатие (GZIP) файлов на диске
 buffer-options.editing=Редактирование
 buffer-options.mode=режим редактирования:
+buffer-options.locked=Заблокирован
 #}}}
 
 #{{{ Global options dialog
@@ -1225,62 +1410,62 @@ options.last=editing
 options.general.label=Общие
 options.general.lineSeparator=Разделитель строк по умолчанию:
 options.general.encoding=Кодировка по умолчанию:
-options.general.encodingAutodetect=Определють кодировку файла автоматически
+options.general.encodingAutodetect=Определять кодировку файла автоматически, если возможно
 options.general.checkModStatus=Если открытые файлы изменены на диске:
 options.general.checkModStatus.nothing=ничего не делать
 options.general.checkModStatus.prompt=спросить
-options.general.checkModStatus.reload=автоматически перегрузить и информировать
-options.general.checkModStatus.silentReload=автоматически перегрузить без информирования
-options.general.checkModStatusUpon=Проверять файлы после:
-options.general.checkModStatusUpon.focus=получения фокуса программой
-options.general.checkModStatusUpon.all=получения фокуса, посещения буфера, сохранения любого буфера
-options.general.checkModStatusUpon.operations=посещения буфера или сохранения любого буфера
-options.general.checkModStatusUpon.focusBuffer=посещения или сохранения буфера
-options.general.checkModStatusUpon.none=сохранения буфера
+options.general.checkModStatus.reload=автоматически перезагрузить и уведомить
+options.general.checkModStatus.silentReload=автоматически перезагрузить без уведомления
+options.general.checkModStatusUpon=Проверять файлы на изменения после:
+options.general.checkModStatusUpon.focus=получения фокуса окном (проверять все буферы)
+options.general.checkModStatusUpon.all=получения фокуса окном или посещения буфера
+options.general.checkModStatusUpon.visitBuffer=посещения буфера
+options.general.checkModStatusUpon.none=не проверять
 options.general.recentFiles=Количество запоминаемых недавних файлов:
-options.general.hypersearch.maxWarningResults=Максимальное число результатов глобального поиска:
+options.general.hypersearch.maxWarningResults=Максимальное число результатов гипер-поиска:
 options.general.sortRecent=Сортировать недавние файлы
-options.general.saveCaret=Сохранять положение каретки с недавними файлами
-options.general.persistentMarkers=Сохранять закладки
-options.general.resetUndo=Ошищать историю действий после сохранения
+options.general.hideOpen=Скрывать открытые файлы из списка недавних
+options.general.closeAllConfirm="Закрыть все" требует подтверждения
+options.general.saveCaret=Сохранять положение курсора в недавних файлах
+options.general.persistentMarkers=Сохранять метки
+options.general.resetUndo=Очищать историю после сохранения
 options.general.restore=Открывать все прежде открытые файлы во время старта
 options.general.restore.splits=Восстанавливать разделение
 options.general.restore.remote=... включая не локальные файлы
 options.general.restore.cli=... включая файлы указанные в командной строке
 options.general.encodingDetectors=Список автодетекторов кодировок:
-options.general.fallbackEncodings=Список дублирующих кодировок:
+options.general.fallbackEncodings=Список резервных кодировок:
 options.general.fallbackEncodings.tooltip=Список кодировок, разделённых пробелами, используемых при ошибках кодировки при загрузке
-options.general.systrayicon=Показывать иконку в панели системы
 #}}}
 
 #{{{ Abbreviations pane
 options.abbrevs.label=Сокращения
 options.abbrevs.set=Набор сокращений:
-options.abbrevs.expandOnInput=Клавиша пробел расширяет сокращение
+options.abbrevs.expandOnInput=Пробел разворачивает сокращение
 options.abbrevs.abbrev=Сокращение
-options.abbrevs.expand=Расширенный текст
+options.abbrevs.expand=Полный текст
 options.abbrevs.add=Добавить...
 options.abbrevs.edit=Изменить...
 options.abbrevs.remove=Удалить
 #}}}
 
 #{{{ Appearance pane
-options.appearance.label=Внешность
+options.appearance.label=Вид
 options.appearance.iconTheme=Тема иконок:
-options.appearance.fonts.antialias=Сглаживать шрифты в не-текстовых областях
-options.appearance.lf=Внешность и поведение Swing'а:
+options.appearance.fonts.antialias=Сглаживать шрифты в нетекстовых областях
+options.appearance.lf=Вид и поведение Swing'а:
 options.appearance.primaryFont=Шрифт для кнопок, меню и ярлыков:
 options.appearance.secondaryFont=Шрифт для списков и текстовых полей:
 options.appearance.helpViewerFont=Шрифт для просмотра документации:
 options.appearance.history=Количество запоминаемых элементов для текстовых полей:
-options.appearance.menuSpillover=Количество элементов ведущее к перетеканию меню:
-options.appearance.startup.label=Настрйки запуска
+options.appearance.menuSpillover=Количество элементов до переполнения меню:
+options.appearance.startup.label=Опции запуска
 options.appearance.showSplash=Показывать заставку при запуске
 options.appearance.showTips=Показывать советы при запуске
 options.appearance.experimental.label=Экспериментальные настройки
 options.appearance.experimental.caption=Следующие три настройки могут работать \
 	с некоторыми версиями\n\
-	Java. В случае проблем, отклющите их.
+	Java. В случае проблем, отключите их.
 
 options.appearance.textColors=Использовать цвета текстовой области во всех \
 	текстовых компонентах
@@ -1290,24 +1475,25 @@ options.appearance.decorateDialogs=Рисовать бордюры диалог�
 options.appearance.localization.section.label=Язык
 options.appearance.usedefaultlocale.label=Использовать язык по умолчанию
 options.appearance.lang.label=Язык (изменения вступят в силу при следующем старте)
+options.appearance.systrayicon=Показывать иконку в панели операционной системы
 #}}}
 
 #{{{ Context Menu pane
 options.context.label=Контекстное меню
-options.context.caption=Элементы в меню правой клавиши дле текстовой области:
+options.context.caption=Элементы контекстного меню текстовой области:
 options.context.add=Добавить...
 options.context.remove=Удалить
 options.context.moveUp=Наверх
 options.context.moveDown=Вниз
-options.context.reset=Вернуть оригинальное меню
+options.context.reset=Восстановить меню по умолчанию
 options.context.add.title=Добавить к контекстному меню
 options.context.add.caption=Добавить к контекстному меню:
 options.context.add.separator=Разделитель
-options.context.add.action=Команда или макро-команда:
-options.context.includeOptionsLink.label=Включить "Изменить это Меню..."
+options.context.add.action=Команда или макрос:
+options.context.includeOptionsLink.label=Добавить пункт "Настроить это меню..."
 
-options.context.reset.dialog.title=Вернуть к оригинальному
-options.context.reset.dialog.message=Вы уверены что хотите верныть контекстное меню к оригинальному виду?
+options.context.reset.dialog.title=Восстановить меню по умолчанию
+options.context.reset.dialog.message=Вы уверены, что хотите вернуть контекстное меню к изначальному виду?
 #}}}
 
 #{{{ Docking pane
@@ -1318,12 +1504,12 @@ options.docking.selectFramework.label=Рамки дока:
 options.docking.autoSaveModeLayout.label=Автоматически сохранять раскладку дока для режима редактирования
 options.docking.autoLoadModeLayout.label=Автоматически загружать раскладку дока для режима редактирования
 options.docking.selectSet.label=Набор панелей дока:
-options.docking.system-change.note=(Экспериментальное) Перезапустите jEdit чтобы изменения вошли в силу
+options.docking.system-change.note=(Экспериментальное) Перезапустите jEdit чтобы изменения вступили в силу
 #}}}
 
 #{{{ Editing pane
 options.editing.label=Редактирование
-options.editing.defaultMode=Режим редактирования по умолчанию:
+options.editing.defaultMode=Режим по умолчанию:
 options.editing.undoCount=Количество отменяемых действий:
 options.editing.caption-0=\
 	Для настроек режима редактирования, выберите режим из меню\n\
@@ -1332,37 +1518,53 @@ options.editing.caption-1=\
 	Отмените выбор "По умолчанию", чтобы изменить настройки для режима.\n\
 	В противном случае, в данном режиме будут активны настройки из раздела\n\
 	<По умолчанию>.
-options.editing.mode=Настройки для режима:
+options.editing.mode=Настройки режима:
 options.editing.global=<По умолчанию>
 options.editing.useDefaults=Использовать настройки по умолчанию
-options.editing.filenameGlob=Шаблон имени:
+options.editing.filenameGlob=Шаблон имени файла:
 options.editing.firstlineGlob=Шаблон первой строки:
 options.editing.folding=Режим свёртки:
 options.editing.collapseFolds=Первоначально свернуть до уровня:
 options.editing.wrap=Перенос по словам:
 options.editing.maxLineLen=Граница переноса:
 options.editing.maxLineLen.tooltip=Выберите 0 для границы текстовой области (только временный режим)
-options.editing.tabSize=Размер табуляции:
-options.editing.indentSize=Размер отступа:
-options.editing.noWordSep=Дополнителые символы слова:
-options.editing.camelCasedWords=Разделять слова в "ВерблюжемРегистре"
+options.editing.tabSize=Ширина табуляции:
+options.editing.indentSize=Ширина отступа:
+options.editing.noWordSep=Дополнительные символы слова:
+options.editing.camelCasedWords=Разделять слова в "CamelCase"
 options.editing.noTabs=Использовать пробелы для табуляции
-options.editing.elasticTabstops=Эластичных шаги для отступа
-options.editing.elasticTabstops.tooltip=(Эксперимент) - может привести к нестабильности
+options.editing.elasticTabstops=Использовать эластичную табуляцию для отступа
+options.editing.elasticTabstops.tooltip=Колонки в строках над и под "ячейкой" выравниваются по ширине табуляции которая может увеличиваться или уменьшаться в зависимости от ширины ячейки.
 options.editing.deepIndent=Глубокий отступ
 options.editing.autoIndent=Автоматический отступ
-options.editing.largefilemode.title=Режим больших файлов
-options.editing.largefilemode=Как работать с большими файлами:
-options.editing.largefilemode.option.ask=<html><b>Спросить</b> что делать при открытии большого файла</html>
-options.editing.largefilemode.option.full=<html><b>Использовать полный анализ</b> : подцветка синтаксиса будет работать как обычно, \
-                                               	программа может стать<br/><b>очень медленнойс (не рекомендуется)</b></html>
-options.editing.largefilemode.option.limited=<html><b>Подцветка без анализа контекста</b>: Подзветка работает \
-		быстро, но<br/>рультат возможно не вполне корректен. \
-		Каждая строка подцвечивается независимо, вне контекста<br/>\
-		предыдущей строки. Синтаксис будет подцвечен непровильно в случае \
-		конструкций занимающих несколько строк (коментарии, xml ...) \
-		Временные переносы тоже отключены<br/><b>(рекомендуется)</b></html>
-options.editing.largefilemode.option.nohighlight=Отключить подцветку и переносы
+options.editing.deleteMode=Удалить этот режим
+options.editing.addMode=Добавить режим
+options.editing.addMode.dialog.title=Добавить режим
+options.editing.addMode.dialog.browse=Просмотр
+options.editing.addMode.dialog.modeName=Название режима:
+options.editing.addMode.dialog.modeFile=Выберите файл режима:
+options.editing.addMode.dialog.filenameGlob=Шаблон имени:
+options.editing.addMode.dialog.firstLineGlob=Шаблон первой строки:
+options.editing.addMode.dialog.warning.title=Подтвердите замену режима:
+options.editing.addMode.dialog.warning.message=Этот режим уже существует. Вы хотите его заменить?
+options.editing.addMode.dialog.warning.message1=Невозможно скопировать файл режима
+options.editing.addMode.dialog.Mode_name_may_not_be_empty.=Название режима не может быть пустым.
+options.editing.addMode.dialog.Mode_file_may_not_be_empty.=Файл режима не может быть пустым.
+options.editing.addMode.dialog.Either_file_name_glob_or_first_line_glob_or_both_must_be_filled_in.=Either file name glob or first line glob or both must be filled in.
+options.editing.addMode.dialog.errorTitle=Ошибка
+options.editing.deleteMode.dialog.title=Подтвердите удаление режима
+options.editing.deleteMode.dialog.message=Вы уверены, что хотите удалить этот режим? Удаление невозможно будет отменить.
+options.editing.deleteMode.dialog.message1=Невозможно удалить файл режима
+options.editing.deleteMode.dialog.message2=для режима
+options.editing.modes.selectModes=Выберите режимы, которые должны быть видны в диалогах выбора режима:
+options.editing.modes.available=Доступные режимы
+options.editing.modes.selected=Выбранные режимы
+options.editing.modes.available.tooltip=<html>Режимы из этой колонки <b>НЕ</b> будут видны в списках выбора режима. \
+ 		Перетащите их в правую колонку, чтобы показать.</html>
+options.editing.modes.selected.tooltip=<html>Режимы из этой колонки будут видны в списках выбора режима. \
+		Перетащите их в левую колонку, чтобы скрыть.</html>
+options.editing.modes.deleteSelected=Удалить выбранные
+options.editing.modes.Delete_these_modes?=Удалить эти режимы?
 #}}}
 
 #{{{ Encodings pane
@@ -1370,10 +1572,10 @@ options.encodings.label=Кодировка
 options.encodings.selectEncodings=Выберите кодировки для показа в диалога выбора кодировки:
 options.encodings.available=Доступные кодировки
 options.encodings.selected=Выбранные кодировки
-options.encodings.available.tooltip=<html>Кодировки в этой колонке <b>не будут</b> включены в диалоги.\
-  Перетащите их в правую колонку для использования</html>
-options.encodings.selected.tooltip=Кодировки в этой колонке будут показаны в диалогах выбора кодировки.\
-  Перетащите их в левую колонку чтобы удалить их из диалогов.
+options.encodings.available.tooltip=<html>Кодировки из этой колонки <b>НЕ</b> будут видны в списках выбора кодировки. \
+  Перетащите их в правую колонку, чтобы показать.</html>
+options.encodings.selected.tooltip=Кодировки из этой колонки будут видны в списках выбора кодировки. \
+  Перетащите их в левую колонку, чтобы скрыть.
 #}}}
 
 #{{{ Gutter pane
@@ -1384,25 +1586,43 @@ options.gutter.lineNumbers=Номера строк
 options.gutter.minLineNumberDigits=Минимальное количество разрядов для номеров строк:
 options.gutter.selectionAreaEnabled=Область выделения строк когда номера не показаны
 options.gutter.selectionAreaBgColor=Цвет фона области выделения
-options.gutter.selectionAreaWidth=Ширина области выделения (пикселы):
-options.gutter.font=Фонт:
-options.gutter.foreground=Цвет номеров:
+options.gutter.selectionAreaWidth=Ширина области выделения (пиксели):
+options.gutter.font=Шрифт:
+options.gutter.foreground=Цвет номера:
 options.gutter.background=Цвет фона:
-options.gutter.borderWidth=Ширина границ канта:
+options.gutter.borderWidth=Ширина границы канта:
 options.gutter.numberAlignment=Выравнивание номеров:
 options.gutter.interval-1=Подсвечивать каждые\u0020
 options.gutter.interval-2=строк:
 options.gutter.currentLineHighlight=Подсвечивать текущую строку:
 options.gutter.structureHighlight=Показывать пределы структуры:
-options.gutter.markerHighlight=Показывать позиции закладок:
+options.gutter.markerHighlight=Показывать позиции меток:
 options.gutter.foldColor=Символы свёртки:
 options.gutter.focusBorderColor=Активная граница канта:
 options.gutter.noFocusBorderColor=Неактивная граница канта:
-options.gutter.foldStyle.label=Символ свёртки:
+options.gutter.foldStyle.label=Стиль свёртки:
 options.gutter.foldStyleNames.Triangle=Треугольник
 options.gutter.foldStyleNames.Square=Квадрат
 options.gutter.foldStyleNames.Circle=Круг
 #}}}
+
+#{{{ Large files pane
+options.large-files.label=Большие файлы
+options.editing.largefilemode.title=Режим больших файлов
+options.editing.largefilemode=Что делать с очень большими файлами (> {0} символов, или длина строки > {1}):
+options.editing.largefilemode.tooltip=<html>Значения можно изменить в свойствах jEdit: <tt>largeBufferSize</tt> и <tt>longLineLimit</tt></html>
+options.editing.largefilemode.option.ask=<html><b>Спросить</b> что делать при открытии большого файла</html>
+options.editing.largefilemode.option.full=<html><b>Полная подсветка синтаксиса</b> : подсветка синтаксиса будет работать как обычно, \
+                                               	jEdit может работать<br/><b>очень медленно, не рекомендуется</b></html>
+options.editing.largefilemode.option.limited=<html>\
+		<b>Подсветка, нечувствительная к контексту</b>: В этом случае подсветка работает быстро, но<br/>\
+		результат возможно не вполне корректен. Каждая строка подсвечивается независимо,<br/>\
+		вне контекста предыдущей строки. Синтаксис вероятно будет подсвечен неправильно<br/>\
+		в случае конструкций занимающих несколько строк (блочные комментарии, теги xml ...)<br/>\
+		Мягкий перенос также отключен<br/><b>(рекомендуется)</b></html>
+options.editing.largefilemode.option.nohighlight=Без подсветки, без мягких переносов
+#}}}
+
 
 #{{{ Mouse pane
 options.mouse.label=Мышь
@@ -1417,17 +1637,20 @@ options.mouse.gutter.toggle-fold-fully=Полностью раскрыть/св�
 #}}}
 
 #{{{ Plugin Manager pane
-options.plugin-manager.label=Управление модулями
+options.plugin-manager.label=Управление плагинами
 options.plugin-manager.updateMirrors=Обновить список зеркал
 options.plugin-manager.workthread=Обновляется список зеркал ...
-options.plugin-manager.downloadSource=Сгружать исходный код модулей
-options.plugin-manager.deleteDownloads=Удалять сгруженные архивы после установки
+options.plugin-manager.downloadSource=Скачивать исходный код плагинов
+options.plugin-manager.deleteDownloads=Удалять скачанные архивы после установки
 options.plugin-manager.mirror=Предпочтительное зеркало:
-options.plugin-manager.location=Место установки модулей:
-options.plugin-manager.settings-dir=Директория настроек
-options.plugin-manager.app-dir=Директория программы
+options.plugin-manager.location=Место установки плагинов:
+options.plugin-manager.settings-dir=Каталог настроек
+options.plugin-manager.app-dir=Каталог программы
 options.plugin-manager.none=Plugin Central default
-options.plugin-manager.disable-obsolete=Запретить устаревшие модули
+options.plugin-manager.disable-obsolete=Запретить устаревшие плагины
+options.plugin-manager.list-cache.minutes=Кешировать список плагинов на: (минут)
+options.plugin-manager.no-plugin-available=Нет доступных плагинов
+options.plugin-manager.no-plugin-uptodate=Все плагины обновлены до последних версий.
 #}}}
 
 #{{{ Printing pane
@@ -1441,63 +1664,68 @@ options.print.lineNumbers=Печатать номера страниц
 options.print.color=Цветная печать
 options.print.tabSize=Ширина табуляции при печати:
 options.print.workarounds=Коррекция проблем Java
-options.print.glyphVector=Коррекция интервала (увеличивает размер файла спула)
-options.print.force13=Использовать старый интерфейс (активируйте в случае, если \
-	программа замораживается при печати)
+options.print.glyphVector=Коррекция интервала (рекомендуется, но увеличивает размер файла спула)
+options.print.force13=Использовать старый интерфейс печати (активируйте, если \
+	jEdit зависает при печати)
 options.print.folds=Печатать свернутые области
+options.print.useSystemDialog=Использовать системный диалог печати
 #}}}
 
 #{{{ Proxy pane
-options.firewall.label=Серверы прокси
+options.firewall.label=Прокси-серверы
 options.firewall.http.enabled=Использовать прокси для HTTP
 options.firewall.http.host=Адрес HTTP прокси:
 options.firewall.http.port=Порт HTTP прокси:
 options.firewall.http.user=Имя:
 options.firewall.http.password=Пароль:
 options.firewall.http.nonProxy=Прямое соединение с:
-options.firewall.socks.enabled=Использовать SOCKS proxy server
-options.firewall.socks.host=SOCKS proxy host:
-options.firewall.socks.port=SOCKS proxy port:
+options.firewall.socks.enabled=Использовать SOCKS-прокси
+options.firewall.socks.host=SOCKS-прокси хост:
+options.firewall.socks.port=SOCKS-прокси порт:
 #}}}
 
 #{{{ Save & Backup pane
-options.save-back.label=Сохранение и резервирование
-
+options.save-back.label=Сохранение и бэкап
 options.save-back.autosave=Частота авто-сохранения (секунды):
+options.save-back.autosave.tooltip=чтобы отключить, задайте 0
 options.save-back.backups=Максимальное число резервных копий:
-options.save-back.backupDirectory=Директория для резервных копий:
-options.save-back.backupPrefix=Префикс резервной копии:
-options.save-back.backupSuffix=Суффик резервной копии:
-options.save-back.backupEverySave=Оставлять резервную копию при каждом сохранении
-options.save-back.twoStageSave=Двух-ступенчатое сохранение (надёхнее, но изменяет владельца файла на некоторых файловых системах)
-options.save-back.twoStageSave.tooltip=Стадия 1: Сиздать временный файл и сохранить в него. Стадия 2: Переименовать временный файл в редактируемый.
-options.save-back.confirmSaveAll=Запрашивать подтверждение при исполнении "Сохранить всех буферы"
-options.save-back.autosaveUntitled=Автосохранение неназванных буверов
-options.save-back.suppressNotSavedConfirmUntitled=Не помечать неназванные буферы как изменённые.
-options.save-back.suppressNotSavedConfirmUntitled.tooltip=Неназванные буферы будут стёрты при создании новых (так задумано, это не ошибка)
-options.save-back.useMD5forDirtyCalculation=Не помечать неназванный буфер как изменённый, если содержимое не изменено.
-options.save-back.useMD5forDirtyCalculation.tooltip=Сравнивать с длиной и суммой MD5 буфера при загрузке, чтобы определит, был ли буфер изменён.
-options.save-back.saveAsUsesFSB="Сохранить как" начинает в директории Обозревателя файловой системы
+options.save-back.backups.tooltip=чтобы отключить, задайте 0
+options.save-back.backupDirectory=Каталог для бэкапа, авто-сохранения:
+options.save-back.backupDirectory.tooltip=Если не задан, используется каталог буфера. Допускаются $VARIABLE/префиксы.
+options.save-back.backupPrefix=Префикс бэкапа:
+options.save-back.backupSuffix=Суффикс бэкапа:
+options.save-back.backupEverySave=Бэкап при каждом сохранении
+options.save-back.twoStageSave=Двух-ступенчатое сохранение (надёжнее, но изменяет владельца файла на некоторых файловых системах)
+options.save-back.twoStageSave.tooltip=Стадия 1: Создать временный файл и сохранить в него.\
+ 		Стадия 2: Переименовать временный файл в редактируемый.
+options.save-back.confirmSaveAll="Сохранить все буферы" требует подтверждения
+options.save-back.autosaveUntitled=Авто-сохранение безымянных
+options.save-back.suppressNotSavedConfirmUntitled=Закрывать безымянные буферы с изменениями без подтверждения.
+options.save-back.useMD5forDirtyCalculation=Не помечать буфер как изменённый, если содержимое не изменено.
+options.save-back.useMD5forDirtyCalculation.tooltip=Сравнивать с длиной и хешем MD5 буфера при загрузке, чтобы определить, что буфер всё-ещё изменён.
+options.save-back.saveAsUsesFSB="Сохранить как" открывается в каталоге Обозревателя файловой системы
 #}}}
 
 #{{{ Shortcuts pane
 options.shortcuts.deletekeymap.label=удалить
-options.shortcuts.deletekeymap.dialog.label=Удалить привязку клавиш
+options.shortcuts.deletekeymap.dialog.label=Удалить раскладку
 options.shortcuts.deletekeymap.dialog.title=Удалить
 options.shortcuts.duplicatekeymap.label=дубликат
-options.shortcuts.duplicatekeymap.dialog.label=Имя для привязки клавиш
-options.shortcuts.duplicatekeymap.keymapalreadyexists.label=Это имя уже есть, выберите другое
-options.shortcuts.duplicatekeymap.dialog.title=имя привязки клавиш
+options.shortcuts.duplicatekeymap.dialog.label=Выберите название новой раскладки
+options.shortcuts.duplicatekeymap.keymapalreadyexists.label=Это название уже есть, выберите другое
+options.shortcuts.duplicatekeymap.dialog.title=название раскладки
 options.shortcuts.resetkeymap.label=очистить
-options.shortcuts.resetkeymap.dialog.label=Очистить привязку клавиш
-options.shortcuts.resetkeymap.dialog.title=очистить привязку клавиш
-options.shortcuts.keymap.label=Выбор привязки клавиш:
+options.shortcuts.resetkeymap.dialog.label=Сбросить раскладку
+options.shortcuts.resetkeymap.dialog.title=сбросить раскладку
+options.shortcuts.keymap.label=Раскладка:
+options.shortcuts.keymap.tooltip=Именованный набор кастомизированных комбинаций клавиш
 options.shortcuts.label=Комбинации клавиш
-options.shortcuts.select.label=Команды:
-options.shortcuts.select.tooltip=Можно выбрать общие комманды, макро-команды и команды расширений
+options.shortcuts.select.label=Категория:
+options.shortcuts.select.tooltip=Можно выбрать встроенные коммнды, макросы и команды плагинов
 options.shortcuts.name=Команда
+options.shortcuts.actionset=Категория
 options.shortcuts.shortcut1=Основная комбинация клавиш
-options.shortcuts.shortcut2=Алтернативная комбинация клавиш
+options.shortcuts.shortcut2=Альтернативная комбинация клавиш
 options.shortcuts.filter.label=Фильтр:
 options.shortcuts.filter.tooltip=Показывать только команды, содержащие текст
 options.shortcuts.clear.label=Очистить
@@ -1509,51 +1737,51 @@ grab-key.assigned-to=Текущая привязка: {0}
 grab-key.assigned-to.none=<нет>
 grab-key.assigned-to.prefix={0} префикс
 grab-key.clear=Очистить
-grab-key.remove=Очистить
+grab-key.remove=Удалить текущую
 
-grab-key.remove-ask.title=Удалить привязку клавиш?
+grab-key.remove-ask.title=Удалить комбинацию клавиш?
 grab-key.remove-ask.message=\
 	Вы не ввели комбинацию.\n\
-	Очистить комбинацию клавиш для команды?
+	Хотите удалить текущую комбинацию клавиш?
 
 grab-key.duplicate-alt-shortcut.title=Дубликат
 grab-key.duplicate-alt-shortcut.message=\
 	Эта комбинация клавиш уже привязана к этой команде.\n\
-	Пожалуйста выберите другую.
+	Пожалуйста, выберите другую.
 
 grab-key.duplicate-shortcut.title=Дубликат
 grab-key.duplicate-shortcut.message=\
 	Эта комбинация клавиш уже привязана к\n\
 	"{0}".\n\
 	\n\
-	Изменить привязку?
+	Хотите изменить привязку?
 
-grab-key.prefix-shortcut.title=Привязка невозможна
+grab-key.prefix-shortcut.title=Недопустимая комбинация клавиш
 grab-key.prefix-shortcut.message=\
-	Нельзя использовать выбранные клавиши,\n\
-	так как они используются в последовательности для другой команды.\n\
-	Пожалуйста, измените выбор.
+	Нельзя использовать эту комбинацию,\n\
+	так как она является префиксом к другим комбинациям.\n\
+	Пожалуйста, выберите другую.
 #}}}
 
 #{{{ Status bar pane
 options.status.label=Панель состояния
 options.status.visible=Показывать панель состояния
 options.status.plainview.visible=Показывать панель состояния в простом виде
-options.status.foreground=текст панели состояния:
+options.status.foreground=Текст панели состояния:
 options.status.background=Фон панели состояния:
 options.status.memory.foreground=Индикатор памяти:
 options.status.memory.background=Фон индикатора памяти:
 options.status.edit.title=Изменить элемент панели состояния
-options.status.edit.labelRadioButton=этикетка
-options.status.edit.widgetRadioButton=элемент
-options.status.edit.labelLabel=Тип этикетки:
-options.status.edit.widgetLabel=Выберите элемент:
-options.status.caret.linenumber=Показывать номер строки с кареткой
-options.status.caret.dot=Показывать смещение каретки от начала строки
-options.status.caret.virtual=Показывать виртуальное смещение каретки от начала строки
-options.status.caret.offset=Показывать смещение каретки от начала файла
+options.status.edit.labelRadioButton=текст
+options.status.edit.widgetRadioButton=виджет
+options.status.edit.labelLabel=Введите текст:
+options.status.edit.widgetLabel=Выберите виджет:
+options.status.caret.linenumber=Показывать номер строки с курсором
+options.status.caret.dot=Показывать смещение курсора от начала строки
+options.status.caret.virtual=Показывать виртуальное смещение курсора от начала строки
+options.status.caret.offset=Показывать смещение курсора от начала файла
 options.status.caret.bufferlength=Показывать длину файла
-options.status.caret.title=Настройки индикаторов позиции каретки:
+options.status.caret.title=Опции отображения позиции курсора:
 #}}}
 
 #{{{ Syntax Highlighting pane
@@ -1577,26 +1805,28 @@ options.textarea.fontSubstWarning.label=Подстановка шрифтов
 options.textarea.fontSubstWarning=ББез системных шрифтов нужны предпочитаемые шрифты.
 options.textarea.foreground=Цвет текста:
 options.textarea.background=Цвет фона:
-options.textarea.caret=Каретка:
+options.textarea.caret=Курсор:
 options.textarea.blinkCaret=мерцание
 options.textarea.blockCaret=кирпич
 options.textarea.thickCaret=толстая
 options.textarea.selection=Единичное выделение:
-options.textarea.multipleSelection=Множественные выделения:
+options.textarea.multipleSelection=Множественное выделение:
 options.textarea.selectionFg=Цвет выделения:
-options.textarea.lineHighlight=Подсветка строки каретки:
-options.textarea.structureHighlight=Подсветка паных элементов:
+options.textarea.lineHighlight=Подсветка текущей строки:
+options.textarea.structureHighlight=Подсветка парных элементов:
 options.textarea.eolMarkers=Маркеры конца строки:
-options.textarea.wrapGuide=Маркеры пословного переноса:
-options.textarea.electricBorders=Электрические бордюры (авто-прокрутка)
+options.textarea.wrapGuide=Направляющие переноса:
+options.textarea.pageBreaks=Разрывы страниц:
+options.textarea.electricBorders=Электрические границы (авто-прокрутка)
 options.textarea.stdNextPrevWord=Переход к следующему/предыдущему слову включает пробелы
 options.textarea.antiAlias=Сглаживание шрифта
-options.textarea.antiAlias.tooltip=Может замедлять дисплей на некоторых системах
+options.textarea.antiAlias.tooltip=Может замедлять отображение на некоторых системах
 options.textarea.fracFontMetrics=Дробная размерность шрифта
 options.textarea.fracFontMetrics.tooltip=Не рекомендуется с суб-пиксельным сглаживанием
-options.textarea.stripTrailingEOL=Прятать последнюю пустую строку (когда она есть)
+options.textarea.stripTrailingEOL=Прятать последнюю пустую строку (если она есть)
 options.textarea.completeFromAllBuffers=Оканчивать слова из всех буферов (изначально \
     поиск ограничен только текущим буфером)
+options.textarea.insertCompletionWithDigit=Завершать слово при вводе соответствующей цифры (иначе цифра считается частью слова)
 options.textarea.lineSpacing.label=Дополнительная разрядка строк (в пикселях):
 #}}}
 
@@ -1613,7 +1843,7 @@ options.toolbar.reset=Вернуть к изначальному
 options.toolbar.edit.title=Изменить элемент панели инструментов
 options.toolbar.edit.caption=Тип:
 options.toolbar.edit.separator=Разделитель
-options.toolbar.edit.action=Команда или макро-команда:
+options.toolbar.edit.action=Команда или макрос:
 options.toolbar.edit.builtin=Использовать встроенную иконку:
 options.toolbar.edit.file=Загрузить иконку из файла:
 options.toolbar.edit.choose=Выбрать
@@ -1625,20 +1855,22 @@ options.toolbar.reset.dialog.message=Действительно вернуть �
 
 #{{{ View pane
 options.view.label=Вид
-options.view.viewLayout=Раскладка вида
-options.view.floatableToolbars=Плавающие панели
+options.view.viewLayout=Схема
 options.view.alternateDockingLayout=Изменить положение дока
-options.view.alternateToolBarLayout=Изменить положения панели инструментов
-options.view.showFullPath=Показывать полный путь буфера в панели заголовка
-options.view.showSearchbar=Всегда показывать понель поиска
-options.view.beepOnSearchAutoWrap=Пищать при завороте поиска через границу
+options.view.alternateToolBarLayout=Изменить положение панели инструментов
+options.view.abbreviatePaths=Сокращать пути с помощью переменных окружения, если возможно
+options.view.showFullPath=Показывать полный путь буфера в заголовке
+options.view.showSearchbar=Всегда показывать панель поиска
+options.view.beepOnSearchAutoWrap=Звуковой сигнал при автоматическом возврате поиска к началу
 options.view.showBufferSwitcher=Показывать переключатель буферов
+options.view.bufferswitcher.sortBuffers=Сортировать переключатель буферов
+options.view.bufferswitcher.sortByName=Сортировать переключатель буферов по имени файла, а не по пути
 options.view.bufferSwitcherMaxRowsCount=Число видимых рядов в переключателе буферов:
 options.view.sortBuffers=Сортировать наборы буферов
 options.view.sortByName=Сортировать наборы буферов по имени файла, а не по пути
-options.view.fullScreenIncludesMenu=Показывать панель меню в полно-экранном режиме
-options.view.fullScreenIncludesToolbar=Показывать панель инструментов в полно-экранном режиме
-options.view.fullScreenIncludesStatus=Показывать панел статуся в полно-экранном режиме
+options.view.fullScreenIncludesMenu=Показывать меню в полноэкранном режиме
+options.view.fullScreenIncludesToolbar=Показывать панель инструментов в полноэкранном режиме
+options.view.fullScreenIncludesStatus=Показывать панель статуса в полноэкранном режиме
 options.bufferset.scope=Охват набора буферов:
 #}}}
 
@@ -1653,28 +1885,28 @@ options.browser.colors.color=Цвет
 options.browser.colors.add=Добавить
 options.browser.colors.remove=Удалить
 
-options.browser.general.label=Общие настройки
-options.browser.general.defaultPath=Изначальный путь:
+options.browser.general.label=Общие
+options.browser.general.defaultPath=Начальный путь:
 options.browser.general.defaultPath.favorites=Избранное
-options.browser.general.defaultPath.home=Домашняя директория
-options.browser.general.defaultPath.last=Последняя посещённая директория
-options.browser.general.defaultPath.buffer=Директория текущего буфера
-options.browser.general.defaultPath.working=Рабочая директория процесса jEdit
+options.browser.general.defaultPath.home=Домашний каталог
+options.browser.general.defaultPath.last=Последний посещённый каталог
+options.browser.general.defaultPath.buffer=Каталог текущего буфера
+options.browser.general.defaultPath.working=Рабочий каталог процесса jEdit
 options.browser.general.showMenubar=Показывать панель меню
 options.browser.general.showToolbar=Показывать панель инструментов
 options.browser.general.showIcons=Показывать иконки
 options.browser.general.showHiddenFiles=Показывать скрытые файлы
-options.browser.general.sortIgnoreCase=Игнорировать размер букв при сортировке
-options.browser.general.sortMixFilesAndDirs=Файлы и директории подряд
-options.browser.general.doubleClickClose=Двойной щёлк по открытому файлу закрывает его
-options.browser.general.currentBufferFilter=Фильтр для файловых диалогов \
-	из расширения текущего буфера
+options.browser.general.sortIgnoreCase=Игнорировать регистр при сортировке
+options.browser.general.sortMixFilesAndDirs=Файлы и каталоги подряд
+options.browser.general.doubleClickClose=Двойной щелчок по открытому файлу закрывает его
+options.browser.general.currentBufferFilter=Фильтровать файловые диалоги \
+	по расширению текущего буфера
 options.browser.general.useDefaultIcons=Использовать иконки по умолчанию
 #}}}
 
 #{{{ Browser Context Menu
 options.browser.custom.context.label=Контекстное меню
-options.browser.custom.context.caption=Дополнительные элементы в меню обозревателя при правом щёлке:
+options.browser.custom.context.caption=Дополнительные элементы в меню обозревателя при шелчке правой кнопкой:
 #}}}
 
 #{{{ Font selector
@@ -1707,8 +1939,8 @@ style-editor.bgColor=Цвет фона:
 
 #{{{ Plugin options dialog
 plugin-options.title=Настройки
-options.plugins.label=Модули
-options.no-plugins.label=Нет настроек модуля
+options.plugins.label=Плагины
+options.no-plugins.label=У плагина нет настроек
 #}}}
 
 #{{{ Help viewer
@@ -1716,8 +1948,7 @@ helpviewer.title=Помощь jEdit
 helpviewer.loading=Загрузка...
 helpviewer.back.label=Назад
 helpviewer.forward.label=Вперёд
-# FIXME: missing translation
-helpviewer.copy-link.label=Copy link to clipboard
+helpviewer.copy-link.label=Копировать ссылку в буфер обмена
 
 helpviewer.toc.loading=Загрузка...
 helpviewer.toc.label=Содержание
@@ -1728,8 +1959,8 @@ helpviewer.toc.todo=Планируемые изменения и известн�
 helpviewer.toc.copying=Всеобщая Публичная Лицензия GNU
 helpviewer.toc.copying-doc=Лицензия Свободной Документации GNU
 helpviewer.toc.copying-apache=Лицензия Apache
-helpviewer.toc.copying-plugins=Поправка лицензирования модуля
-helpviewer.toc.plugins=Модули
+helpviewer.toc.copying-plugins=Поправка к лицензированию плагинов
+helpviewer.toc.plugins=Плагины
 helpviewer.toc.online-apidocs=Спраочник программного интерфейса jEdit (интернет)
 
 helpviewer.search.label=Искать
@@ -1744,37 +1975,37 @@ tip.caption=Знаете ли Вы...
 tip.show-next-time=Показывать советы при старте
 tip.next-tip=Следующий совет
 
-tip.not-found=Директория с документацией/советами не найдена
+tip.not-found=Каталог с документацией/советами не найден
 #}}}
 
 #{{{ Activity log
-log-viewer.title=Записи активности
-log-viewer.caption=Полный текст записей сохранён в {0}.
+log-viewer.title=Журнал активности
+log-viewer.caption=Полный текст журнала сохранён в {0}.
 log-viewer.copy=Копировать
-log-viewer.tail.label=Окончание
+log-viewer.tail.label=В конец
 #}}}
 
 #{{{ Marker Viewer
-view-markers.label=Просмотр закладок($w)
-view-markers.title=Закладки
+view-markers.label=Просмотр меток($w)
+view-markers.title=Метки
 #}}}
 
 #{{{ I/O progress monitor
 io-progress-monitor.title=Монитор ввода/вывода
 io-progress-monitor.caption={0} запросов в ожидании.
-io-progress-monitor.idle=Бездействующий под-процесс
+io-progress-monitor.idle=Бездействующий поток
 io-progress-monitor.abort=Прервать
 
 #{{{ I/O abort dialog box
 abort.title=Прервать ввод/вывод
-abort.message=Действительно прервать исполняемый запрос ввода/вывода?\n\
+abort.message=Вы уверены, что хотите прервать исполняемый запрос ввода/вывода?\n\
 	Если вы прервёте запись файла, данные могут быть потеряны.
 #}}}
 
 #}}}
 
 #{{{ Task  monitor
-task-monitor.title=Обозреватель подпроцессов
+task-monitor.title=Монитор заданий
 #}}}
 
 #{{{ VFS browser
@@ -1791,8 +2022,8 @@ vfs.browser.tree.loading=Загрузка...
 vfs.browser.name=Имя
 vfs.browser.type=Тип
 vfs.browser.type.file=Файл
-vfs.browser.type.directory=Директория
-vfs.browser.type.filesystem=Фаиловая система
+vfs.browser.type.directory=Каталог
+vfs.browser.type.filesystem=Файловая система
 vfs.browser.status=Статус
 vfs.browser.status.no=Нет доступа
 vfs.browser.status.ro=Только чтение
@@ -1801,8 +2032,8 @@ vfs.browser.status.rw=Чтение/запись
 vfs.browser.size=Размер
 vfs.browser.modified=Последнее изменение
 
-vfs.browser.file_filter.glob=Фильтр по шаблону
-vfs.browser.file_filter.dir_only=Только директории
+vfs.browser.file_filter.glob=Шаблон Фильтра файлов
+vfs.browser.file_filter.dir_only=Только каталоги
 
 #{{{ Actions
 vfs.browser.browse-window.label=Просмотр в новом окне
@@ -1810,26 +2041,26 @@ vfs.browser.browse.label=Просмотр
 vfs.browser.close.label=Закрыть
 vfs.browser.copy-path.label=Копия
 vfs.browser.delete.label=Удалить...
-vfs.browser.home.label=Домашняя директория
+vfs.browser.home.label=Домашний каталог
 vfs.browser.properties.label=Свойства
-vfs.browser.properties.title=Свойства файля/директории
+vfs.browser.properties.title=Свойства файла/каталога
 vfs.browser.insert.label=Вставить
-vfs.browser.new-directory.label=Новая директория...
+vfs.browser.new-directory.label=Новый каталог...
 vfs.browser.new-file.label=Новый файл
 vfs.browser.open.label=Открыть
-vfs.browser.open-desktop.label=Отркыть на Столе($D)
+vfs.browser.open-desktop.label=Открыть на рабочем столе($D)
 vfs.browser.other-encoding-2.label=Открыть ({0})...
 vfs.browser.other-encoding.label=Ещё...
-vfs.browser.reload.label=Перегрузить директорию
+vfs.browser.reload.label=Перезагрузить каталог
 vfs.browser.rename.label=Переименовать...
-vfs.browser.roots.label=Корневая директория
-vfs.browser.search-directory.label=Поиск в директории...
+vfs.browser.roots.label=Корневой каталог
+vfs.browser.search-directory.label=Поиск в каталоге...
 vfs.browser.show-hidden-files.label=Показывать скрытые файлы
-vfs.browser.synchronize.label=Директория текущего буфера
-vfs.browser.up.label=Содержащая директория
+vfs.browser.synchronize.label=Каталог текущего буфера
+vfs.browser.up.label=Родительский каталог
 vfs.browser.paste.label=Вставить
-vfs.browser.previous.label=Предыдущая директория
-vfs.browser.next.label=Следующая директория
+vfs.browser.previous.label=Предыдущий каталог
+vfs.browser.next.label=Следующий каталог
 #}}}
 
 #{{{ Tool bar
@@ -1842,16 +2073,16 @@ vfs.browser.commands.encoding.label=Кодировка
 vfs.browser.commands.encoding.auto-detect=Авто-определение
 
 vfs.browser.open-in.label=Открыть в
-vfs.browser.open-view.label=Новом виде
-vfs.browser.open-plain-view.label=Новом простом виде
-vfs.browser.open-split.label=Новом под-окне
+vfs.browser.open-view.label=Новом окне
+vfs.browser.open-plain-view.label=Новом упрощенном окне
+vfs.browser.open-split.label=Новой текстовой области
 #}}}
 
 #{{{ Plugins menu
-vfs.browser.plugins.label=Модули($P)
-vfs.browser.plugins.plugin-manager.label=Управление модулями...
-vfs.browser.plugins.plugin-options.label=Настройки модуля...
-vfs.browser.plugins.no-plugins.label=Нет модулей
+vfs.browser.plugins.label=Плагины($P)
+vfs.browser.plugins.plugin-manager.label=Менеджер плагинов...
+vfs.browser.plugins.plugin-options.label=Настройки плагинов...
+vfs.browser.plugins.no-plugins.label=Плагины не установлены
 #}}}
 
 #{{{ Favorites menu
@@ -1868,62 +2099,62 @@ vfs.browser.dialog.filename=Имя файла:
 vfs.browser.dialog.filename.mnemonic=f
 
 #{{{ Dialogs
-vfs.browser.bad-filter.title=Не пригодный фильтр
-vfs.browser.bad-filter.message=Фильтр {0} не пригоден ({1})
+vfs.browser.bad-filter.title=Некорректный фильтр
+vfs.browser.bad-filter.message=Фильтр {0} не является корректным ({1})
 
-vfs.browser.recurse-favorites.title=Невозможно добавить избранное само в себя
+vfs.browser.recurse-favorites.title=Невозможно добавить из избранного в само себя
 vfs.browser.recurse-favorites.message=Список избранного не может быть добавлен сам в себя.
 
 vfs.browser.delete-confirm.title=Подтверждение удаления файла
 vfs.browser.delete-confirm.message=Действительно удалить {1}?\n\n\
 
 vfs.browser.delete-favorites.title=Удаление из избранного
-vfs.browser.delete-favorites.message=Действительно удалить следующие файлы из избранного?\n\n\
+vfs.browser.delete-favorites.message=Вы уверены, что хотите удалить следующие файлы из избранного?\n\n\
 
 vfs.browser.rename.title=Переименование файла
 vfs.browser.rename.message=Новое имя для {0}:
 
-vfs.browser.mkdir.title=Новая директория
-vfs.browser.mkdir.message=Имя (или путь) для новой директории:
+vfs.browser.mkdir.title=Новый каталог
+vfs.browser.mkdir.message=Имя (или путь) для нового каталога:
 #}}}
 
 #}}}
 
 #{{{ I/O status messages
 vfs.status.load=Загрузка {0}
-vfs.status.load-markers=Загрузка закладок для {0}
+vfs.status.load-markers=Загрузка меток для {0}
 vfs.status.save=Сохранение {0}
-vfs.status.save-markers=Сохранение закладок для {0}
-vfs.status.autosave=Авто-сохранение {0}
-vfs.status.listing-directory=Чтение {0}
+vfs.status.save-markers=Сохранение меток для {0}
+vfs.status.autosave=Автосохранение {0}
+vfs.status.listing-directory=Чтение каталога {0}
 vfs.status.deleting=Удаление {0}
 vfs.status.renaming=Переименование {0} в {1}
 #}}}
 
 #{{{ Plugin manager
 
-plugin-manager.title=Управление модулями
+plugin-manager.title=Менеджер плагинов
 
 plugin-manager.hide-libraries=Скрыть библиотеки
 
 plugin-manager.mgr-options=Настройки скачивания...
-plugin-manager.plugin-options=Настройки модуля...
+plugin-manager.plugin-options=Настройки плагинов...
 plugin-manager.done=Закрыть
 
-plugin-manager.remove-confirm.title=Удалить модули
-plugin-manager.remove-confirm.message=Действительно удалить следующие модули?
+plugin-manager.remove-confirm.title=Удалить плагины
+plugin-manager.remove-confirm.message=Вы уверены, что хотите удалить следующие плагины?
 
-plugin-manager.dependency.title=Зависимость модуля
-plugin-manager.dependency.message={0} требуется для следующих модулей.\n\
-	Удаление {0} также удалит следующие модули:
+plugin-manager.dependency.title=Зависимость плагина
+plugin-manager.dependency.message={0} требуется для следующих плагинов.\n\
+	Удаление {0} также удалит следующие плагины:
 
-plugin-manager.remove-dependencies.title=Зависимость модуля
-plugin-manager.remove-dependencies.message=Удалённые модули требуются для следующих модулей.\n\
-	Их удаление также удалит следующие модули:
+plugin-manager.remove-dependencies.title=Зависимость плагина
+plugin-manager.remove-dependencies.message=Удалённые плагины требуются для следующих плагинов.\n\
+	Их удаление также удалит следующие плагины:
 
 plugin-manager.cleanup.label=Очистка
-plugin-manager.cleanup.title=Очистка данных модуля
-plugin-manager.cleanup.message=Удалить данные следующих модулей:
+plugin-manager.cleanup.title=Очистка данных плагина
+plugin-manager.cleanup.message=Удалить данные следующих плагинов:
 
 plugin-manager.noOrphan.label=Поиск сирот
 plugin-manager.noOrphan.title=Осиротевших jar-файлов не найдено
@@ -1931,35 +2162,32 @@ plugin-manager.noOrphan.message=Не было осиротевших jar-фай�
 
 plugin-manager.findOrphan.label=Найти сирот
 plugin-manager.findOrphan.title=Найти осиротевщие jar-файлы
-plugin-manager.findOrphan.message=Следующие jar-файлы не принадлежат ни к одному модулю.\n\
-	Удалить их?\n (Внимание, они могут динамически грузиться в такие модули \n\
+plugin-manager.findOrphan.message=Следующие jar-файлы не принадлежат ни одному плагину.\n\
+	Удалить их?\n (Внимание, они могут динамически грузиться в такие плагины \n\
 	как JDBC драйверы):
 
 install-plugins.depend.title=Требуемая зависимость
-install-plugins.depend.message=Один из устанавливаемых модулей требует \n\
-	дополнительных модулей, которые будут установлены автоматически, в случае \n\
+install-plugins.depend.message=Один из устанавливаемых плагинов требует \n\
+	дополнительных плагинов, которые будут установлены автоматически, в случае \n\
 	если Вы решите продолжить.
 
 plugin-manager.status.loaded=Загружен
+plugin-manager.status.disabled=Не поддерживается
 plugin-manager.status.not-loaded=Не загружен
 plugin-manager.status.error=Ошибка
 
 plugin-manager.list-download-connect=Соединение с plugins.jedit.org
-plugin-manager.list-download=Скачивается список модулей с plugins.jedit.org
-plugin-manager.list-download.mirror-autoselect-error.title=Ошибка выбора зеркала
-plugin-manager.list-download.mirror-autoselect-error.message=Ошибка автоматического выбора зеркала:\n\
-	{0}\n\
-	Выберите зеркало вручную.
-plugin-manager.list-download.need-password.title=Прокси HTTP требует пароль
-plugin-manager.list-download.need-password.message=Прокси HTTP требует пароль.\n\
-Пожалуйста введите имя и пароль в "Настройках скачивания".
-plugin-manager.list-download.disconnected.title=Ошибка скачивания списка модулей
-plugin-manager.list-download.disconnected.message=Невозможно скачать список модулей:\n\
-сервер {0} недоступен. Проверте Ваше соединение...
-plugin-manager.list-download.generic-error.title=Ошибка скачивания списка модулей
-plugin-manager.list-download.generic-error.message=Ошибка скачивания списка модулей:\n\
+plugin-manager.list-download=Скачивается список плагинов с plugins.jedit.org
+plugin-manager.list-download.need-password.title=HTTP-прокси требует пароль
+plugin-manager.list-download.need-password.message=HTTP-прокси требует пароль.\n\
+Пожалуйста задайте имя и пароль в "Настройках скачивания".
+plugin-manager.list-download.disconnected.title=Ошибка скачивания списка плагинов
+plugin-manager.list-download.disconnected.message=Невозможно скачать список плагинов:\n\
+сервер {0} недоступен. Проверьте Ваше соединение...
+plugin-manager.list-download.generic-error.title=Ошибка скачивания списка плагинов
+plugin-manager.list-download.generic-error.message=Ошибка скачивания списка плагинов:\n\
 {0} - {1}
-plugin-manager.filterField=Показывать только модули с именем, содержащим следующий текст
+plugin-manager.filterField=Показывать только плагины с именем, содержащим следующий текст
 
 #{{{ Plugin management
 manage-plugins.title=Управление
@@ -1973,38 +2201,37 @@ manage-plugins.data-size.unknown=<неизвестно>
 
 manage-plugins.remove=Удалить...
 manage-plugins.help=Помощь...
-plugin-load-error.message=Невозможно загрузить модуль
-plugin-load-error.title=Ошибка при загрузке модуля
+plugin-load-error.message=Невозможно загрузить плагин
+plugin-load-error.title=Ошибка загрузки плагина
 #}}}
 
 #{{{ Plugin installation
-install-plugins.title=Добавление
+install-plugins.title=Установка
 
 install-plugins.info.name=Имя
 install-plugins.info.size=Размер
 install-plugins.info.releaseDate=Дата выпуска
 install-plugins.info.version=Версия
 install-plugins.info.category=Категория
+install-plugins.info.author=Автор
+install-plugins.info.released=Выпущен
+install-plugins.info.depends=Зависит от
 
-install-plugins.totalSize=Всего модулей: {0}, размер: {1}
+install-plugins.totalSize=Всего плагинов: {0}, размер: {1}
 install-plugins.select-all=Выбрать все
 install-plugins.install=Установить
 install-plugins.show-updates=Показать обновления
 
-install-plugins.info=<b>Автор</b>: {0}\n\
-	<b>Выпущен</b>: {1}\n\
-	{2}
-
 update-plugins.title=Обновление
 
 plugin-manager.progress=Скачивается {0} с зеркала {1}
-plugin-manager.progress.title=Установка модулей
-plugin-manager.progress.stop=Стоп
+plugin-manager.progress.title=Установка плагинов
+plugin-manager.progress.stop=Остановить
 #}}}
 
 #{{{ Plugin remove error
-plugin-manager.remove-failed.title=Удаление не успешно
-plugin-manager.remove-failed.message=Модуль {0}\n\
+plugin-manager.remove-failed.title=Не получилось удалить
+plugin-manager.remove-failed.message=Плагин {0}\n\
 	не может быть удалён.
 #}}}
 
@@ -2022,23 +2249,24 @@ fileprop.attribute=Атрибут
 fileprop.okBtn=OK
 fileprop.cancelBtn=Отмена
 fileprop.selectedFiles=Выбранные файлы
-fileprop.selectedDirectories=Выбранные директории
+fileprop.selectedDirectories=Выбранные каталоги
 #}}}
 
 #{{{ Activity log viewer
-log-viewer.dialog.title=Настройки записи активности
+log-viewer.dialog.title=Настройки журнала активности
 log-viewer.settings.label=Настройки
 log-viewer.message.label=Вид сообщений:
 log-viewer.message.debug.label=Отладка
 log-viewer.message.message.label=Сообщение
-log-viewer.message.notice.label=Объявление
-log-viewer.message.warning.label=Преддупреждение
+log-viewer.message.notice.label=Уведомление
+log-viewer.message.warning.label=Предупреждение
 log-viewer.message.error.label=Ошибка
+debug.beepOnOutput.label=Звуковой сигнал при выводе
 #}}}
 
 logs-remove-all-errors.label=Удалить все ошибки
 
-taskmanager.remainingtasks.label=Оствщиеся задания: {0}
+taskmanager.remainingtasks.label=Осталось заданий: {0}
 
 #{{{ Statusbar Widgets
 # the widgets should have a label and a sample.
@@ -2057,7 +2285,7 @@ statusbar.indent.label=Автоматический отступ (наприме
 statusbar.indent.sample=F
 statusbar.multiSelect.label=Режим множественного выделения (например:m)
 statusbar.multiSelect.sample=m
-statusbar.rectSelect.label=Режим прамоуголььного выделения (например:r)
+statusbar.rectSelect.label=Режим прямоугольного выделения (например:r)
 statusbar.rectSelect.sample=r
 statusbar.overwrite.label=Режим вставки (например:o)
 statusbar.overwrite.sample=o
@@ -2073,13 +2301,13 @@ statusbar.selection-length.label=Длина выделения (например
 statusbar.selection-length.sample=192
 statusbar.last-modified.label=Дата последнего изменения на диске (например:12/03/11 16:43)
 statusbar.last-modified.sample=12/03/11 16:43
-statusbar.task-monitor.label=Под-процессы (например: 7 проц.)
-statusbar.task-monitor.tooltip=Щёлкните для окна со списком под-процессов
-statusbar.task-monitor.sample=7 проц.
-statusbar.task-monitor.template={0} проц.
+statusbar.task-monitor.label=Монитор заданий (например: 7 заданий)
+statusbar.task-monitor.tooltip=Щёлкните чтобы увидеть выполняющиеся задания в доке
+statusbar.task-monitor.sample=7 заданий
+statusbar.task-monitor.template={0} заданий
 #}}}
 
-killring.load-memoryerror.message=<html>Невозможно загрузить прежде удалённый текст. Пожалуйста увеличте выделенную память.<br>\
+killring.load-memoryerror.message=<html>Невозможно загрузить прежде удалённый текст. Пожалуйста, увеличьте выделенную память.<br>\
   Нажмите <b>старт</b> для запуска jEdit, или <br><b>стоп</b> что отменить запуск и изменить настройки. <br>Также можно <b>удалить файл истории</b> и запустить jEdit</html>
 killring.load-memoryerror.title=Ошибка памяти
 killring.start=старт
@@ -2093,8 +2321,8 @@ killring.delete=удалить файл истории перед стартом
 #{{{ Properties used by macros
 
 #{{{ common
-macro.rs.general.ErrorNotEditableDialog.title=Разрешение записи
-macro.rs.general.ErrorNotEditableDialog.message=Буфер неизменяем!
+macro.rs.general.ErrorNotEditableDialog.title=Права на запись
+macro.rs.general.ErrorNotEditableDialog.message=Буфер нельзя редактировать!
 #}}}
 
 #{{{ Clipboard
@@ -2114,11 +2342,14 @@ macro.rs.CutLinesContaining.LinesCut.message=строк вырезано
 #{{{ Editing
 
 #{{{ Go to column
-macro.rs.GoToColumn.label=Столбец (межды 1 и {0}):
+macro.rs.GoToColumn.label=Столбец (между 1 и {0}):
 #}}}
 
+# Go To Offset
+macro.rs.GoToOffset.label=Смещение (между 0 и {0}):
+
 #{{{ Key Words to Uppercase
-macro.rs.KeywordsToUpperCase.ConvertedKeywords.message=Преобразовано слво верхний регистр
+macro.rs.KeywordsToUpperCase.ConvertedKeywords.message=Преобразовано в верхний регистр
 #}}}
 
 #{{{ Mode Switcher
@@ -2139,18 +2370,18 @@ macro.rs.MoveLines.NoMultipleSelection.error=Передвижение строк
 #{{{ Files
 
 #{{{ Browse Directory
-macro.rs.BrowseDirectory.DirectoryBrowse.label=Показывать директорию:
+macro.rs.BrowseDirectory.DirectoryBrowse.label=Показывать каталог:
 #}}}
 
 #{{{ Buffer Switcher
 macro.rs.BufferSwitcher.OpenBuffers.label=открытые буферы
 macro.rs.BufferSwitcher.QuickHelp.label=[ENTER] активировать; [SPACE] активировать, продолжать диалог; [DEL] Закрыть диалог
-macro.rs.BufferSwitcher.Help1.label=Помощь для макро-команды "Переключатель буферов":
+macro.rs.BufferSwitcher.Help1.label=Помощь для макроса "Переключатель буферов":
 macro.rs.BufferSwitcher.Help2.label=DELETE закрывает выбранный буфер.
 macro.rs.BufferSwitcher.Help3.label=ENTER активирует выбранный буфер, закрывает диалог.
 macro.rs.BufferSwitcher.Help4.label=ESCAPE закрывает диалог.
 macro.rs.BufferSwitcher.Help5.label=SPACE активирует выбранный буфер, не закрывает диалог.
-macro.rs.BufferSwitcher.Help6.label=Внимание: Этот диалог будет показан только однажды
+macro.rs.BufferSwitcher.Help6.label=Внимание: Этот диалог будет показан только один раз
 #}}}
 
 #{{{ Delete Current
@@ -2160,12 +2391,12 @@ macro.rs.DeleteCurrent.Deleted.message=Удалено:
 #}}}
 
 #{{{ Glob Close
-macro.rs.GlobClose.GlobPattern.label=Шаблон:
+macro.rs.GlobClose.GlobPattern.label=Шаблон (например *.txt or /usr/include/*):
 macro.rs.GlobClose.ErrorGlobPattern.error=Ошибка в шаблоне:
 #}}}
 
 #{{{ Next Dirty Buffer
-macro.rs.NextDirtyBuffer.NoOtherBufferDirty.message=Нет других измненённых буферов
+macro.rs.NextDirtyBuffer.NoOtherBufferDirty.message=Нет других изменённых буферов
 macro.rs.NextDirtyBuffer.NoBufferDirty.message=Нет изменённых буферов
 #}}}
 
@@ -2174,8 +2405,8 @@ macro.rs.OpenPath.PathName.label=Путь:
 #}}}
 
 #{{{Toggle ReadOnly
-macro.rs.ToggleReadOnly.OnlyLocalFiles.error=Это макро работает только с локальными файлами.
-macro.rs.ToggleReadOnly.OnlyWindowsUnixMacos.error=Это макро работает только с Windows, Unix, & MacOS X.
+macro.rs.ToggleReadOnly.OnlyLocalFiles.error=Этот макрос работает только с локальными файлами.
+macro.rs.ToggleReadOnly.OnlyWindowsUnixMacos.error=Этот макрос работает только с Windows, Unix и MacOS X.
 #}}}
 
 #}}}
@@ -2191,12 +2422,12 @@ macro.rs.ChangeFontSize.FontSize.message=Размер шрифта теперь:
 #{{{ Java
 
 #{{{ Create Constructor
-macro.rs.CreateConstructor.UnevenNumber.message=Неровное количество типов имён и переменных.
+macro.rs.CreateConstructor.UnevenNumber.message=Несоответствующее количество имён типов и переменных.
 #}}}
 
 #{{{ Get Package Name
-macro.rs.GetPackageName.NotWorking1.error=Эта макро-команда не работает когда интерпретатор Java
-macro.rs.GetPackageName.NotWorking2.error=загрузил jEdit с помощью '-jar' опции командной строки.
+macro.rs.GetPackageName.NotWorking1.error=Этот макрос не работает когда интерпретатор Java
+macro.rs.GetPackageName.NotWorking2.error=загружает jEdit с параметром '-jar'.
 macro.rs.GetPackageName.NotFind.error=Не найдено имя пакета.
 #}}}
 
@@ -2205,10 +2436,10 @@ macro.rs.JavaFileSave.InfiniteLoop.error=Бесконечный цикл:
 #}}}
 
 #{{{Make Get and Set Methods
-macro.rs.MakeGetAndSetMethods.GenerateCode.label=Генерироватьь код
-macro.rs.MakeGetAndSetMethods.CreateGetMethods.label=Создать методы доступа (Get)
-macro.rs.MakeGetAndSetMethods.CreateSetMethods.label=Создать методы изменения (Set)
-macro.rs.MakeGetAndSetMethods.CreateGetandSetMethods.label=Sozdat= metody Get i Set
+macro.rs.MakeGetAndSetMethods.GenerateCode.label=Сгенерировать код
+macro.rs.MakeGetAndSetMethods.CreateGetMethods.label=Создать геттеры
+macro.rs.MakeGetAndSetMethods.CreateSetMethods.label=Создать сеттеры
+macro.rs.MakeGetAndSetMethods.CreateGetandSetMethods.label=Создать геттеры и сеттеры
 #}}}
 
 #}}}
@@ -2216,8 +2447,8 @@ macro.rs.MakeGetAndSetMethods.CreateGetandSetMethods.label=Sozdat= metody Get i 
 #{{{ Misc
 
 #{{{ Buffer to HyperSearch Results - HyperSearch Results to Buffer
-macro.rs.HyperSearchResults.WindowNotOpen.error=Окно "Результаты глобльного поиска" не открыто.
-macro.rs.HyperSearchResults.NotMatch.error=Нет результов глобального ппоиска.
+macro.rs.HyperSearchResults.WindowNotOpen.error=Окно "Результаты гипер-поиска" не открыто.
+macro.rs.HyperSearchResults.NotMatch.error=Нет результов глобального поиска.
 #}}}
 
 #{{{ Debug BufferSets
@@ -2238,10 +2469,10 @@ macro.rs.DisplayAbbreviations.WriteAll.label=Записать всё
 macro.rs.DisplayAbbreviations.AbbreviationList.label=Список сокращений
 macro.rs.DisplayAbbreviations.CallingWTTNB.label=вызов writeTableToNewBuffer для
 macro.rs.DisplayAbbreviations.SizeVector.label=размер вектора:
-macro.rs.DisplayAbbreviations.jEditAbbreviationTable.label=jEdit Abbreviation Table
-macro.rs.DisplayAbbreviations.AbbreviationSet.label=Abbreviation set:
-macro.rs.DisplayAbbreviations.AbbreviationExpansion.label=Abbreviation    Expansion
-macro.rs.DisplayAbbreviations.NoAbbreviations.label=<< No abbreviations >>
+macro.rs.DisplayAbbreviations.jEditAbbreviationTable.label=Таблица сокращений jEdit
+macro.rs.DisplayAbbreviations.AbbreviationSet.label=Набор сокращений:
+macro.rs.DisplayAbbreviations.AbbreviationExpansion.label=Разворачивание сокращения
+macro.rs.DisplayAbbreviations.NoAbbreviations.label=<< Нет сокращений >>
 #}}}
 
 #{{{ Display Actions
@@ -2251,7 +2482,7 @@ macro.rs.DisplayActions.NoLabel.label=<no label>
 #}}}
 
 #{{{ Display Character Code
-macro.rs.DisplayCharacterCode.CharacterAtCaret.label=Символ под кареткой:
+macro.rs.DisplayCharacterCode.CharacterAtCaret.label=Символ под курсором:
 #}}}
 
 #{{{ Display Shorcuts
@@ -2262,8 +2493,6 @@ macro.rs.DisplayShortcuts.Shortcut2.label=Shortcut - 2
 macro.rs.DisplayShortcuts.Close.label=Close
 macro.rs.DisplayShortcuts.WriteToBuffer.label=Write to buffer
 macro.rs.DisplayShortcuts.ShortcutList.label=Keyboard shortcut list
-macro.rs.DisplayShortcuts.Center.label=Center
-macro.rs.DisplayShortcuts.South.label=South
 #}}}
 
 #{{{ Hex Convert
@@ -2276,11 +2505,6 @@ macro.rs.HexConvert.ByteToString.label=Byte to String:
 #{{{ Make Bug Report
 macro.rs.MakeBugReport.OpeningActivityLog.error=Error opening Activity Log.
 macro.rs.MakeBugReport.UsefulEntriesForReport.label=Activity log entries that might be useful in a bug report:\n\n.
-macro.rs.MakeBugReport.MessagejEdit.label=[message] jEdit:
-macro.rs.MakeBugReport.NoticejEdit.label=[notice] jEdit:
-macro.rs.MakeBugReport.NoticeJarClassLoader.label=[notice] JARClassLoader:
-macro.rs.MakeBugReport.MessagejEditStartupComplete.label=[message] jEdit: Startup complete
-macro.rs.MakeBugReport.Error.label=[error]
 macro.rs.MakeBugReport.ReadingActivityLog.error=Error reading Activity Log
 #}}}
 
@@ -2333,11 +2557,11 @@ macro.rs.ColorPicker.ColorPicker.label=Выбор цвета
 #}}}
 
 #{{{ Insert Date
-macro.rs.InsertDate.InternetTime.label=Internet Time
+macro.rs.InsertDate.InternetTime.label=Время Интернета
 #}}}
 
 #{{{ Insert Tag
-macro.rs.InsertTag.EnterNameTag.label=Enter name of tag:
+macro.rs.InsertTag.EnterNameTag.label=Введите название тега:
 #}}}
 
 #{{{ Line_Filter
@@ -2358,8 +2582,8 @@ macro.rs.LineFilter.BlockSelection.message=Прямоугольное выдел
 macro.rs.LineFilter.SummaryDeleted.label=Строки удалены!
 macro.rs.LineFilter.SummaryWritten.label=Строки записаны в новый буфер.
 
-macro.rs.LineFilter.ErrorRegexpDialog.title=Не годное регулярное выражение
-macro.rs.LineFilter.ErrorRegexpDialog.message=Негодное регулярное выражение!
+macro.rs.LineFilter.ErrorRegexpDialog.title=Неверное регулярное выражение
+macro.rs.LineFilter.ErrorRegexpDialog.message=Неверное регулярное выражение!
 #}}}
 
 #{{{ Next Char
@@ -2367,7 +2591,7 @@ macro.rs.InsertTag.EnterCharacter.label=Введите символ
 #}}}
 
 #{{{ Reverse Lines
-macro.rs.ReverseLines.NotWorkingRectangularSelection.error=Эта макро-команда не работает с прямоугольным вуделением.
+macro.rs.ReverseLines.NotWorkingRectangularSelection.error=Этот макрос не работает с прямоугольным выделением.
 #}}}
 
 #{{{ Single Space Buffer
@@ -2393,7 +2617,7 @@ C/Toggle_Header_Source.label=Toggle Header Source
 macros.folder.Clipboard.label=Буфер обмена
 
 Clipboard/Copy_Lines.label=Копировать строки
-Clipboard/Copy_Lines_Containing.label=Копироватьь строки содержащие
+Clipboard/Copy_Lines_Containing.label=Копировать строки содержащие
 Clipboard/Copy_Visible_Lines.label=Копировать видимые строки
 Clipboard/Cut_Lines.label=Вырезать строки
 Clipboard/Cut_Lines_Containing.label=Вырезать строки содержащие
@@ -2403,42 +2627,64 @@ Clipboard/Paste_Indent.label=Вставить отступ
 #{{{ Editing
 macros.folder.Editing.label=Редактировать
 
-Editing/Duplicate_Lines_Above.label=Дублировать строки наверху
-Editing/Duplicate_Lines_Below.label=Дублировать строки внизу
-Editing/Emacs_Ctrl-K.label=Emacs Ctrl-K
-Editing/Emacs_Next_Line.label=Emacs Next Line
-Editing/Emacs_Previous_Line.label=Emacs Previous Line
+Editing/Duplicate_Lines_Above.label=Дублировать строки сверху
+Editing/Duplicate_Lines_Below.label=Дублировать строки снизу
 Editing/Go_to_Column.label=Перейти к столбцу
 Editing/Greedy_Backspace.label=Жадно Backspace
 Editing/Greedy_Delete.label=Жадно Delete
 Editing/Greedy_Left.label=Жадно Влево
 Editing/Greedy_Right.label=Жадно Вправо
-Editing/Keywords_to_Upper_Case.label=Keywords to Upper Case
+Editing/Keywords_to_Upper_Case.label=Ключевые слова в верхний регистр
 Editing/Mode_Switcher.label=Переключатель режима
 Editing/Move_Lines_Down.label=Передвинуть строки вверх
 Editing/Move_Lines_Up.label=Передвинуть строки вниз
 Editing/Open_Line_Above.label=Открыть строку сверху
 Editing/Open_Line_Below.label=Открыть строку снизу
-Editing/Toggle_Fold.label=Переключитьь свёртку
+Editing/Toggle_Fold.label=Переключить свёртку
+#}}}
+
+#{{{ Emacs
+macros.folder.Emacs.label=Emacs
+Emacs/Emacs_Align_Decls.label=Emacs Align Decls
+Emacs/Emacs_Backward_Sentence.label=Emacs Backward Sentence
+Emacs/Emacs_Capitalize_Word.label=Emacs Capitalize Word
+Emacs/Emacs_Center_Line.label=Emacs Center Line
+Emacs/Emacs_Ctrl-K.label=Emacs Ctrl-K
+Emacs/Emacs_Downcase_Word.label=Emacs Downcase Word
+Emacs/Emacs_Exchange_Point_and_Mark.label=Emacs Exchange Point and Mark
+Emacs/Emacs_Fixup_Whitespace.label=Emacs Fixup Whitespace
+Emacs/Emacs_Forward_Sentence.label=Emacs Forward Sentence
+Emacs/Emacs_Insert_File.label=Emacs Insert File
+Emacs/Emacs_Kill_Line.label=Emacs Kill Line
+Emacs/Emacs_Kill_Region.label=Emacs Kill Region
+Emacs/Emacs_Kill_Ring_Save.label=Emacs Kill Ring Save
+Emacs/Emacs_Kill_Sentence.label=Emacs Kill Sentence
+Emacs/Emacs_Next_Line.label=Emacs Next Line
+Emacs/Emacs_Open_Line.label=Emacs Open Line
+Emacs/Emacs_Previous_Line.label=Emacs Previous Line
+Emacs/Emacs_Set_Mark.label=Emacs Set Mark
+Emacs/Emacs_Set_Wrap.label=Emacs Set Wrap
+Emacs/Emacs_Transpose_Chars.label=Emacs Transpose Chars
+Emacs/Emacs_Transpose_Lines.label=Emacs Transpose Lines
+Emacs/Emacs_Upcase_Word.label=Emacs Upcase Word
 #}}}
 
 #{{{ Files
 macros.folder.Files.label=Файлы
 
-Files/Browse_Buffer_Directory.label=Показать директорию буфера
-Files/Browse_Directory.label=Показать Директорию
-Files/Buffer_Switcher.label=Переключатель Буфера
-Files/Close_All_Except_Active.label=Закрыть все кроме активного
+Files/Browse_Buffer_Directory.label=Показать каталог буфера
+Files/Browse_Directory.label=Показать Каталог
+Files/Buffer_Switcher.label=Переключатель буфера
 Files/Copy_Name_to_Clipboard.label=Копировать имя в буфер обмена
 Files/Copy_Path_to_Clipboard.label=Копировать путь в буфер обмена
 Files/Delete_Current.label=Удалить текущий
 Files/Duplicate_Buffer.label=Дублировать буфер
 Files/Glob_Close.label=Закрыть по шаблону
-Files/Insert_Selection.label=Вставить Выбор
+Files/Insert_Selection.label=Вставить выделение
 Files/Next_Dirty_Buffer.label=Следующий изменённый буфер
 Files/Open_Path.label=Открыть путь
-Files/Open_Selection.label=Открыть выбор
-Files/Send_Buffer_To_Next_Split.label=Переслть буфер в следующее под-окно
+Files/Open_Selection.label=Открыть выделение
+Files/Send_Buffer_To_Next_Split.label=Отправить буфер в следующую область
 Files/Toggle_ReadOnly.label=Переключить "Только для Чтения"
 #}}}
 
@@ -2448,8 +2694,8 @@ macros.folder.Interface.label=Интерфейс
 Interface/Decrease_Font_Size.label=Уменьшить размер шрифта
 Interface/Increase_Font_Size.label=Увеличить размер шрифта
 Interface/Open_Context_Menu.label=Открыть контекстное меню
-Interface/Reset_TextArea.label=Очистить Текстовую область
-Interface/Splitpane_Grow.label=Ивеличить разделение
+Interface/Reset_TextArea.label=Сбросить текстовую область
+Interface/Splitpane_Grow.label=Расширить текстовую область
 Interface/Toggle_Bottom_Docking_Area.label=Переключить нижний док
 Interface/Toggle_Left_Docking_Area.label=Переключить левый док
 Interface/Toggle_Right_Docking_Area.label=Переключить правый док
@@ -2470,28 +2716,28 @@ Java/Preview_JavaDoc_Of_Current_Buffer.label=Preview JavaDoc Of Current Buffer
 #{{{ Misc
 macros.folder.Misc.label=Разное
 
-Misc/Buffer_to_HyperSearch_Results.label=Буффер в глобальный поиск
-Misc/Debug_BufferSets.label=Отладка наборов буферров
+Misc/Buffer_to_HyperSearch_Results.label=Буфер в результаты гипер-поиска
+Misc/Debug_BufferSets.label=Отладка наборов буферов
 Misc/Display_Abbreviations.label=Показать сокращения
-Misc/Display_Actions.label=Показатьь действия
+Misc/Display_Actions.label=Показать действия
 Misc/Display_Character_Code.label=Показать код символа
-Misc/Display_Shortcuts.label=Показать клавиши
+Misc/Display_Shortcuts.label=Показать комбинации клавиш
 Misc/Evaluate_Buffer_in_BeanShell.label=Выполнить BeanShell из буфера
 Misc/Hex_Convert.label=Hex Convert
-Misc/HyperSearch_Results_to_Buffer.label=Глобальнйи поиск в буфер
-Misc/Make_Bug_Report.label=Make Bug Report
-Misc/Run_Script.label=Run Script
-Misc/Show_Threads.label=Show Threads
+Misc/HyperSearch_Results_to_Buffer.label=Результаты гипер-поиска в буфер
+Misc/Make_Bug_Report.label=Создать отчет об ошибках
+Misc/Run_Script.label=Запустить скрипт
+Misc/Show_Threads.label=Показать потоки
 #}}}
 
 #{{{ Properties
 macros.folder.Properties.label=Свойства
 
 Properties/Create_Plugin_Announcement.label=Create Plugin Announcement
-Properties/Insert_Buffer_Properties.label=Insert Buffer Properties
+Properties/Insert_Buffer_Properties.label=Вставить свойства буфера
 Properties/jEdit_Properties.label=Свойства jEdit
-Properties/Look_and_Feel_Properties.label=Look and Feel Properties
-Properties/System_Properties.label=свойства системы
+Properties/Look_and_Feel_Properties.label=Свойства Look and Feel
+Properties/System_Properties.label=Свойства системы
 #}}}
 
 #{{{ Text
@@ -2499,13 +2745,14 @@ macros.folder.Text.label=Текст
 
 Text/Add_Prefix_and_Suffix.label=Добавить префикс и суффикс
 Text/Color_Picker.label=Выбор цвета
-Text/Compose_Tag.label=Compose Tag
+Text/Compose_Tag.label=Составить тег
 Text/Duplicate_Line.label=Дублировать строку
 Text/Insert_Date.label=Вставить дату
-Text/Insert_Tag.label=Insert Tag
+Text/Insert_Tag.label=Вставить тег
 Text/Line_Filter.label=Фильтр строк
 Text/Next_Char.label=Следующий символ
-Text/Reverse_Lines.label=Обратить порядок строк
+Text/Reverse_Lines.label=Развернуть строки
+Text/Reverse_Selection.label=Развернуть выделение
 Text/Single_Space_Buffer.label=Буфер в один интервал
 #}}}
 

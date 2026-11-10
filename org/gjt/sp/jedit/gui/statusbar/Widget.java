@@ -23,12 +23,13 @@
 package org.gjt.sp.jedit.gui.statusbar;
 
 import javax.swing.JComponent;
+import java.util.function.Predicate;
 
 /** Status Bar Widget interface. 
  * @author Matthieu Casanova
  * @since jEdit 4.3pre14
  */
-public interface Widget 
+public interface Widget extends Predicate<StatusBarEventType>
 {
 	/** 
 	 * Returns the component that will be inserted in the status bar
@@ -40,8 +41,19 @@ public interface Widget
 	 * a callback telling that the properties have been changed, the widget
 	 * can update itself if needed
 	 */
-	void propertiesChanged();
+	default void propertiesChanged() {}
 	
 	/** A refresh is asked to the widget */
-	void update();
+	default void update() {}
+
+	/**
+	 * Returns true if the widget must be updated fore the given event
+	 * @param statusBarEventType the event
+	 * @return true if the widget must be updated
+	 */
+	@Override
+	default boolean test(StatusBarEventType statusBarEventType)
+	{
+		return false;
+	}
 }

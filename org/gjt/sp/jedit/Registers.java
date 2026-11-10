@@ -26,8 +26,8 @@ package org.gjt.sp.jedit;
 //{{{ Imports
 import java.awt.datatransfer.*;
 import java.awt.Toolkit;
-import java.awt.datatransfer.DataFlavor;
 import java.io.*;
+import java.util.Arrays;
 
 import org.gjt.sp.jedit.buffer.JEditBuffer;
 import org.gjt.sp.jedit.datatransfer.JEditDataFlavor;
@@ -37,6 +37,8 @@ import org.gjt.sp.jedit.gui.HistoryModel;
 import org.gjt.sp.jedit.textarea.TextArea;
 import org.gjt.sp.jedit.textarea.Selection;
 import org.gjt.sp.util.Log;
+
+import javax.annotation.Nullable;
 //}}}
 
 /**
@@ -62,7 +64,7 @@ import org.gjt.sp.util.Log;
  *
  * @author Slava Pestov
  * @author John Gellene (API documentation)
- * @version $Id: Registers.java 23224 2013-09-30 20:51:42Z shlomy $
+ * @version $Id: Registers.java 25698 2023-11-17 01:31:50Z vampire0 $
  */
 public class Registers
 {
@@ -111,7 +113,7 @@ public class Registers
 			textArea.setSelectedText("");
 		}
 		else
-			textArea.getToolkit().beep();
+			javax.swing.UIManager.getLookAndFeel().provideErrorFeedback(null);
 	} //}}}
 
 	//{{{ append() methods
@@ -151,7 +153,7 @@ public class Registers
 	{
 		if(cut && !textArea.isEditable())
 		{
-			textArea.getToolkit().beep();
+			javax.swing.UIManager.getLookAndFeel().provideErrorFeedback(null);
 			return;
 		}
 
@@ -169,13 +171,10 @@ public class Registers
 				try
 				{
 					String registerContents = (String) transferable.getTransferData(DataFlavor.stringFlavor);
-					if(registerContents != null)
-					{
-						if(registerContents.endsWith(separator))
-							selection = registerContents + selection;
-						else
-							selection = registerContents + separator + selection;
-					}
+					if(registerContents.endsWith(separator))
+						selection = registerContents + selection;
+					else
+						selection = registerContents + separator + selection;
 				}
 				catch (UnsupportedFlavorException e)
 				{
@@ -211,7 +210,7 @@ public class Registers
 	 * @param textArea The text area
 	 * @param register The register
 	 * @param preferredDataFlavor the preferred dataflavor. If not available
-	 * <tt>DataFlavor.stringFlavor</tt> will be used
+	 * {@code DataFlavor.stringFlavor} will be used
 	 * @since jEdit 4.4pre1
 	 */
 	public static void paste(TextArea textArea, char register, DataFlavor preferredDataFlavor)
@@ -231,7 +230,7 @@ public class Registers
 	{
 		if(!textArea.isEditable())
 		{
-			textArea.getToolkit().beep();
+			javax.swing.UIManager.getLookAndFeel().provideErrorFeedback(null);
 			return;
 		}
 
@@ -239,7 +238,7 @@ public class Registers
 
 		if(reg == null)
 		{
-			textArea.getToolkit().beep();
+			javax.swing.UIManager.getLookAndFeel().provideErrorFeedback(null);
 			return;
 		}
 		Transferable transferable = reg.getTransferable();
@@ -253,11 +252,7 @@ public class Registers
 				mode = data.getMode();
 				selection = data.getText();
 			}
-			catch (UnsupportedFlavorException e)
-			{
-				Log.log(Log.ERROR, Registers.class, e);
-			}
-			catch (IOException e)
+			catch (UnsupportedFlavorException | IOException e)
 			{
 				Log.log(Log.ERROR, Registers.class, e);
 			}
@@ -268,7 +263,7 @@ public class Registers
 		}
 		if(selection == null)
 		{
-			textArea.getToolkit().beep();
+			javax.swing.UIManager.getLookAndFeel().provideErrorFeedback(null);
 			return;
 		}
 		JEditBuffer buffer = textArea.getBuffer();
@@ -282,7 +277,7 @@ public class Registers
 	 * @param register The register
 	 * @param vertical Vertical (columnar) paste
 	 * @param preferredDataFlavor the preferred dataflavor. If not available
-	 * <tt>DataFlavor.stringFlavor</tt> will be used
+	 * {@code DataFlavor.stringFlavor} will be used
 	 * @since jEdit 4.4pre1
 	 */
 	public static void paste(TextArea textArea, char register,
@@ -295,7 +290,7 @@ public class Registers
 		}
 		if(!textArea.isEditable())
 		{
-			textArea.getToolkit().beep();
+			javax.swing.UIManager.getLookAndFeel().provideErrorFeedback(null);
 			return;
 		}
 
@@ -303,7 +298,7 @@ public class Registers
 
 		if(reg == null)
 		{
-			textArea.getToolkit().beep();
+			javax.swing.UIManager.getLookAndFeel().provideErrorFeedback(null);
 			return;
 		}
 		Transferable transferable = reg.getTransferable();
@@ -318,7 +313,7 @@ public class Registers
 		}
 		if(selection == null)
 		{
-			textArea.getToolkit().beep();
+			javax.swing.UIManager.getLookAndFeel().provideErrorFeedback(null);
 			return;
 		}
 		JEditBuffer buffer = textArea.getBuffer();
@@ -415,11 +410,7 @@ public class Registers
 			Object data = transferable.getTransferData(dataFlavor);
 			return stripEOLChars(data.toString());
 		}
-		catch (UnsupportedFlavorException e)
-		{
-			Log.log(Log.ERROR, Registers.class, e);
-		}
-		catch (IOException e)
+		catch (UnsupportedFlavorException | IOException e)
 		{
 			Log.log(Log.ERROR, Registers.class, e);
 		}
@@ -457,11 +448,7 @@ public class Registers
 
 		if(name >= registers.length)
 		{
-			Register[] newRegisters = new Register[
-				Math.min(1<<16, name<<1)];
-			System.arraycopy(registers,0,newRegisters,0,
-				registers.length);
-			registers = newRegisters;
+			registers = Arrays.copyOf(registers, Math.min(1<<16, name<<1));
 		}
 
 		registers[name] = newRegister;
@@ -542,6 +529,7 @@ public class Registers
 	 * (eg, "a b $ % ^").
 	 * @since jEdit 4.2pre2
 	 */
+	@Nullable
 	public static String getRegisterNameString()
 	{
 		if(!loaded)
@@ -618,8 +606,7 @@ public class Registers
 	{
 		registers = new Register[256];
 		Toolkit toolkit = Toolkit.getDefaultToolkit();
-		registers['$'] = new ClipboardRegister(
-			toolkit.getSystemClipboard());
+		registers['$'] = new ClipboardRegister(toolkit.getSystemClipboard());
 		Clipboard selection = toolkit.getSystemSelection();
 		if(selection != null)
 			registers['%'] = new ClipboardRegister(selection);
@@ -693,7 +680,10 @@ public class Registers
 		/**
 		 * Converts to a string.
 		 */
-		@Deprecated
+		//@Deprecated
+		// undeprecating this since the two concrete classes defined in Registers
+		// use it and several other classes depend on it.
+		// TODO: finish the work to actually deprecate this.
 		String toString();
 
 		/**
@@ -731,7 +721,7 @@ public class Registers
 		public void setValue(String value)
 		{
 			Transferable selection = new StringSelection(value);
-			clipboard.setContents(selection,null);
+			clipboard.setContents(selection, null);
 		}
 
 		/**
@@ -749,7 +739,7 @@ public class Registers
 						This is to debug clipboard problems.
 
 						Apparently, jEdit is unable to copy text from clipbard into the current
-						text buffer if the clipboard was filles using the command
+						text buffer if the clipboard was filled using the command
 							echo test | xselection CLIPBOARD -
 						under Linux. However, it seems that Java does not offer any
 						data flavor for this clipboard content (under J2RE 1.5.0_06-b05)
@@ -759,9 +749,7 @@ public class Registers
 					debugListDataFlavors(clipboard.getContents(this));
 				}
 
-				String selection = (String)clipboard
-					.getContents(this).getTransferData(
-					DataFlavor.stringFlavor);
+				String selection = (String)clipboard.getContents(this).getTransferData(DataFlavor.stringFlavor);
 
 				return stripEOLChars(selection);
 			}
@@ -825,11 +813,7 @@ public class Registers
 				{
 					return transferable.getTransferData(DataFlavor.stringFlavor).toString();
 				}
-				catch (UnsupportedFlavorException e)
-				{
-					Log.log(Log.ERROR, this, e);
-				}
-				catch (IOException e)
+				catch (UnsupportedFlavorException | IOException e)
 				{
 					Log.log(Log.ERROR, this, e);
 				}

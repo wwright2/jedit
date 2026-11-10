@@ -27,7 +27,7 @@ import java.lang.reflect.Field;
  * A linked list of syntax tokens.
  *
  * @author Slava Pestov
- * @version $Id: Token.java 21831 2012-06-18 22:54:17Z ezust $
+ * @version $Id: Token.java 25244 2020-04-15 15:14:49Z kpouer $
  */
 public class Token
 {
@@ -57,11 +57,11 @@ public class Token
 	 */
 	public static String tokenToString(byte token)
 	{
-		return (token == Token.END) ? "END" : TOKEN_TYPES[token];
+		return (token == Token.END) ? "END" : TOKEN_TYPES[token % ID_COUNT];
 	} //}}}
 
 	//{{{ Token types
-	public static final String[] TOKEN_TYPES = new String[] {
+	public static final String[] TOKEN_TYPES = {
 		"NULL",
 		"COMMENT1",
 		"COMMENT2",
@@ -161,4 +161,28 @@ public class Token
 	{
 		return "[id=" + id + ",offset=" + offset + ",length=" + length + "]";
 	} //}}}
+	
+	
+	//{{{ isCommentOrLiteral() method
+	/**
+	 * @return true for COMMENTx and LITERALx tokens 
+	 */
+	public static boolean isCommentOrLiteral(byte id)
+	{
+		switch (id)
+		{
+		case Token.COMMENT1:
+		case Token.COMMENT2:
+		case Token.COMMENT3:
+		case Token.COMMENT4:
+		case Token.LITERAL1:
+		case Token.LITERAL2:
+		case Token.LITERAL3:
+		case Token.LITERAL4:
+			return true;
+		default:
+			return false;
+		}		
+	} //}}}
+
 }

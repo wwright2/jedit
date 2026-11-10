@@ -7,7 +7,7 @@
 ### Copyright (C) 1998, 2005 Slava Pestov
 ###
 
-#{{{ jEdit core (jedit_gui.props)
+#{{{ jEdit core
 
 #{{{ Default user catalog file
 defaultCatalog=<?xml version="1.0"?>\n\
@@ -38,9 +38,9 @@ common.clearAll=すべてクリア
 common.selectAll=すべて選択
 common.selectNone=選択解除
 
-lineSep.unix=Unix (\\n)
-lineSep.windows=DOS/Windows (\\r\\n)
-lineSep.mac=MacOS (\\r)
+lineSep.LF=Unix/MacOS (\\n)
+lineSep.CRLF=DOS/Windows (\\r\\n)
+lineSep.CR=Classic MacOS (\\r)
 #}}}
 
 #{{{ Miscellaneous
@@ -52,7 +52,6 @@ action-set.macros=マクロ
 action-set.plugin=プラグイン: {0}
 
 macro-handler.beanshell.label=BeanShell スクリプト
-macro-handler.beanshell.glob=*.bsh
 
 save-layout-failed.message=ドッキングレイアウトの保存に失敗しました。
 load-layout.title=ドッキングレイアウトの読み込み
@@ -539,7 +538,9 @@ view.status.io=I/O: {0} 件の操作が進行中
 view.status.linesep-changed=改行文字を設定 {0}
 view.status.linesep-tooltip=改行文字 (クリックで変更)
 view.status.memory-tooltip=Java ヒープメモリ: {0}Kb/{1}Kb
-view.status.mode-tooltip=編集モード/フォールドモード/エンコーディング
+view.status.mode-tooltip=編集モード
+view.status.fold-tooltip=フォールドモード
+view.status.encoding-tooltip=エンコーディング
 view.status.multi-changed=マルチ選択モード {0,choice,0#オフ|1#オン}
 view.status.multi-tooltip=マルチ選択モード (クリックで変更)
 view.status.narrow=すべてのテキストを表示するには、"すべてのフォールドを開く"を実行
@@ -879,7 +880,7 @@ search.directoryField=ディレクトリ(Y):
 search.directoryField.mnemonic=Y
 search.filterField=フィルタ(F):
 search.filterField.mnemonic=F
-search.filterField.tooltip={*.c,*.h} で拡張子複数対応
+glob.tooltip={*.c,*.h} で拡張子複数対応
 search.subdirs=サブディレクトリの検索(U)
 search.subdirs.mnemonic=U
 search.choose=選択(E)...
@@ -956,7 +957,7 @@ searcherror-bsh.message=この操作を実行中にエラーが発生しまし�
 
 #{{{ Empty fileset error dialog
 empty-fileset.title=空のファイルセット
-empty-fileset.message=指定された検索ファイルセットはファイルを含んでいません。
+empty-fileset.message=指定された検索ファイルセットはファイルを含んでいません。\n\
 	ファイル名フィルタと検索対象ディレクトリ(適用可能なら)を\n\
 	正しく設定してください。
 #}}}
@@ -1205,7 +1206,7 @@ view.title.select=このビューのタイトルを入力してください:
 #{{{ Buffer options dialog
 buffer-options.title=バッファ オプション
 buffer-options.caption=このダイアログボックスは現在のバッファのみ設定を変更します。\n\
-	編集モードのデフォルト設定を変更するには、\n\n
+	編集モードのデフォルト設定を変更するには、\n\
 	ユーティリティ->グローバル オプション->編集 ダイアログを参照してください。
 buffer-options.loading-saving=読み込み/保存
 buffer-options.lineSeparator=改行文字:
@@ -1255,7 +1256,6 @@ options.general.restore.cli=... コマンドラインでファイル名が指定
 options.general.encodingDetectors=エンコーディング検出方法(複数可):
 options.general.fallbackEncodings=代替エンコーディング(複数可):
 options.general.fallbackEncodings.tooltip=ロード中のエンコーディングエラーに対して再試行する、ホワイトスペースで分割された複数のエンコーディング
-options.general.systrayicon=システムトレイアイコンを表示
 #}}}
 
 #{{{ Abbreviations pane
@@ -1295,6 +1295,7 @@ options.appearance.decorateDialogs=Swing のルック・アンド・フィール
 options.appearance.localization.section.label=ローカライズ
 options.appearance.usedefaultlocale.label=デフォルトのロケールを使用
 options.appearance.lang.label=言語 (再起動で変更が反映されます)
+options.appearance.systrayicon=システムトレイアイコンを表示
 #}}}
 
 #{{{ Context Menu pane
@@ -1481,7 +1482,6 @@ options.save-back.twoStageSave.tooltip=ステージ 1: 古いファイルをリ�
 options.save-back.confirmSaveAll="すべて保存"コマンドは確認ダイアログを表示
 options.save-back.autosaveUntitled=無題バッファを自動保存
 options.save-back.suppressNotSavedConfirmUntitled=無題バッファはダーティーとしてマークしない。
-options.save-back.suppressNotSavedConfirmUntitled.tooltip=これをチェックすると新規バッファが作られるとき常に無題バッファが排除されることになります。(これは仕様です!)
 options.save-back.useMD5forDirtyCalculation=内容が変わっていなければダーティーとしてマークしない。
 options.save-back.useMD5forDirtyCalculation.tooltip=読み込み時のバッファの長さとMD5ハッシュで比較し、バッファがダーティーかどうか判別。
 options.save-back.saveAsUsesFSB="名前を付けて保存" のデフォルトはファイルシステムブラウザのディレクトリ
@@ -1525,7 +1525,7 @@ grab-key.remove-ask.message=\
 
 grab-key.duplicate-alt-shortcut.title=重複ショートカット
 grab-key.duplicate-alt-shortcut.message=\
-	選択されたショートカットはこの項目の別のショートカットと\n\n
+	選択されたショートカットはこの項目の別のショートカットと\n\
 	重複します。他のものを選択してください。
 
 grab-key.duplicate-shortcut.title=重複ショートカット
@@ -1577,8 +1577,8 @@ options.syntax.foldLine.0=閉じたフォールド行 レベル > 3
 options.textarea.label=テキストエリア
 options.textarea.font=テキストフォント:
 options.textarea.fontSubst=フォント置換用の追加フォント
-options.textarea.fontsubst.tooltip=選ばれた文字を表示できない場合、自動的に適切なフォントを選択します。
-options.textarea.fontsubstlist=フォント置換: 推奨フォント:
+options.textarea.fontSubst.tooltip=選ばれた文字を表示できない場合、自動的に適切なフォントを選択します。
+options.textarea.fontSubstList=フォント置換: 推奨フォント:
 options.textarea.fontSubstSystemFonts=Font substitution: Search all system fonts
 options.textarea.fontSubstWarning.label=Font substitution
 options.textarea.fontSubstWarning=Without system fonts you will need preferred fonts.
@@ -1633,7 +1633,6 @@ options.toolbar.reset.dialog.message=本当にツールバーをインストー�
 #{{{ View pane
 options.view.label=ビュー
 options.view.viewLayout=ビューレイアウト
-options.view.floatableToolbars=フロート可能なツールバー
 options.view.alternateDockingLayout=別のドッキングウィンドウ配置
 options.view.alternateToolBarLayout=別のツールバー配置
 options.view.showFullPath=タイトルバーにバッファのフルパスを表示
@@ -1957,10 +1956,6 @@ plugin-manager.status.error=エラー
 
 plugin-manager.list-download-connect=plugins.jedit.org に接続中
 plugin-manager.list-download=プラグインリストを plugins.jedit.org からダウンロード中
-plugin-manager.list-download.mirror-autoselect-error.title=ミラー選択エラー
-plugin-manager.list-download.mirror-autoselect-error.message=ミラーの自動選択エラー:\n\
-	{0}\n\
-	別のミラーを選ぶと動作するかもしれません。
 plugin-manager.list-download.need-password.title=HTTPプロキシはパスワードが必要です
 plugin-manager.list-download.need-password.message=HTTPプロキシはパスワードが必要です。\n\
   有効なユーザ名とパスワードを "ダウンロード オプション" で設定して下さい。
@@ -1996,15 +1991,13 @@ install-plugins.info.size=サイズ
 install-plugins.info.releaseDate=リリース日
 install-plugins.info.version=バージョン
 install-plugins.info.category=カテゴリ
+install-plugins.info.author=作者
+install-plugins.info.released=リリース日
 
 install-plugins.totalSize=プラグイン数 {0} / 合計サイズ: {1}
 install-plugins.select-all=すべて選択
 install-plugins.install=インストール
 install-plugins.show-updates=アップデートの表示
-
-install-plugins.info=<b>作者</b>: {0}\n\
-	<b>リリース日</b>: {1}\n\
-	{2}
 
 update-plugins.title=アップデート
 
@@ -2276,8 +2269,6 @@ macro.rs.DisplayShortcuts.Shortcut2.label=ショートカット - 2
 macro.rs.DisplayShortcuts.Close.label=閉じる
 macro.rs.DisplayShortcuts.WriteToBuffer.label=バッファに書き出し
 macro.rs.DisplayShortcuts.ShortcutList.label=キーボードショートカット リスト
-macro.rs.DisplayShortcuts.Center.label=Center
-macro.rs.DisplayShortcuts.South.label=South
 #}}}
 
 #{{{ Hex Convert
@@ -2290,11 +2281,6 @@ macro.rs.HexConvert.ByteToString.label=文字列化するバイト値:
 #{{{ Make Bug Report
 macro.rs.MakeBugReport.OpeningActivityLog.error=アクティビティログを開くときエラーが発生しました。
 macro.rs.MakeBugReport.UsefulEntriesForReport.label=Activity log entries that might be useful in a bug report:\n\n.
-macro.rs.MakeBugReport.MessagejEdit.label=[message] jEdit:
-macro.rs.MakeBugReport.NoticejEdit.label=[notice] jEdit:
-macro.rs.MakeBugReport.NoticeJarClassLoader.label=[notice] JARClassLoader:
-macro.rs.MakeBugReport.MessagejEditStartupComplete.label=[message] jEdit: Startup complete
-macro.rs.MakeBugReport.Error.label=[error]
 macro.rs.MakeBugReport.ReadingActivityLog.error=アクティビティログ読み取りエラー
 #}}}
 
@@ -2419,9 +2405,6 @@ macros.folder.Editing.label=編集
 
 Editing/Duplicate_Lines_Above.label=上の行を複製
 Editing/Duplicate_Lines_Below.label=下の行を複製
-Editing/Emacs_Ctrl-K.label=Emacs の Ctrl-K
-Editing/Emacs_Next_Line.label=Emacs の次行
-Editing/Emacs_Previous_Line.label=Emacs の前行
 Editing/Go_to_Column.label=列に移動
 Editing/Greedy_Backspace.label=貪欲なバックスペース
 Editing/Greedy_Delete.label=貪欲なデリート
@@ -2442,7 +2425,6 @@ macros.folder.Files.label=ファイル
 Files/Browse_Buffer_Directory.label=バッファのディレクトリをブラウズ
 Files/Browse_Directory.label=ディレクトリをブラウズ
 Files/Buffer_Switcher.label=バッファスイッチャ
-Files/Close_All_Except_Active.label=アクティブ以外をすべて閉じる
 Files/Copy_Name_to_Clipboard.label=クリップボードに名前をコピー
 Files/Copy_Path_to_Clipboard.label=クリップボードにパスをコピー
 Files/Delete_Current.label=現在のファイルを削除
@@ -2454,6 +2436,14 @@ Files/Open_Path.label=パスを開く
 Files/Open_Selection.label=選択を開く
 Files/Send_Buffer_To_Next_Split.label=バッファを次のスプリットに送る
 Files/Toggle_ReadOnly.label=読み込み専用の切り替え
+#}}}
+
+#{{{ Emacs
+macros.folder.Emacs.label=Emacs
+
+Emacs/Emacs_Ctrl-K.label=Emacs の Ctrl-K
+Emacs/Emacs_Next_Line.label=Emacs の次行
+Emacs/Emacs_Previous_Line.label=Emacs の前行
 #}}}
 
 #{{{ Interface

@@ -31,6 +31,7 @@ import java.io.Closeable;
 import org.gjt.sp.jedit.*;
 import org.gjt.sp.jedit.browser.VFSBrowser;
 import org.gjt.sp.jedit.browser.FileCellRenderer;
+import org.gjt.sp.jedit.manager.BufferManagerImpl;
 import org.gjt.sp.util.Log;
 import org.gjt.sp.util.IOUtilities;
 import org.gjt.sp.util.StandardUtilities;
@@ -48,7 +49,7 @@ public class VFSFile implements Serializable
 	/**
 	 * Return the index of a file whose name matches the given string,
 	 * in a case-insensitive manner. Exact matches are preferred,
-	 * then same length with different cases, then longest match.
+	 * then same length with different cases, then first found.
 	 * @param files The list of files
 	 * @param start The start index, inclusive
 	 * @param end The end index, exclusive
@@ -61,7 +62,6 @@ public class VFSFile implements Serializable
 	{
 		boolean strIsAbsolute = MiscUtilities.isAbsolutePath(str);
 		int strLen = str.length();
-		int potentialMatchLen = 0;
 		int iPotentialMatch = -1;
 		boolean potentialMatchGTStr = false;
 
@@ -82,15 +82,13 @@ public class VFSFile implements Serializable
 			}
 			else if(matchAgainst.regionMatches(true,0,str,0,strLen))
 			{
-				/* Keep the first match with exact length but different case.
-				 * If the first match is not same length, prefer longest match */
+				// not found yet or not exact length yet and has exact length
 				if(iPotentialMatch == -1
 						|| (potentialMatchGTStr
-							&& (matchAgainst.length() > potentialMatchLen)))
+							&& (matchAgainst.length() == strLen)))
 				{
-					potentialMatchLen = matchAgainst.length();
 					iPotentialMatch = i;
-					potentialMatchGTStr = potentialMatchLen > strLen;
+					potentialMatchGTStr = matchAgainst.length() > strLen;
 				}
 			}
 		}
@@ -161,7 +159,9 @@ public class VFSFile implements Serializable
 	 */
 	public final Icon getIcon(boolean expanded)
 	{
-		return getIcon(expanded, jEdit._getBuffer(getSymlinkPath()) != null);
+		// I don't know if we should expose _getBuffer in BufferManager interface
+		BufferManagerImpl bufferManager = (BufferManagerImpl) jEdit.getBufferManager();
+		return getIcon(expanded, bufferManager._getBuffer(getSymlinkPath()).isPresent());
 	} //}}}
 
 	//{{{ getIcon() method
@@ -203,7 +203,9 @@ public class VFSFile implements Serializable
 	 */
 	public final Icon getDefaultIcon(boolean expanded)
 	{
-		return getDefaultIcon(expanded, jEdit._getBuffer(getSymlinkPath()) != null);
+		// I don't know if we should expose _getBuffer in BufferManager interface
+		BufferManagerImpl bufferManager = (BufferManagerImpl) jEdit.getBufferManager();
+		return getDefaultIcon(expanded, bufferManager._getBuffer(getSymlinkPath()).isPresent());
 	} //}}}
 
 	//{{{ File types

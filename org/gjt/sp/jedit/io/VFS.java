@@ -43,6 +43,9 @@ import org.gjt.sp.util.IOUtilities;
 import org.gjt.sp.util.StandardUtilities;
 import org.gjt.sp.util.Task;
 import org.gjt.sp.util.ThreadUtilities;
+
+import javax.annotation.Nonnull;
+import javax.annotation.Nullable;
 //}}}
 
 /**
@@ -88,7 +91,7 @@ import org.gjt.sp.util.ThreadUtilities;
  * <li>{@link #createVFSSession(String,Component)} - unless
  *     <code>NON_AWT_SESSION_CAP</code> capability is set</li>
  * <li>{@link #insert(View,Buffer,String)}</li>
- * <li>{@link #load(View,Buffer,String)}</li>
+ * <li>{@link #load(View,Buffer,String,boolean)}</li>
  * <li>{@link #save(View,Buffer,String)}</li>
  * </ul>
  *
@@ -104,12 +107,11 @@ import org.gjt.sp.util.ThreadUtilities;
  * @see VFSManager#getVFSForProtocol(String)
  *
  * @author Slava Pestov
- * @author $Id: VFS.java 23981 2015-08-10 14:56:24Z daleanson $
+ * @author $Id: VFS.java 25698 2023-11-17 01:31:50Z vampire0 $
  */
 public abstract class VFS
 {
 	//{{{ Capabilities
-
 	/**
 	 * Read capability.
 	 * @since jEdit 2.6pre2
@@ -176,7 +178,6 @@ public abstract class VFS
 	 * @since jEdit 5.0pre1
 	 */
 	public static final int NON_AWT_SESSION_CAP = 1 << 8;
-
 	//}}}
 
 	//{{{ Extended attributes
@@ -205,7 +206,7 @@ public abstract class VFS
 	public static final String EA_MODIFIED = "modified";
 	//}}}
 
-	public static int IOBUFSIZE = 32678;
+	public static final int IOBUFSIZE = 32678;
 
 	//{{{ VFS constructors
 	/**
@@ -218,7 +219,7 @@ public abstract class VFS
 		this.name = name;
 		this.caps = caps;
 		// reasonable defaults (?)
-		this.extAttrs = new String[] { EA_SIZE, EA_TYPE };
+		extAttrs = new String[] { EA_SIZE, EA_TYPE };
 	}
 
 	/**
@@ -340,6 +341,7 @@ public abstract class VFS
 	 * @param path The path
 	 * @since jEdit 2.6pre5
 	 */
+	@Nonnull
 	public String getParentOfPath(String path)
 	{
 		// ignore last character of path to properly handle
@@ -412,6 +414,7 @@ public abstract class VFS
 	 * @param path The path name
 	 * @since jEdit 4.1pre7
 	 */
+	@Nullable
 	public String getTwoStageSaveName(String path)
 	{
 		return MiscUtilities.constructPath(getParentOfPath(path),
@@ -451,7 +454,7 @@ public abstract class VFS
 	public Object createVFSSessionSafe(final String path,
 	                                   final Component comp)
 	{
-		Object session = null;
+		Object session;
 		if ((getCapabilities() & NON_AWT_SESSION_CAP) != 0)
 		{
 			session = createVFSSession(path, comp);
@@ -473,8 +476,9 @@ public abstract class VFS
 	 * @param view The view
 	 * @param buffer The buffer
 	 * @param path The path
+	 * @param untitled is the buffer untitled
 	 */
-	public boolean load(View view, Buffer buffer, String path)
+	public boolean load(View view, Buffer buffer, String path, boolean untitled)
 	{
 		if((getCapabilities() & READ_CAP) == 0)
 		{
@@ -486,10 +490,26 @@ public abstract class VFS
 		if(session == null)
 			return false;
 
+		try
+		{
+			VFSFile vfsFile = _getFile(session, path, view);
+			if ((vfsFile != null) && (vfsFile.getLength() > Integer.MAX_VALUE))
+			{
+				VFSManager.error(view, path, "ioerror.file-too-big", null);
+				return false;
+			}
+		}
+		catch (IOException e)
+		{
+			// just log the exception here as it was only for the file size check
+			// maybe the actual loading succeeds
+			Log.log(Log.DEBUG, VFS.class, "Error during file size verification", e);
+		}
+
 		if((getCapabilities() & WRITE_CAP) == 0)
 			buffer.setReadOnly(true);
 
-		Task request = new BufferLoadRequest(view, buffer, session, this, path);
+		Task request = new BufferLoadRequest(view, buffer, session, this, path, untitled);
 		if(buffer.isTemporary())
 			// this makes HyperSearch much faster
 			request.run();
@@ -845,14 +865,14 @@ public abstract class VFS
 		boolean skipBinary, boolean skipHidden)
 		throws IOException
 	{
-		List<String> files = new ArrayList<String>(100);
+		List<String> files = new ArrayList<>(100);
 
-		listFiles(session,new HashSet<String>(), files,directory,filter,
+		listFiles(session,new HashSet<>(), files,directory,filter,
 			recursive, comp, skipBinary, skipHidden);
 
-		String[] retVal = files.toArray(new String[files.size()]);
+		String[] retVal = files.toArray(StandardUtilities.EMPTY_STRING_ARRAY);
 
-		Arrays.sort(retVal,new StandardUtilities.StringCompare<String>(true));
+		Arrays.sort(retVal,new StandardUtilities.StringCompare<>(true));
 
 		return retVal;
 	} //}}}
@@ -887,9 +907,8 @@ public abstract class VFS
 	 * @return The specified directory entry, or null if it doesn't exist.
 	 * @since jEdit 4.3pre2
 	 */
-	public VFSFile _getFile(Object session, String path,
-		Component comp)
-		throws IOException
+	@Nullable
+	public VFSFile _getFile(Object session, String path, Component comp) throws IOException
 	{
 		return null;
 	} //}}}
@@ -1116,8 +1135,8 @@ public abstract class VFS
 
 			for (ColorEntry entry : colors)
 			{
-				if (entry.re.matcher(name).matches())
-					return entry.color;
+				if (entry.getRe().matcher(name).matches())
+					return entry.getColor();
 			}
 
 			return null;
@@ -1132,7 +1151,8 @@ public abstract class VFS
 	 */
 	public static class DirectoryEntryCompare implements Comparator<VFSFile>
 	{
-		private boolean sortIgnoreCase, sortMixFilesAndDirs;
+		private final boolean sortIgnoreCase;
+		private final boolean sortMixFilesAndDirs;
 
 		/**
 		 * Creates a new <code>DirectoryEntryCompare</code>.
@@ -1148,6 +1168,7 @@ public abstract class VFS
 			this.sortIgnoreCase = sortIgnoreCase;
 		}
 
+		@Override
 		public int compare(VFSFile file1, VFSFile file2)
 		{
 			if(!sortMixFilesAndDirs)
@@ -1162,9 +1183,9 @@ public abstract class VFS
 	} //}}}
 
 	//{{{ Private members
-	private String name;
-	private int caps;
-	private String[] extAttrs;
+	private final String name;
+	private final int caps;
+	private final String[] extAttrs;
 	private static List<ColorEntry> colors;
 	private static final Object lock = new Object();
 
@@ -1173,6 +1194,7 @@ public abstract class VFS
 	{
 		EditBus.addToBus(new EBComponent()
 		{
+			@Override
 			public void handleMessage(EBMessage msg)
 			{
 				if(msg instanceof PropertiesChanged)
@@ -1266,7 +1288,7 @@ public abstract class VFS
 	{
 		synchronized(lock)
 		{
-			colors = new ArrayList<ColorEntry>();
+			colors = new ArrayList<>();
 
 			if(!jEdit.getBooleanProperty("vfs.browser.colorize"))
 				return;
@@ -1297,29 +1319,40 @@ public abstract class VFS
 	//{{{ ColorEntry class
 	private static class ColorEntry
 	{
-		Pattern re;
-		Color color;
+		private final Pattern re;
+		private final Color color;
 
 		ColorEntry(Pattern re, Color color)
 		{
 			this.re = re;
 			this.color = color;
 		}
+
+		public Pattern getRe()
+		{
+			return re;
+		}
+
+		public Color getColor()
+		{
+			return color;
+		}
 	} //}}}
 
 	//{{{ SessionGetter class
 	private class SessionGetter implements Runnable
 	{
-		public SessionGetter(String path, Component comp)
+		SessionGetter(String path, Component comp)
 		{
 			this.path = path;
 			this.comp = comp;
 		}
 
 		private Object session;
-		private String path;
-		private Component comp;
+		private final String path;
+		private final Component comp;
 
+		@Override
 		public void run()
 		{
 			session = createVFSSession(path, comp);

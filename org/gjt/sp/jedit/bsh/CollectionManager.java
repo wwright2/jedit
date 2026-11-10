@@ -45,6 +45,7 @@ import java.lang.reflect.Array;
     The dynamically loaded CollectionManagerImpl supports additional types when
     it is present.
 */
+@SuppressWarnings("unchecked")
 public class CollectionManager
 {
     private static CollectionManager manager;
@@ -57,7 +58,7 @@ public class CollectionManager
             Class clas;
             try {
                 clas = Class.forName( "org.gjt.sp.jedit.bsh.collection.CollectionManagerImpl" );
-                manager = (CollectionManager)clas.newInstance();
+                manager = (CollectionManager)clas.getDeclaredConstructor().newInstance();
             } catch ( Exception e ) {
                 Interpreter.debug("unable to load CollectionManagerImpl: "+e);
             }

@@ -27,6 +27,8 @@ package org.gjt.sp.jedit.io;
 //{{{ Imports
 import java.io.Closeable;
 
+import javax.annotation.Nonnull;
+import javax.annotation.Nullable;
 import javax.swing.filechooser.FileSystemView;
 import javax.swing.*;
 
@@ -43,7 +45,7 @@ import org.gjt.sp.util.Log;
 /**
  * Local filesystem VFS.
  * @author Slava Pestov
- * @version $Id: FileVFS.java 23336 2013-11-16 12:05:40Z ezust $
+ * @version $Id: FileVFS.java 25698 2023-11-17 01:31:50Z vampire0 $
  */
 public class FileVFS extends VFS
 {
@@ -63,6 +65,7 @@ public class FileVFS extends VFS
 
 	//{{{ getParentOfPath() method
 	@Override
+	@Nonnull
 	public String getParentOfPath(String path)
 	{
 		if(OperatingSystem.isWindows())
@@ -107,6 +110,7 @@ public class FileVFS extends VFS
 	 * @param path The path name
 	 */
 	@Override
+	@Nullable
 	public String getTwoStageSaveName(String path)
 	{
 		File parent = new File(getParentOfPath(path));
@@ -207,10 +211,10 @@ public class FileVFS extends VFS
 	//{{{ LocalFile class
 	public static class LocalFile extends VFSFile
 	{
-		private File file;
+		private final File file;
 
 		// use system default short format
-		public static DateFormat DATE_FORMAT = new SimpleDateFormat("yyyy/MM/dd HH:mm");
+		public static final DateFormat DATE_FORMAT = new SimpleDateFormat("yyyy/MM/dd HH:mm");
 
 		private long modified;
 
@@ -544,8 +548,8 @@ public class FileVFS extends VFS
 
 	//{{{ Permission preservation code
 
-	/** Code borrowed from j text editor (http://www.armedbear.org) */
-	/** I made some changes to make it support suid, sgid and sticky files */
+	/* Code borrowed from j text editor (http://www.armedbear.org) */
+	/* I made some changes to make it support suid, sgid and sticky files */
 
 	//{{{ getPermissions() method
 	/**
@@ -642,6 +646,6 @@ public class FileVFS extends VFS
 	//}}}
 
 	//{{{ Private members
-	private static FileSystemView fsView = null;
+	private static FileSystemView fsView;
 	//}}}
 }

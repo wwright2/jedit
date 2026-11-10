@@ -1,8 +1,5 @@
 package org.jedit.keymap;
 
-import java.lang.Character;
-import java.lang.StringBuffer;
-
 import org.gjt.sp.jedit.Buffer;
 import org.gjt.sp.jedit.EditAction;
 import org.gjt.sp.jedit.Registers;
@@ -19,11 +16,13 @@ import org.gjt.sp.jedit.textarea.TextArea;
 	Rewritten in Java by Alan Ezust in 2013.
 */
 
-public class EmacsUtil {
+public class EmacsUtil
+{
 	Buffer buffer; 
 	TextArea textArea;
 	
-	public EmacsUtil() {
+	public EmacsUtil()
+	{
 		buffer =  jEdit.getActiveView().getBuffer();
 		textArea = jEdit.getActiveView().getTextArea();
 	}
@@ -35,7 +34,6 @@ public class EmacsUtil {
 	
 		int caret = textArea.getCaretPosition();		
 		int caretLine = textArea.getCaretLine();
-		int lineStart = textArea.getLineStartOffset (caretLine);
 		int lineEnd = textArea.getLineEndOffset (caretLine);					
 		
 		// If we're at the end of line (ignoring any trailing white space),
@@ -195,7 +193,6 @@ public class EmacsUtil {
 			{
 				textArea.goToNextCharacter (false);
 			}
-	
 			else
 			{
 				eat = false;
@@ -235,7 +232,7 @@ public class EmacsUtil {
 			// the file separator could be *anything*, we check explicitly for
 			// backslash here.
 			if (fileSep.equals ("\\"))
-				fileSep = fileSep + "\\";	
+				fileSep = new StringBuilder(fileSep).append('\\').toString();
 			bufName = theBuffer.getPath().replaceAll (fileSep, "/");
 		}
 		else
@@ -255,9 +252,8 @@ public class EmacsUtil {
 	{
 		String propName = makeBufferPropertyName ("emacs.mark");
 		int mark = getCardinalProperty (propName, -1);
-		if (mark != -1)
+		if (mark != -1 && mark >= buffer.getLength())
 		{
-			if (mark >= buffer.getLength())
 				mark = buffer.getLength() - 1;
 		}
 		return mark;
@@ -271,7 +267,7 @@ public class EmacsUtil {
 	
 	public void beep()
 	{
-		jEdit.getActiveView().getToolkit().beep();
+		javax.swing.UIManager.getLookAndFeel().provideErrorFeedback(null); 
 	}
 	
 	public Selection getKillRegion()
@@ -288,8 +284,7 @@ public class EmacsUtil {
 				return null;
 			}
 	
-			selection = new Selection.Range (Math.min (caret, mark),
-											 Math.max (caret, mark));
+			selection = new Selection.Range (Math.min (caret, mark), Math.max (caret, mark));
 			textArea.setSelection (selection);
 		}
 	
@@ -298,7 +293,7 @@ public class EmacsUtil {
 	
 	public String getClipboard()
 	{
-		return Registers.getRegister ('$').toString();
+		return String.valueOf(Registers.getRegister ('$'));
 	}
 	
 	public void setClipboard (String string)
@@ -327,29 +322,26 @@ public class EmacsUtil {
 	{
 		addToClipboardAndHistory (textArea.getSelectedText (selection));
 	}
-	
+
 	public int findEndOfSentence()
 	{
 		int caret = textArea.getCaretPosition();
-	
+
 		for (;;)
 		{
 			if (atEndOfBuffer (caret))
 				break;
-	
+
 			char ch = charAt (caret);
-			if (ch == '.')
+			if (ch == '.' && Character.isWhitespace (charAt (caret + 1)))
 			{
-				if (Character.isWhitespace (charAt (caret + 1)))
-				{
-					caret++;
-					break;
-				}
+				caret++;
+				break;
 			}
-	
+
 			caret++;
 		}
-		
+
 		return caret;
 	}
 	

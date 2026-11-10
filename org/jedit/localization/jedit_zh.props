@@ -7,7 +7,7 @@
 ### Copyright (C) 1998, 2005 Slava Pestov
 ###
 
-#{{{ jEdit core (jedit_gui.props)
+#{{{ jEdit core
 
 #{{{ Default user catalog file
 defaultCatalog=<?xml version="1.0"?>\n\
@@ -38,9 +38,9 @@ common.clearAll=全部清除
 common.selectAll=全选
 common.selectNone=反选
 
-lineSep.unix=Unix (\\n)
-lineSep.windows=DOS/Windows (\\r\\n)
-lineSep.mac=MacOS (\\r)
+lineSep.LF=Unix/MacOS (\\n)
+lineSep.CRLF=DOS/Windows (\\r\\n)
+lineSep.CR=Classic MacOS (\\r)
 #}}}
 
 #{{{ Miscellaneous
@@ -52,7 +52,6 @@ action-set.macros=宏
 action-set.plugin=插件: {0}
 
 macro-handler.beanshell.label=BeanShell 脚本
-macro-handler.beanshell.glob=*.bsh
 
 save-layout-failed.message=无法保存对接布局.
 load-layout.title=加载对接布局
@@ -539,7 +538,9 @@ view.status.io=I/O: {0} 操作在进行中
 view.status.linesep-changed=行分隔符设置为 {0}
 view.status.linesep-tooltip=行分隔符 (点击以改变)
 view.status.memory-tooltip=Java 堆内存: {0}Kb/{1}Kb
-view.status.mode-tooltip=当前编辑模式，折叠模式，以及编码
+view.status.mode-tooltip=当前编辑模式
+view.status.fold-tooltip=折叠模式
+view.status.encoding-tooltip=以及编码
 view.status.multi-changed=多项选择模式 {0,choice,0#off|1#on}
 view.status.multi-tooltip=多项选择模式 (点击以改变)
 view.status.narrow=调用"展开所有折叠"已使所有文本可见
@@ -591,7 +592,7 @@ print-error.message=一个错误发生在打印:\n\
 #{{{ About dialog
 about.title=关于 jEdit
 about.version=jEdit {0} {1} 模式, 使用 {2} Java {3}
-about.mode.standalone=独立	
+about.mode.standalone=独立
 about.mode.server=服务器
 about.mode.server-background=服务器背景
 about.navigate=按箭头键来浏览有关文本
@@ -675,7 +676,7 @@ out-of-memory-error=没有足够的Java堆内存来完成\n\
 	\n\
 	改变堆内存的文档在D\n\
 	 user guide的"jEdit Basics"章的"Buffers" 节里.\n\
-	
+
 #}}}
 
 #{{{ Old I/O error dialog boxes
@@ -788,7 +789,7 @@ saveall.message=你确定要保存已改变的文件吗?
 #}}}
 
 #{{{ Reload all confirm dialog
-reload-all.title=加载所有内容	
+reload-all.title=加载所有内容
 reload-all.message=你确定要从硬盘重新加载所有内容吗?\n\
 	所有打开文件的改变将要丢失!
 #}}}
@@ -964,8 +965,8 @@ remote-dir-search.message=你选择了非本地目录进行搜索.\n\
 
 #{{{ "Search in selection" active but nothing selected in text area
 search-no-selection.title=没有选择任何内容
-search-no-selection.message=选择一些文字或停用
-"在选择范围内搜索"选项.
+search-no-selection.message=选择一些文字或停用\n\
+	"在选择范围内搜索"选项.
 #}}}
 
 #{{{ Paste previous and paste deleted dialogs
@@ -1162,7 +1163,7 @@ folding-not-explicit.message=该指令只能在显式折叠模式下使用.
 #{{{ Memory status dialog box
 memory-status.title=Java 堆内存
 memory-status.gc=垃圾内存释放 {0} Kb.
-memory-status.use=消耗{0} Kb , 总共{1} Kb 
+memory-status.use=消耗{0} Kb , 总共{1} Kb
 #}}}
 
 #{{{ Multiple I/O request errors
@@ -1246,7 +1247,6 @@ options.general.restore.cli=... 添加命令行指定的文件名
 options.general.encodingDetectors=编码自动探测器列表:
 options.general.fallbackEncodings=后备编码列表:
 options.general.fallbackEncodings.tooltip=处理加载时编码错误的编码列表(空白符隔开)
-options.general.systrayicon=显示系统托盘图标
 #}}}
 
 #{{{ Abbreviations pane
@@ -1285,6 +1285,7 @@ options.appearance.decorateDialogs=使用Swing外观和感觉绘制对话框边�
 options.appearance.localization.section.label=本地化
 options.appearance.usedefaultlocale.label=使用默认本地化
 options.appearance.lang.label=语言 (重启后有效)
+options.appearance.systrayicon=显示系统托盘图标
 #}}}
 
 #{{{ Context Menu pane
@@ -1467,7 +1468,6 @@ options.save-back.twoStageSave.tooltip=第1阶段：创建一个临时文件，�
 options.save-back.confirmSaveAll=“保存全部内容“要求进行确认
 options.save-back.autosaveUntitled=自动保存未命名的内容
 options.save-back.suppressNotSavedConfirmUntitled=不给未命名内容标记未混乱文件.
-options.save-back.suppressNotSavedConfirmUntitled.tooltip=检查这意味着每当创建一个新的内容，未命名的内容就被删除（它是一个功能！）
 options.save-back.useMD5forDirtyCalculation=如果内容未改变，不标注内容紊乱.
 options.save-back.useMD5forDirtyCalculation.tooltip=在加载时比较内容长度以及MD5哈希值, 以判断已编辑的内容是否仍然混乱.
 options.save-back.saveAsUsesFSB=“另存为”默认到文件系统浏览器目录
@@ -1619,7 +1619,6 @@ options.toolbar.reset.dialog.message=你确定要重置工具栏到安装默认?
 #{{{ View pane
 options.view.label=视图
 options.view.viewLayout=查看布局
-options.view.floatableToolbars=流通工具栏
 options.view.alternateDockingLayout=备用停靠窗口位置
 options.view.alternateToolBarLayout=备用工具栏的位置
 options.view.abbreviatePaths=可能时，使用环境变量缩写路径
@@ -1943,10 +1942,6 @@ plugin-manager.status.error=错误
 
 plugin-manager.list-download-connect=连接到 plugins.jedit.org
 plugin-manager.list-download=从m plugins.jedit.org下载插件列表
-plugin-manager.list-download.mirror-autoselect-error.title=镜像选择错误
-plugin-manager.list-download.mirror-autoselect-error.message=镜像自动选择错误:\n\
-	{0}\n\
-	指定一个镜像可能有效.
 plugin-manager.list-download.need-password.title=HTTP 代理需要密码
 plugin-manager.list-download.need-password.message=HTTP 代理需要密码.\n\
 	请在“下载选项”配置有效的用户名/密码.
@@ -1981,20 +1976,18 @@ install-plugins.info.name=名称
 install-plugins.info.size=大小
 install-plugins.info.releaseDate=发布日期
 install-plugins.info.version=版本
-install-plugins.info.category类别
+install-plugins.info.category=类别
+install-plugins.info.author=作者
+install-plugins.info.released=发布了
 
 install-plugins.totalSize={0} 个插件), 总大小: {1}
 install-plugins.select-all=全选
 install-plugins.install=安装
 install-plugins.show-updates=显示更新
 
-install-plugins.info=<b>作者</b>: {0}\n\
-	<b>发布了</b>: {1}\n\
-	{2}
-
 update-plugins.title=更新
 
-plugin-manager.progress=正在从 {1}下载 {0} 
+plugin-manager.progress=正在从 {1}下载 {0}
 plugin-manager.progress.title=正在安装插件
 plugin-manager.progress.stop=停止
 #}}}
@@ -2262,8 +2255,6 @@ macro.rs.DisplayShortcuts.Shortcut2.label=快捷键 - 2
 macro.rs.DisplayShortcuts.Close.label=关闭
 macro.rs.DisplayShortcuts.WriteToBuffer.label=写入到内容
 macro.rs.DisplayShortcuts.ShortcutList.label=键盘快捷键列表
-macro.rs.DisplayShortcuts.Center.label=中心
-macro.rs.DisplayShortcuts.South.label=南部
 #}}}
 
 #{{{ Hex Convert
@@ -2276,12 +2267,7 @@ macro.rs.HexConvert.ByteToString.label=字节转化为字符串:
 #{{{ Make Bug Report
 macro.rs.MakeBugReport.OpeningActivityLog.error=打开活动日志错误.
 macro.rs.MakeBugReport.UsefulEntriesForReport.label=活动日志条目在bug报告里可能是有用的:\n\n.
-macro.rs.MakeBugReport.MessagejEdit.label=[message] jEdit:
-macro.rs.MakeBugReport.NoticejEdit.label=[notice] jEdit:
-macro.rs.MakeBugReport.NoticeJarClassLoader.label=[notice] JARClassLoader:
-macro.rs.MakeBugReport.MessagejEditStartupComplete.label=[message] jEdit: 完成启动
-macro.rs.MakeBugReport.Error.label=[error]
-macro.rs.MakeBugReport.ReadingActivityLog.error=阅读活动日志错误
+macro.rs.MakeBugReport.ReadingActivityLog.error=阅读活动日志错误.
 #}}}
 
 #{{{ Run Script
@@ -2439,7 +2425,7 @@ Emacs/Emacs_Next_Line.label=Emacs 下一行
 Emacs/Emacs_Open_Line.label=Emacs 打开行
 Emacs/Emacs_Previous_Line.label=Emacs 前一行
 Emacs/Emacs_Set_Mark.label=Emacs 设置标记
-Emacs/Emacs_Set_Wrap=Emacs 设置自动换行
+Emacs/Emacs_Set_Wrap.label=Emacs 设置自动换行
 Emacs/Emacs_Transpose_Chars.label=Emacs 转置字符
 Emacs/Emacs_Transpose_Lines.label=Emacs 转置行
 Emacs/Emacs_Upcase_Word.label=Emacs 单词大写
@@ -2451,7 +2437,6 @@ macros.folder.Files.label=文件
 Files/Browse_Buffer_Directory.label=浏览内容目录
 Files/Browse_Directory.label=浏览目录
 Files/Buffer_Switcher.label=内容开关
-Files/Close_All_Except_Active.label=关闭除活动区外所有内容
 Files/Copy_Name_to_Clipboard.label=复制内容到粘贴板
 Files/Copy_Path_to_Clipboard.label=复制路径到粘贴板
 Files/Delete_Current.label=删除当前

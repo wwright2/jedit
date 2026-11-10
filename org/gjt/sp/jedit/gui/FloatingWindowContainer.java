@@ -32,34 +32,27 @@ import java.awt.event.MouseEvent;
 import java.beans.PropertyChangeEvent;
 import java.beans.PropertyChangeListener;
 
-import javax.swing.Box;
-import javax.swing.BoxLayout;
-import javax.swing.JButton;
-import javax.swing.JDialog;
-import javax.swing.JPopupMenu;
-import javax.swing.JSeparator;
-import javax.swing.SwingUtilities;
+import javax.swing.*;
 
 import org.gjt.sp.jedit.GUIUtilities;
 import org.gjt.sp.jedit.jEdit;
+import org.gjt.sp.util.GenericGUIUtilities;
 //}}}
 
 /**
  * A container for dockable windows. This class should never be used
  * directly.
- * @version $Id: FloatingWindowContainer.java 23704 2014-10-27 04:14:16Z ezust $
+ * @version $Id: FloatingWindowContainer.java 25333 2020-05-10 09:40:02Z kpouer $
  * @since jEdit 4.0pre1
  */
-public class FloatingWindowContainer extends JDialog implements DockableWindowContainer,
-	PropertyChangeListener
+public class FloatingWindowContainer extends JFrame implements DockableWindowContainer, PropertyChangeListener
 {
-	String dockableName = null;
+	private String dockableName;
+
 	//{{{ FloatingWindowContainer constructor
 	public FloatingWindowContainer(DockableWindowManagerImpl dockableWindowManager,
 		boolean clone)
 	{
-		super(dockableWindowManager.getView());
-
 		this.dockableWindowManager = dockableWindowManager;
 
 		dockableWindowManager.addPropertyChangeListener(this);
@@ -74,15 +67,14 @@ public class FloatingWindowContainer extends JDialog implements DockableWindowCo
 		menu.setToolTipText(jEdit.getProperty("docking.menu.label"));
 		Box separatorBox = new Box(BoxLayout.Y_AXIS);
 		separatorBox.add(Box.createVerticalStrut(3));
-		separatorBox.add(new JSeparator(JSeparator.HORIZONTAL));
+		separatorBox.add(new JSeparator(SwingConstants.HORIZONTAL));
 		separatorBox.add(Box.createVerticalStrut(3));
 		caption.add(separatorBox);
 		getContentPane().add(BorderLayout.NORTH,caption);
-	
-		
 	} //}}}
 
 	//{{{ register() method
+	@Override
 	public void register(DockableWindowManagerImpl.Entry entry)
 	{
 		this.entry = entry;
@@ -95,6 +87,7 @@ public class FloatingWindowContainer extends JDialog implements DockableWindowCo
 		pack();
 		Container parent = dockableWindowManager.getView();
 		GUIUtilities.loadGeometry(this, parent, dockableName);
+		GUIUtilities.addSizeSaver(this, parent, dockableName);
 		KeyListener listener = dockableWindowManager.closeListener(dockableName);
 		addKeyListener(listener);
 		getContentPane().addKeyListener(listener);
@@ -106,12 +99,14 @@ public class FloatingWindowContainer extends JDialog implements DockableWindowCo
 	} //}}}
 
 	//{{{ remove() method
+	@Override
 	public void remove(DockableWindowManagerImpl.Entry entry)
 	{
 		dispose();
 	} //}}}
 
 	//{{{ unregister() method
+	@Override
 	public void unregister(DockableWindowManagerImpl.Entry entry)
 	{
 		this.entry = null;
@@ -124,6 +119,7 @@ public class FloatingWindowContainer extends JDialog implements DockableWindowCo
 	} //}}}
 
 	//{{{ show() method
+	@Override
 	public void show(final DockableWindowManagerImpl.Entry entry)
 	{
 		if(entry == null)
@@ -133,25 +129,22 @@ public class FloatingWindowContainer extends JDialog implements DockableWindowCo
 			setTitle(entry.longTitle());
 			toFront();
 			requestFocus();
-			SwingUtilities.invokeLater(new Runnable()
+			SwingUtilities.invokeLater(() ->
 			{
-				public void run()
+				if(entry.win instanceof DefaultFocusComponent)
 				{
-					if(entry.win instanceof DefaultFocusComponent)
-					{
-						((DefaultFocusComponent)entry.win)
-							.focusOnDefaultComponent();
-					}
-					else
-					{
-						entry.win.requestFocus();
-					}
+					((DefaultFocusComponent)entry.win).focusOnDefaultComponent();
+				}
+				else
+				{
+					entry.win.requestFocus();
 				}
 			});
 		}
 	} //}}}
 
 	//{{{ isVisible() method
+	@Override
 	public boolean isVisible(DockableWindowManagerImpl.Entry entry)
 	{
 		return true;
@@ -161,11 +154,8 @@ public class FloatingWindowContainer extends JDialog implements DockableWindowCo
 	@Override
 	public void dispose()
 	{
-		GUIUtilities.saveGeometry(this, dockableWindowManager.getView(), dockableName);
-		if (entry != null) {
-			entry.container = null;
-			entry.win = null;
-		}
+		entry.container = null;
+		entry.win = null;
 		super.dispose();
 	} //}}}
 
@@ -190,9 +180,9 @@ public class FloatingWindowContainer extends JDialog implements DockableWindowCo
 	//}}}
 
 	//{{{ MouseHandler class
-	class MouseHandler extends MouseAdapter
+	private class MouseHandler extends MouseAdapter
 	{
-		JPopupMenu popup;
+		private JPopupMenu popup;
 
 		@Override
 		public void mousePressed(MouseEvent evt)
@@ -204,12 +194,14 @@ public class FloatingWindowContainer extends JDialog implements DockableWindowCo
 				popup = dockableWindowManager.createPopupMenu(
 					FloatingWindowContainer.this,
 					entry.factory.name,clone);
-				GUIUtilities.showPopupMenu(popup,
+				GenericGUIUtilities.showPopupMenu(popup,
 					menu,menu.getX(),menu.getY() + menu.getHeight(),
 					false);
 			}
 		}
 	} //}}}
+	
+	@Override
 	public void propertyChange(PropertyChangeEvent evt)
 	{
 		if (dockableName == null) return;
@@ -217,6 +209,5 @@ public class FloatingWindowContainer extends JDialog implements DockableWindowCo
 		if (pn.startsWith(dockableName) && pn.endsWith("title"))
 			setTitle(evt.getNewValue().toString());
 	}
-	
 }
 

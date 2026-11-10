@@ -30,21 +30,22 @@ import org.xml.sax.helpers.DefaultHandler;
 
 import org.gjt.sp.util.XMLUtilities;
 import org.gjt.sp.util.Log;
+
 import org.gjt.sp.jedit.options.PluginOptions;
 
 /**
- * @version $Id: MirrorListHandler.java 21831 2012-06-18 22:54:17Z ezust $
+ * @version $Id: MirrorListHandler.java 25233 2020-04-13 15:32:00Z kpouer $
  */
 class MirrorListHandler extends DefaultHandler
 {
 	//{{{ Constructor
-	MirrorListHandler(MirrorList mirrors, String path)
+	MirrorListHandler(MirrorList mirrors)
 	{
 		this.mirrors = mirrors;
-		this.path = path;
 	} //}}}
 
 	//{{{ resolveEntity() method
+	@Override
 	public InputSource resolveEntity(String publicId, String systemId)
 	{
 		return XMLUtilities.findEntity(systemId, "mirrors.dtd",
@@ -52,21 +53,23 @@ class MirrorListHandler extends DefaultHandler
 	} //}}}
 
 	//{{{ characters() method
+	@Override
 	public void characters(char[] c, int off, int len)
 	{
 		String tag = peekElement();
 
-		if(tag == "DESCRIPTION")
+		if("DESCRIPTION".equals(tag))
 			description.append(c, off, len);
-		else if(tag == "LOCATION")
+		else if("LOCATION".equals(tag))
 			location.append(c, off, len);
-		else if(tag == "COUNTRY")
+		else if("COUNTRY".equals(tag))
 			country.append(c, off, len);
-		else if(tag == "CONTINENT")
+		else if("CONTINENT".equals(tag))
 			continent.append(c, off, len);
 	} //}}}
 
 	//{{{ startElement() method
+	@Override
 	public void startElement(String uri, String localName,
 				 String tag, Attributes attrs)
 	{
@@ -80,6 +83,7 @@ class MirrorListHandler extends DefaultHandler
 	} //}}}
 
 	//{{{ endElement() method
+	@Override
 	public void endElement(String uri, String localName, String tag)
 	{
 		popElement();
@@ -100,6 +104,7 @@ class MirrorListHandler extends DefaultHandler
 	} //}}}
 
 	//{{{ startDocument() method
+	@Override
 	public void startDocument()
 	{
 		try
@@ -113,6 +118,7 @@ class MirrorListHandler extends DefaultHandler
 	} //}}}
 
 	//{{{ endDocument() method
+	@Override
 	public void endDocument()
 	{
 		mirrors.finished();
@@ -122,21 +128,19 @@ class MirrorListHandler extends DefaultHandler
 
 	//{{{ Variables
 	private String id;
-	private final StringBuilder description = new StringBuilder();
-	private final StringBuilder location = new StringBuilder();
-	private final StringBuilder country = new StringBuilder();
-	private final StringBuilder continent = new StringBuilder();
+	private final StringBuilder description = new StringBuilder();		// NOPMD
+	private final StringBuilder location = new StringBuilder();			// NOPMD
+	private final StringBuilder country = new StringBuilder();			// NOPMD
+	private final StringBuilder continent = new StringBuilder();		// NOPMD
 
 	private final MirrorList mirrors;
 	private MirrorList.Mirror mirror;
 
-	private final Stack<String> stateStack = new Stack<String>();
-	private final String path;
+	private final Stack<String> stateStack = new Stack<>();
 	//}}}
 
 	private String pushElement(String name)
 	{
-		name = name == null ? null : name.intern();
 		stateStack.push(name);
 		return name;
 	}

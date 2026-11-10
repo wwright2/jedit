@@ -36,7 +36,7 @@ import org.gjt.sp.jedit.textarea.Selection;
  * called through, implements such protection.
  *
  * @author Slava Pestov
- * @version $Id: UndoManager.java 22171 2012-09-06 15:12:05Z ezust $
+ * @version $Id: UndoManager.java 25509 2021-04-24 21:55:35Z kpouer $
  * @since jEdit 4.0pre1
  */
 public class UndoManager
@@ -79,12 +79,12 @@ public class UndoManager
 			reviseUndoId();
 			undoCount--;
 
-			Selection s[] = undosLast.undo(this);
+			Selection[] selections = undosLast.undo(this);
 			redosFirst = undosLast;
 			undosLast = undosLast.prev;
 			if(undosLast == null)
 				undosFirst = null;
-			return s;
+			return selections;
 		}
 	} //}}}
 
@@ -261,7 +261,7 @@ public class UndoManager
 	//{{{ Private members
 
 	//{{{ Instance variables
-	private JEditBuffer buffer;
+	private final JEditBuffer buffer;
 
 	// queue of undos. last is most recent, first is oldest
 	private Edit undosFirst;
@@ -379,23 +379,21 @@ public class UndoManager
 
 	//{{{ getCompressedReplaceFromReplaceReplace() method
 	// a CompressedReplace Edit is one to many Replace Edit compressed via offsets
-	private CompressedReplace getCompressedReplaceFromReplaceReplace(Edit lastElement, Edit newElement)
+	private static CompressedReplace getCompressedReplaceFromReplaceReplace(Edit lastElement, Edit newElement)
 	{
-
 		if(newElement instanceof Replace)
 		{
-			CompressedReplace rep = null;
 			// try to pack the next Replace into the CompressedReplace
 			if(lastElement instanceof CompressedReplace)
 			{
-				rep = (CompressedReplace) lastElement;
+				CompressedReplace rep = (CompressedReplace) lastElement;
 				return rep.add((Replace) newElement);
 			}
 	
 			// try to create a compressed Replace
 			if(lastElement instanceof Replace)
 			{
-				rep = new CompressedReplace((Replace)lastElement);
+				CompressedReplace rep = new CompressedReplace((Replace)lastElement);
 				return rep.add((Replace) newElement);
 			}
 		}
@@ -562,7 +560,7 @@ public class UndoManager
 		//{{{ add() method
 		CompressedReplace add(Replace rep)
 		{
-			if(this.strInsert.equals(rep.strInsert) && this.strRemove.equals(rep.strRemove))
+			if(strInsert.equals(rep.strInsert) && strRemove.equals(rep.strRemove))
 			{
 				offsets.add(rep.offset);
 				return this;
@@ -660,7 +658,7 @@ public class UndoManager
 			// try to compress a sequence of Replace and Replace into a "CompressedReplace"
 			if(last.prev != null)
 			{
-				Edit rep = mgr.getCompressedReplaceFromReplaceReplace(last.prev, last);
+				Edit rep = UndoManager.getCompressedReplaceFromReplaceReplace(last.prev, last);
 				if(rep != null)
 					exchangeLastElement(rep);
 			}
@@ -668,7 +666,7 @@ public class UndoManager
 			// try to compress a sequence of CompressedReplace and Replace into a "CompressedReplace"
 			if(last.prev != null)
 			{
-				Edit rep = mgr.getCompressedReplaceFromReplaceReplace(last.prev, last);
+				Edit rep = UndoManager.getCompressedReplaceFromReplaceReplace(last.prev, last);
 				if(rep != null)
 					exchangeLastElement(rep);
 			}

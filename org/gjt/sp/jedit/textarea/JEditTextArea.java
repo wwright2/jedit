@@ -25,8 +25,6 @@ package org.gjt.sp.jedit.textarea;
 
 //{{{ Imports
 import java.awt.AWTEvent;
-import java.awt.event.ActionEvent;
-import java.awt.event.ActionListener;
 import java.awt.event.MouseEvent;
 import java.util.regex.Pattern;
 
@@ -44,6 +42,7 @@ import org.gjt.sp.jedit.jEdit;
 import org.gjt.sp.jedit.msg.PositionChanging;
 import org.gjt.sp.jedit.msg.PropertiesChanged;
 import org.gjt.sp.jedit.options.GlobalOptions;
+import org.gjt.sp.jedit.print.PageBreakExtension;
 //}}}
 
 /**
@@ -56,7 +55,7 @@ import org.gjt.sp.jedit.options.GlobalOptions;
  *
  * @author Slava Pestov
  * @author John Gellene (API documentation)
- * @version $Id: JEditTextArea.java 23536 2014-05-10 19:08:54Z ezust $
+ * @version $Id: JEditTextArea.java 25032 2020-03-25 23:17:29Z kpouer $
  */
 public class JEditTextArea extends TextArea
 {
@@ -72,6 +71,7 @@ public class JEditTextArea extends TextArea
 		this.view = view;
 		setRightClickPopupEnabled(true);
 		painter.setLineExtraSpacing(jEdit.getIntegerProperty("options.textarea.lineSpacing", 0));
+		new PageBreakExtension(this);
 		EditBus.addToBus(this);
 	} //}}}
 
@@ -209,6 +209,7 @@ public class JEditTextArea extends TextArea
 	// }}}
 
 	// {{{ overrides from the base class that are EditBus  aware
+	@Override
 	public void goToBufferEnd(boolean select)
 	{
 		EditBus.send(new PositionChanging(this));
@@ -221,6 +222,7 @@ public class JEditTextArea extends TextArea
 	 * Also sends PositionChanging if it goes somewhere.
 	 * @since jEdit 4.3pre18
 	 */
+	@Override
 	public void goToMatchingBracket()
 	{
 		if(getLineLength(caretLine) != 0)
@@ -237,10 +239,11 @@ public class JEditTextArea extends TextArea
 				return;
 			}
 		}
-		getToolkit().beep();
+		javax.swing.UIManager.getLookAndFeel().provideErrorFeedback(null); 
 	} //}}}
 
 
+	@Override
 	public void goToBufferStart(boolean select)
 	{
 		EditBus.send(new PositionChanging(this));
@@ -264,14 +267,14 @@ public class JEditTextArea extends TextArea
 	 */
 	public void showGoToLineDialog()
 	{
-		int maxLine = Integer.valueOf(buffer.getLineCount());
+		int maxLine = buffer.getLineCount();
 		String line = GUIUtilities.input(view,"goto-line",new Integer[] {1, maxLine},null);
 		if(line == null)
 			return;
 
 		try
 		{
-			int lineNumber = 0;
+			int lineNumber;
 			if (Pattern.matches("-\\d+", line) || Pattern.matches("\\+\\d+", line))
 			{
 				int offset = Integer.parseInt(line);
@@ -294,7 +297,7 @@ public class JEditTextArea extends TextArea
 		}
 		catch(Exception e)
 		{
-			getToolkit().beep();
+			javax.swing.UIManager.getLookAndFeel().provideErrorFeedback(null); 
 		}
 	} //}}}
 
@@ -357,6 +360,7 @@ public class JEditTextArea extends TextArea
 	} //}}}
 
 	//{{{ doWordCount() method
+	@SuppressWarnings("fallthrough")
 	protected static void doWordCount(View view, String text)
 	{
 		char[] chars = text.toCharArray();
@@ -424,7 +428,7 @@ public class JEditTextArea extends TextArea
 	//{{{ Private members
 
 	//{{{ Instance variables
-	private View view;
+	private final View view;
 	//}}}
 	//}}}
 
@@ -459,19 +463,7 @@ public class JEditTextArea extends TextArea
 			popup.setVisible(false);
 		else
 		{
-			// Rebuild popup menu every time the menu is requested.
-			createPopupMenu(evt);
-
-			int x = evt.getX();
-			int y = evt.getY();
-
-			int dragStart = xyToOffset(x,y,
-				!(painter.isBlockCaretEnabled()
-				|| isOverwriteEnabled()));
-
-			if(getSelectionCount() == 0 || multi)
-				moveCaretPosition(dragStart,false);
-			GUIUtilities.showPopupMenu(popup,painter,x,y);
+			super.handlePopupTrigger(evt);
 		}
 	} //}}}
 
@@ -488,13 +480,7 @@ public class JEditTextArea extends TextArea
 			return;
 		JMenuItem customize = new JMenuItem(jEdit.getProperty(
 			"view.context.customize"));
-		customize.addActionListener(new ActionListener()
-		{
-			public void actionPerformed(ActionEvent evt)
-			{
-				new GlobalOptions(view,"context");
-			}
-		});
+		customize.addActionListener(evt1 -> new GlobalOptions(view,"context"));
 		popup.addSeparator();
 		popup.add(customize);
 	} //}}}

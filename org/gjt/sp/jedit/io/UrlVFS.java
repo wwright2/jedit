@@ -32,7 +32,7 @@ import org.gjt.sp.util.Log;
 /**
  * URL VFS.
  * @author Slava Pestov
- * @version $Id: UrlVFS.java 21831 2012-06-18 22:54:17Z ezust $
+ * @version $Id: UrlVFS.java 25654 2023-09-02 18:08:43Z vampire0 $
  */
 public class UrlVFS extends VFS
 {
@@ -43,6 +43,7 @@ public class UrlVFS extends VFS
 	} //}}}
 
 	//{{{ constructPath() method
+	@Override
 	public String constructPath(String parent, String path)
 	{
 		if(parent.endsWith("/"))
@@ -52,8 +53,8 @@ public class UrlVFS extends VFS
 	} //}}}
 
 	//{{{ _createInputStream() method
-	public InputStream _createInputStream(Object session,
-		String path, boolean ignoreErrors, Component comp)
+	@Override
+	public InputStream _createInputStream(Object session, String path, boolean ignoreErrors, Component comp)
 		throws IOException
 	{
 		try
@@ -70,8 +71,8 @@ public class UrlVFS extends VFS
 	} //}}}
 
 	//{{{ _createOutputStream() method
-	public OutputStream _createOutputStream(Object session, String path,
-		Component comp) throws IOException
+	@Override
+	public OutputStream _createOutputStream(Object session, String path, Component comp) throws IOException
 	{
 		try
 		{
@@ -85,6 +86,18 @@ public class UrlVFS extends VFS
 			VFSManager.error(comp,path,"ioerror.badurl",args);
 			return null;
 		}
+	} //}}}
+
+	//{{{ getFileName() method
+	@Override
+	public String getFileName(String path)
+	{
+		String result = super.getFileName(path);
+		int index = result.indexOf('?');
+		if (index == -1)
+			return result;
+		else
+			return result.substring(0, index);
 	} //}}}
 
 	//{{{ getFilePath() method

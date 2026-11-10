@@ -30,22 +30,24 @@ import org.gjt.sp.util.Log;
 public class PluginsProvider implements DynamicMenuProvider
 {
 	//{{{ updateEveryTime() method
+	@Override
 	public boolean updateEveryTime()
 	{
 		return false;
 	} //}}}
 
 	//{{{ update() method
+	@Override
 	public void update(JMenu menu)
 	{
 		// We build a set of lists, each list contains plugin menu
 		// items that begin with a given letter.
 		int count = 0;
 
-		List<JMenuItem>[] letters = (List<JMenuItem>[])new List[26];
-		for(int i = 0; i < letters.length; i++)
+		List<List<JMenuItem>> letters = new ArrayList<>(26);
+		for(int i = 0; i < 26; i++)
 		{
-			letters[i] = new ArrayList<JMenuItem>();
+			letters.add(new ArrayList<>());
 		}
 
 		PluginJAR[] pluginArray = jEdit.getPluginJARs();
@@ -74,9 +76,9 @@ public class PluginsProvider implements DynamicMenuProvider
 
 		// Sort each letter
 		for (List<JMenuItem> letter1 : letters)
-			Collections.sort(letter1, new MenuItemTextComparator());
+			letter1.sort(new MenuItemTextComparator());
 
-		int maxItems = jEdit.getIntegerProperty("menu.spillover",20);
+		int maxItems = jEdit.getIntegerProperty("menu.spillover", 20);
 
 		// if less than 20 items, put them directly in the menu
 		if(count <= maxItems)
@@ -96,9 +98,9 @@ public class PluginsProvider implements DynamicMenuProvider
 		JMenu submenu = new JMenu();
 		menu.add(submenu);
 
-		for(int i = 0; i < letters.length; i++)
+		for(int i = 0; i < letters.size(); i++)
 		{
-			List<JMenuItem> letter = letters[i];
+			List<JMenuItem> letter = letters.get(i);
 
 			if(count + letter.size() > maxItems && count != 0)
 			{
@@ -136,7 +138,7 @@ public class PluginsProvider implements DynamicMenuProvider
 	} //}}}
 
 	//{{{ addToLetterMap() method
-	private void addToLetterMap(List<JMenuItem>[] letters, JMenuItem item)
+	private void addToLetterMap(List<List<JMenuItem>> letters, JMenuItem item)
 	{
 		char ch = item.getText().charAt(0);
 		ch = Character.toUpperCase(ch);
@@ -147,6 +149,6 @@ public class PluginsProvider implements DynamicMenuProvider
 				+ item.getText());
 		}
 		else
-			letters[ch - 'A'].add(item);
+			letters.get(ch - 'A').add(item);
 	} //}}}
 }
