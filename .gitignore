@@ -1,0 +1,27 @@
+# Build output and downloaded dependencies (recreated by `ant build`)
+/build/
+/lib/
+/dist/
+
+# Each developer's local build settings (copied from build.properties.sample)
+/build.properties
+
+# IDE project files (each developer keeps their own)
+.idea/
+*.iml
+/out/
+.vscode/
+.project
+.classpath
+.settings/
+
+# Compiled classes, if anything compiles outside build/
+*.class
+
+# jEdit's own backup and autosave files (if you edit this repo with jEdit)
+*~
+\#*\#
+
+# OS clutter
+.DS_Store
+Thumbs.db
